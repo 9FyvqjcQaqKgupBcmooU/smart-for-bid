@@ -3,9 +3,14 @@ import { PrismaLibSql } from "@prisma/adapter-libsql";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
+function stripQuotes(v: string | undefined) {
+  if (!v) return v;
+  return v.replace(/^["']|["']$/g, "");
+}
+
 function makeClient() {
-  const tursoUrl = process.env.TURSO_DATABASE_URL;
-  const authToken = process.env.TURSO_AUTH_TOKEN;
+  const tursoUrl = stripQuotes(process.env.TURSO_DATABASE_URL);
+  const authToken = stripQuotes(process.env.TURSO_AUTH_TOKEN);
 
   if (tursoUrl && authToken) {
     const adapter = new PrismaLibSql({
