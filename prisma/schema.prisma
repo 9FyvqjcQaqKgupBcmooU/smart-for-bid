@@ -1,0 +1,343 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  legalName String
+  siren     String
+  address   String
+  city      String
+  zip       String
+  country   String   @default("FR")
+  createdAt DateTime @default(now())
+  users     User[]
+}
+
+model User {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+  name      String
+  email     String  @unique
+  role      String
+  title     String
+  vendorId  String?
+  vendor    Vendor? @relation(fields: [vendorId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  tendersCreated     Tender[]          @relation("TenderCreator")
+  tendersKeyA        Tender[]          @relation("TenderKeyA")
+  tendersKeyB        Tender[]          @relation("TenderKeyB")
+  tenderVersions     TenderVersion[]
+  requisitions       Requisition[]
+  approvalSteps      ApprovalStep[]
+  purchaseOrders     PurchaseOrder[]
+  goodsReceipts      GoodsReceipt[]
+  invoices           Invoice[]
+  payments           Payment[]
+  notifications      Notification[]
+  auditEvents        AuditEvent[]
+  tenderOpenings     TenderOpening[]
+  mismatchApprovals  Invoice[]         @relation("MismatchApprover")
+}
+
+model ApprovalThreshold {
+  id        String  @id @default(cuid())
+  minAmount Float
+  maxAmount Float?
+  levels    String
+  label     String
+}
+
+model ChartOfAccount {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  label     String
+  type      String
+  invoices  Invoice[]
+}
+
+model Vendor {
+  id        String  @id @default(cuid())
+  name      String
+  legalName String
+  siren     String?
+  iban      String?
+  email     String?
+  city      String?
+  category  String?
+  users     User[]
+  invites   TenderInvite[]
+  bids      Bid[]
+  pos       PurchaseOrder[]
+  invoices  Invoice[]
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  body      String
+  href      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  action     String
+  actorId    String
+  actor      User     @relation(fields: [actorId], references: [id])
+  details    String
+  createdAt  DateTime @default(now())
+}
+
+model Tender {
+  id            String   @id @default(cuid())
+  number        String   @unique
+  title         String
+  briefing      String
+  status        String
+  deadline      DateTime
+  currency      String   @default("EUR")
+  createdById   String
+  createdBy     User     @relation("TenderCreator", fields: [createdById], references: [id])
+  awardedBidId  String?
+  keyAUserId    String
+  keyAUser      User     @relation("TenderKeyA", fields: [keyAUserId], references: [id])
+  keyBUserId    String
+  keyBUser      User     @relation("TenderKeyB", fields: [keyBUserId], references: [id])
+  keyAHash      String?
+  keyBHash      String?
+  keyAUnlocked  Boolean  @default(false)
+  keyBUnlocked  Boolean  @default(false)
+  publishedAt   DateTime?
+  openedAt      DateTime?
+  createdAt     DateTime @default(now())
+  invites       TenderInvite[]
+  versions      TenderVersion[]
+  bids          Bid[]
+  openings      TenderOpening[]
+  requisitions  Requisition[]
+}
+
+model TenderInvite {
+  id         String    @id @default(cuid())
+  tenderId   String
+  tender     Tender    @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  vendorId   String
+  vendor     Vendor    @relation(fields: [vendorId], references: [id])
+  notifiedAt DateTime?
+  @@unique([tenderId, vendorId])
+}
+
+model TenderVersion {
+  id          String   @id @default(cuid())
+  tenderId    String
+  tender      Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  changedById String
+  changedBy   User     @relation(fields: [changedById], references: [id])
+  summary     String
+  briefing    String
+  createdAt   DateTime @default(now())
+}
+
+model Bid {
+  id          String   @id @default(cuid())
+  tenderId    String
+  tender      Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  vendorId    String
+  vendor      Vendor   @relation(fields: [vendorId], references: [id])
+  payload     String
+  submittedAt DateTime @default(now())
+  @@unique([tenderId, vendorId])
+}
+
+model TenderOpening {
+  id        String   @id @default(cuid())
+  tenderId  String
+  tender    Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  officerId String
+  officer   User     @relation(fields: [officerId], references: [id])
+  lock      String
+  success   Boolean
+  createdAt DateTime @default(now())
+}
+
+model Requisition {
+  id          String   @id @default(cuid())
+  number      String   @unique
+  title       String
+  description String
+  type        String
+  amountHT    Float
+  currency    String   @default("EUR")
+  costCenter  String
+  neededBy    DateTime
+  status      String
+  requesterId String
+  requester   User     @relation(fields: [requesterId], references: [id])
+  createdAt   DateTime @default(now())
+  submittedAt DateTime?
+  tenderId    String?
+  tender      Tender?  @relation(fields: [tenderId], references: [id])
+  steps       ApprovalStep[]
+  purchaseOrders PurchaseOrder[]
+}
+
+model ApprovalStep {
+  id            String       @id @default(cuid())
+  requisitionId String?
+  requisition   Requisition? @relation(fields: [requisitionId], references: [id], onDelete: Cascade)
+  invoiceId     String?
+  invoice       Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  level         String
+  approverId    String
+  approver      User         @relation(fields: [approverId], references: [id])
+  status        String
+  decidedAt     DateTime?
+  comment       String?
+  stepOrder     Int
+}
+
+model PurchaseOrder {
+  id            String       @id @default(cuid())
+  number        String       @unique
+  requisitionId String
+  requisition   Requisition  @relation(fields: [requisitionId], references: [id])
+  vendorId      String
+  vendor        Vendor       @relation(fields: [vendorId], references: [id])
+  terms         String
+  status        String
+  issuedAt      DateTime     @default(now())
+  issuedById    String
+  issuedBy      User         @relation(fields: [issuedById], references: [id])
+  currency      String       @default("EUR")
+  lines         POLine[]
+  receipts      GoodsReceipt[]
+  invoices      Invoice[]
+}
+
+model POLine {
+  id          String        @id @default(cuid())
+  poId        String
+  po          PurchaseOrder @relation(fields: [poId], references: [id], onDelete: Cascade)
+  description String
+  qty         Float
+  unit        String
+  unitPrice   Float
+  grLines     GRLine[]
+}
+
+model GoodsReceipt {
+  id           String        @id @default(cuid())
+  number       String        @unique
+  poId         String
+  po           PurchaseOrder @relation(fields: [poId], references: [id])
+  type         String
+  receivedById String
+  receivedBy   User          @relation(fields: [receivedById], references: [id])
+  receivedAt   DateTime      @default(now())
+  notes        String?
+  status       String        @default("confirmed")
+  lines        GRLine[]
+  accruals     Accrual[]
+}
+
+model GRLine {
+  id          String       @id @default(cuid())
+  receiptId   String
+  receipt     GoodsReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  poLineId    String
+  poLine      POLine       @relation(fields: [poLineId], references: [id])
+  description String
+  qtyOrdered  Float
+  qtyReceived Float
+  unitPrice   Float
+}
+
+model Accrual {
+  id          String       @id @default(cuid())
+  receiptId   String
+  receipt     GoodsReceipt @relation(fields: [receiptId], references: [id])
+  accountCode String
+  amount      Float
+  status      String
+  createdAt   DateTime     @default(now())
+}
+
+model Invoice {
+  id              String           @id @default(cuid())
+  number          String
+  vendorId        String
+  vendor          Vendor           @relation(fields: [vendorId], references: [id])
+  poId            String?
+  po              PurchaseOrder?   @relation(fields: [poId], references: [id])
+  invoiceDate     DateTime
+  dueDate         DateTime
+  currency        String           @default("EUR")
+  amountHT        Float
+  vatAmount       Float
+  vatRate         Float
+  whtAmount       Float            @default(0)
+  whtRate         Float            @default(0)
+  otherTaxes      Float            @default(0)
+  amountTTC       Float
+  glAccountId     String?
+  glAccount       ChartOfAccount?  @relation(fields: [glAccountId], references: [id])
+  status          String
+  filename        String?
+  extractedText   String?
+  matchResult     String?
+  createdAt       DateTime         @default(now())
+  createdById     String
+  createdBy       User             @relation(fields: [createdById], references: [id])
+  mismatchApproverId String?
+  mismatchApprover   User?         @relation("MismatchApprover", fields: [mismatchApproverId], references: [id])
+  lines           InvoiceLine[]
+  steps           ApprovalStep[]
+  payments        PaymentItem[]
+}
+
+model InvoiceLine {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  qty         Float
+  unitPrice   Float
+  amount      Float
+}
+
+model Payment {
+  id           String        @id @default(cuid())
+  runNumber    String        @unique
+  method       String        @default("virement")
+  paymentDate  DateTime
+  status       String
+  executedById String
+  executedBy   User          @relation(fields: [executedById], references: [id])
+  createdAt    DateTime      @default(now())
+  items        PaymentItem[]
+}
+
+model PaymentItem {
+  id        String  @id @default(cuid())
+  paymentId String
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id])
+  amount    Float
+}
