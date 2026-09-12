@@ -990,12 +990,26 @@ Submit bids before **23 August 2026, 12:00**.`,
 
 const isDirect = process.argv.some((a) => /(?:^|[\\/])seed\.(ts|js)$/.test(a));
 if (isDirect) {
-  const prisma = new PrismaClient();
-  seedDemo(prisma)
-    .then(() => prisma.$disconnect())
-    .catch((e) => {
-      console.error(e);
-      prisma.$disconnect();
-      process.exit(1);
-    });
+  async function main() {
+    let prisma: PrismaClient;
+    if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
+      const { PrismaLibSql } = await import("@prisma/adapter-libsql");
+      const adapter = new PrismaLibSql({
+        url: process.env.TURSO_DATABASE_URL,
+        authToken: process.env.TURSO_AUTH_TOKEN,
+      });
+      prisma = new PrismaClient({ adapter });
+    } else {
+      prisma = new PrismaClient();
+    }
+    try {
+      await seedDemo(prisma);
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
 }
