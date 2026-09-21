@@ -3,10 +3,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --paper: #FAFBFC;
-  --paper-2: #F1F5F9;
-  --ink: #0B1220;
-  --ink-soft: #475569;
+  --paper: #FFFFFF;
+  --paper-2: #F8FAFC;
+  --ink: #0F172A;
+  --ink-soft: #64748B;
   --line: #E2E8F0;
   --cobalt: #1D4ED8;
   --cobalt-soft: #EFF6FF;
@@ -19,11 +19,11 @@
 }
 
 html.dark {
-  --paper: #020617;
-  --paper-2: #0F172A;
+  --paper: #0F172A;
+  --paper-2: #1E293B;
   --ink: #F8FAFC;
   --ink-soft: #94A3B8;
-  --line: #1E293B;
+  --line: #334155;
   --cobalt: #60A5FA;
   --cobalt-soft: #1E3A5F;
   --moss: #2DD4BF;
