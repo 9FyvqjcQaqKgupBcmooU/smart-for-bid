@@ -11,11 +11,12 @@ export async function getCurrentUser() {
     orderBy: { name: "asc" },
   });
   if (users.length === 0) return null;
+  // Demo default: Client (BUYER) so the first viewport is the live furniture RFQ.
   const current =
     users.find((u) => u.id === id) ??
-    users.find((u) => u.role === "REQUESTER") ??
-    users.find((u) => u.role === "OPENING_A") ??
     users.find((u) => u.role === "BUYER") ??
+    users.find((u) => u.role === "OPENING_A") ??
+    users.find((u) => u.role === "VENDOR") ??
     users[0];
   return { current, users };
 }

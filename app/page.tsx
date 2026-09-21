@@ -4,6 +4,7 @@ import { Workbench, EmptyPane } from "@/components/chrome";
 import { InboxList } from "@/components/InboxList";
 import { InboxRight } from "@/components/panes/InboxRight";
 import { AOPane } from "@/components/panes/AOPane";
+import { JobStrip } from "@/components/home/JobStrip";
 import { firstName } from "@/lib/format";
 import { getLocale } from "@/lib/i18n/server";
 import { t } from "@/lib/i18n";
@@ -20,19 +21,29 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
     selected
       ? null
       : await prisma.tender.findFirst({ where: { number: FEATURED_RFQ_NUMBER }, select: { id: true } });
+  const featured =
+    selected?.number === FEATURED_RFQ_NUMBER
+      ? selected
+      : items.find((i) => i.number === FEATURED_RFQ_NUMBER) ?? selected ?? null;
   const name = firstName(current.name);
-  const n = items.length;
-  const greeting =
-    n === 0
-      ? t(locale, "home.greetingZero", { name })
-      : n === 1
-        ? t(locale, "home.greetingOne", { name })
-        : t(locale, "home.greetingMany", { name, n });
+  const isSupplier = current.role === "VENDOR";
+  const canCreate = current.role === "BUYER" || current.role === "N4";
+  const canSubmit = Boolean(featured?.actionable && isSupplier);
+
+  const greeting = isSupplier
+    ? !featured
+      ? t(locale, "home.greetingSupplierClear", { name })
+      : canSubmit
+        ? t(locale, "home.greetingSupplierJob", { name })
+        : t(locale, "home.greetingSupplierFollow", { name })
+    : featured
+      ? t(locale, "home.greetingClientJob", { name })
+      : t(locale, "home.greetingClientClear", { name });
 
   const pane = selected ? (
-    <InboxRight item={selected} tab={tab ?? "brief"} />
+    <InboxRight item={selected} tab={tab ?? (isSupplier ? "brief" : "opening")} />
   ) : furniture ? (
-    <AOPane id={furniture.id} tab={tab ?? "brief"} />
+    <AOPane id={furniture.id} tab={tab ?? (isSupplier ? "brief" : "opening")} />
   ) : (
     <EmptyPane title={t(locale, "home.emptyTitle")} />
   );
@@ -42,9 +53,16 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
       leftClassName="w-[272px]"
       left={
         <>
-          <div className="px-4 pb-2 pt-4">
+          <div className="px-4 pb-1 pt-4">
             <p className="text-[16px] font-medium leading-6 text-ink">{greeting}</p>
           </div>
+          <JobStrip
+            locale={locale}
+            role={current.role}
+            itemKey={featured?.key}
+            canCreate={canCreate}
+            canSubmit={canSubmit}
+          />
           <InboxList items={items} selectedKey={selected?.key} locale={locale} />
         </>
       }

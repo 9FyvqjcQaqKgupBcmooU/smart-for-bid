@@ -72,10 +72,13 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
     : [];
   const cheapest = parsedBids.slice().sort((a, c) => a.payload.price - c.payload.price)[0];
 
+  const pastDeadline = new Date() >= t.deadline;
+  const sealedLocked = !(t.keyAUnlocked && t.keyBUnlocked);
   let question = t.title;
   if (t.status === "opened" && current.role === "BUYER") question = i18n(locale, "inbox.qAward");
   else if (t.status === "draft") question = i18n(locale, "ao.newFrom", { from: "" });
   else if (canDeposit) question = i18n(locale, "inbox.qDeposit");
+  else if (showOpening && !revealed && pastDeadline && sealedLocked) question = i18n(locale, "inbox.qOpenBids");
   else question = i18n(locale, "inbox.qReadBrief");
 
   const requestedTab = tab === "opening" || tab === "offers" ? 1 : tab === "log" ? 2 : tab === "brief" || tab === "briefing" ? 0 : null;
@@ -212,19 +215,22 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
             dangerouslySetInnerHTML={{ __html: renderBriefing(t.briefing) }}
           />
           {depositForm}
-          {versions.length > 0 && (
-            <div className="mt-4 border-t border-line pt-3">
-              <p className="text-[13px] text-ink-soft">{i18n(locale, "ao.whoWhatWhen")}</p>
+          <div className="mt-4 border-t border-line pt-3">
+            <p className="text-[13px] font-medium text-ink">{i18n(locale, "ao.whoWhatWhen")}</p>
+            {versions.length > 0 ? (
               <AddendaList />
-            </div>
-          )}
+            ) : (
+              <p className="mt-1 text-[13px] text-ink-soft">{i18n(locale, "ao.notifyInvited")}</p>
+            )}
+          </div>
           {(current.role === "BUYER" || current.id === t.createdById) && t.status !== "awarded" && (
             <details className="mt-3 border-t border-line pt-3">
-              <summary className="cursor-pointer text-[13px] text-ink-soft hover:text-ink">{i18n(locale, "ao.updateBrief")}</summary>
+              <summary className="cursor-pointer text-[13px] font-medium text-cobalt hover:opacity-90">{i18n(locale, "ao.editBriefHint")}</summary>
               <form action={updateBriefing} className="mt-2">
                 <input type="hidden" name="id" value={t.id} />
                 <textarea name="briefing" rows={4} defaultValue={t.briefing} className="w-full rounded-2xl border border-line bg-paper px-3 py-2 font-mono text-[13px]" />
                 <input name="summary" placeholder={i18n(locale, "ao.changeNote")} className="mt-2 min-h-11 w-full rounded-full border border-line bg-paper px-4 text-[16px]" />
+                <p className="mt-2 text-[13px] text-ink-soft">{i18n(locale, "ao.notifyInvited")}</p>
                 <button className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full border border-line bg-paper px-5 text-[16px] font-medium text-ink hover:bg-paper-2">{i18n(locale, "actions.save")}</button>
               </form>
             </details>

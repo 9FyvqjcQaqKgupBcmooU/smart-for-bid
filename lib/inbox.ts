@@ -69,6 +69,7 @@ export async function getInbox(user: { id: string; role: string; vendorId: strin
     orderBy: { number: "asc" },
   });
 
+  // Client path (BUYER + opening officers): track offers, open bids, award on RFQ.
   if (user.role !== "VENDOR") {
     for (const t of tenders) {
       const past = t.deadline <= now;
@@ -84,7 +85,7 @@ export async function getInbox(user: { id: string; role: string; vendorId: strin
             headline: t.title,
             support: tx(locale, "inbox.sealedSupport", { n: t.bids.length }),
             question: tx(locale, "inbox.qOpenBids"),
-            cta: tx(locale, "actions.unlockBids"),
+            cta: past && locked ? tx(locale, "actions.openBids") : tx(locale, "home.verbOffers"),
             tone: past && locked ? "info" : "ok",
             actionable: past && locked,
           })
@@ -106,12 +107,30 @@ export async function getInbox(user: { id: string; role: string; vendorId: strin
           })
         );
       }
+      if (t.status === "awarded") {
+        push(
+          item({
+            key: `ao:${t.id}`,
+            kind: "ao",
+            id: t.id,
+            number: t.number,
+            headline: t.title,
+            support: tx(locale, "inbox.awardedSupport"),
+            question: t.title,
+            cta: tx(locale, "home.verbFollowStatus"),
+            tone: "ok",
+            actionable: false,
+          })
+        );
+      }
     }
   }
 
+  // Supplier path: invited RFQs → submit offer → follow status.
   if (user.role === "VENDOR" && user.vendorId) {
     for (const t of tenders) {
       if (!t.invites.some((i) => i.vendorId === user.vendorId)) continue;
+      const myBid = t.bids.find((b) => b.vendorId === user.vendorId);
       if (t.status === "published" && t.deadline > now) {
         push(
           item({
@@ -121,28 +140,30 @@ export async function getInbox(user: { id: string; role: string; vendorId: strin
             number: t.number,
             headline: t.title,
             support: tx(locale, "inbox.biddingOpen"),
-            question: t.title,
-            cta: tx(locale, "inbox.submitBid"),
+            question: tx(locale, "inbox.qDeposit"),
+            cta: myBid ? tx(locale, "actions.replaceBid") : tx(locale, "actions.submitBid"),
             tone: "info",
+            actionable: true,
           })
         );
+        continue;
       }
-      if (t.status === "published" || t.status === "closed" || t.status === "opened" || t.status === "awarded") {
-        push(
-          item({
-            key: `ao:${t.id}`,
-            kind: "ao",
-            id: t.id,
-            number: t.number,
-            headline: t.title,
-            support: tx(locale, "inbox.sealedSupport", { n: t.bids.length }),
-            question: t.title,
-            cta: tx(locale, "inbox.submitBid"),
-            tone: "ok",
-            actionable: false,
-          })
-        );
-      }
+      push(
+        item({
+          key: `ao:${t.id}`,
+          kind: "ao",
+          id: t.id,
+          number: t.number,
+          headline: t.title,
+          support: myBid
+            ? tx(locale, "inbox.offerSent")
+            : tx(locale, "inbox.sealedSupport", { n: t.bids.length }),
+          question: t.title,
+          cta: tx(locale, "home.verbFollowStatus"),
+          tone: "ok",
+          actionable: false,
+        })
+      );
     }
   }
 

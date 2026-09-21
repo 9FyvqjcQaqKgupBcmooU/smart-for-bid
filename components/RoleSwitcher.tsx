@@ -8,7 +8,8 @@ import type { User } from "@prisma/client";
 import { cn, firstName } from "@/lib/format";
 import { roleLabel, roleShort } from "@/lib/roles";
 
-const ROLE_ORDER = ["REQUESTER", "N1", "N2", "N3", "N4", "BUYER", "OPENING_A", "OPENING_B", "AP", "VENDOR"];
+/** Demo switcher order: Client → Opening A/B → Suppliers. */
+const ROLE_ORDER = ["BUYER", "OPENING_A", "OPENING_B", "VENDOR"];
 
 type SwitchUser = User & { vendor: { name: string } | null };
 
@@ -31,8 +32,8 @@ export function RoleSwitcher({
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
   const current = users.find((u) => u.id === currentId) ?? users[0];
-  const internal = users.filter((u) => u.role !== "VENDOR").sort(byDemoOrder);
-  const vendors = users.filter((u) => u.role === "VENDOR").sort(byDemoOrder);
+  const clients = users.filter((u) => u.role !== "VENDOR").sort(byDemoOrder);
+  const suppliers = users.filter((u) => u.role === "VENDOR").sort(byDemoOrder);
 
   useEffect(() => {
     if (!open) return;
@@ -63,7 +64,7 @@ export function RoleSwitcher({
         >
           <span>{u.name}</span>
           <span className="inline-flex items-center rounded-full bg-paper px-2 py-0.5 text-[12px] font-medium text-ink-soft">
-            {u.role === "VENDOR" ? t(locale, "roles.full.VENDOR") : roleLabel(locale, u.role)}
+            {roleLabel(locale, u.role)}
           </span>
         </button>
       </form>
@@ -84,7 +85,7 @@ export function RoleSwitcher({
           <>
             <span className="min-w-0 truncate">{firstName(current.name)}</span>
             <span className="inline-flex shrink-0 items-center rounded-full bg-paper px-2 py-0.5 text-[12px] font-medium text-ink-soft">
-              {current.role === "VENDOR" ? t(locale, "roles.short.VENDOR") : roleShort(locale, current.role)}
+              {roleShort(locale, current.role)}
             </span>
           </>
         ) : (
@@ -94,14 +95,14 @@ export function RoleSwitcher({
       {open && (
         <div className="absolute right-0 z-50 mt-2 max-h-[70vh] min-w-[min(100vw-1.5rem,18rem)] overflow-y-auto rounded-2xl border border-line/80 bg-paper py-1 shadow-[0_8px_28px_rgba(15,23,42,0.12)] md:min-w-[280px]">
           <p className="px-3 pb-1 pt-2 text-[12px] text-ink-soft">{t(locale, "chrome.groupPeople")}</p>
-          {internal.map((u) => (
+          {clients.map((u) => (
             <Option key={u.id} u={u} />
           ))}
-          {vendors.length > 0 && (
+          {suppliers.length > 0 && (
             <>
               <div className="my-1 border-t border-line" />
               <p className="px-3 pb-1 pt-2 text-[12px] text-ink-soft">{t(locale, "chrome.groupVendors")}</p>
-              {vendors.map((u) => (
+              {suppliers.map((u) => (
                 <Option key={u.id} u={u} />
               ))}
             </>
