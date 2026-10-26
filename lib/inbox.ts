@@ -1,6 +1,7 @@
 import { prisma } from "./prisma";
 import { t as tx, type Locale } from "./i18n";
 import { FEATURED_RFQ_NUMBER } from "./demo";
+import { formatDate, formatTime } from "./format";
 
 export type InboxKind = "da" | "ao" | "fa" | "pay" | "po";
 export type InboxTone = "danger" | "warn" | "info" | "ok";
@@ -139,7 +140,12 @@ export async function getInbox(user: { id: string; role: string; vendorId: strin
             id: t.id,
             number: t.number,
             headline: t.title,
-            support: tx(locale, "inbox.biddingOpen"),
+            support: myBid
+              ? tx(locale, "inbox.offerReceivedAt", {
+                  date: formatDate(myBid.submittedAt, locale),
+                  time: formatTime(myBid.submittedAt, locale),
+                })
+              : tx(locale, "inbox.biddingOpen"),
             question: tx(locale, "inbox.qDeposit"),
             cta: myBid ? tx(locale, "actions.replaceBid") : tx(locale, "actions.submitBid"),
             tone: "info",
@@ -156,7 +162,10 @@ export async function getInbox(user: { id: string; role: string; vendorId: strin
           number: t.number,
           headline: t.title,
           support: myBid
-            ? tx(locale, "inbox.offerSent")
+            ? tx(locale, "inbox.offerReceivedAt", {
+                date: formatDate(myBid.submittedAt, locale),
+                time: formatTime(myBid.submittedAt, locale),
+              })
             : tx(locale, "inbox.sealedSupport", { n: t.bids.length }),
           question: t.title,
           cta: tx(locale, "home.verbFollowStatus"),

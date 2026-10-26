@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { Money } from "@/components/Money";
-import { formatDateTime, firstName } from "@/lib/format";
+import { formatDate, formatDateTime, formatTime, firstName } from "@/lib/format";
+import { Chip } from "@/components/Chip";
 import { renderBriefing } from "@/lib/markdown";
 import { OpeningCeremony } from "@/components/OpeningCeremony";
 import { awardBid, inviteVendor, publishTender, submitBid, updateBriefing } from "@/app/actions/tenders";
@@ -35,6 +36,13 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
   const revealed = t.status === "opened" || t.status === "awarded";
   const myBid = current.vendorId ? t.bids.find((b) => b.vendorId === current.vendorId) : null;
   const invited = current.vendorId ? t.invites.some((i) => i.vendorId === current.vendorId) : false;
+  // Number of times this supplier sent an offer (server-side audit) — >1 means it was replaced.
+  const mySubmits =
+    myBid && current.vendorId
+      ? await prisma.auditEvent.count({
+          where: { entityType: "Tender", entityId: t.id, action: "bid_submit", actor: { vendorId: current.vendorId } },
+        })
+      : 0;
   const vendors = await prisma.vendor.findMany();
   const uninvited = vendors.filter((v) => !t.invites.some((i) => i.vendorId === v.id));
   const showOpening = current.role !== "VENDOR" && (t.status === "published" || t.status === "closed" || t.status === "opened");
@@ -158,6 +166,30 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
     </>
   );
 
+  // Confirmation uses the offer's stored submittedAt (DB/server time), so it survives reloads.
+  const receipt =
+    current.role === "VENDOR" && myBid ? (
+      <div className="soft-card mt-4 space-y-1.5 px-3.5 py-3" data-testid="offer-receipt">
+        <Chip tone="ok">
+          ✓{" "}
+          {i18n(locale, "ao.offerReceived", {
+            date: formatDate(myBid.submittedAt, locale),
+            time: formatTime(myBid.submittedAt, locale),
+          })}
+        </Chip>
+        <p className="text-[15px] leading-[22px] text-ink">{i18n(locale, "ao.yourPliSealed")}</p>
+        {mySubmits > 1 && (
+          <p className="text-[13px] leading-[18px] text-ink-soft">
+            {i18n(locale, "ao.offerReplaced", {
+              date: formatDate(myBid.submittedAt, locale),
+              time: formatTime(myBid.submittedAt, locale),
+            })}
+          </p>
+        )}
+        {canDeposit && <p className="text-[13px] leading-[18px] text-ink-soft">{i18n(locale, "ao.offerReplaceHint")}</p>}
+      </div>
+    ) : null;
+
   const depositForm = canDeposit ? (
     <form action={submitBid} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
       <input type="hidden" name="tenderId" value={t.id} />
@@ -172,12 +204,8 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
       <textarea name="comments" rows={2} placeholder={i18n(locale, "ao.capacity")} className="col-span-2 rounded-2xl border border-line bg-paper px-4 py-2" />
       <button className={btnPrimary("col-span-2")}>{myBid ? i18n(locale, "actions.replaceBid") : i18n(locale, "actions.submitBid")}</button>
     </form>
-  ) : current.role === "VENDOR" && invited ? (
-    <p className="mt-4 text-[13px] leading-[18px] text-ink-soft">
-      {myBid
-        ? i18n(locale, "ao.yourPliSealed", { date: formatDateTime(myBid.submittedAt, locale) })
-        : i18n(locale, "ao.deadlinePassed")}
-    </p>
+  ) : current.role === "VENDOR" && invited && !myBid ? (
+    <p className="mt-4 text-[13px] leading-[18px] text-ink-soft">{i18n(locale, "ao.deadlinePassed")}</p>
   ) : null;
 
   return (
@@ -214,6 +242,7 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
             className="space-y-1 break-words text-[16px] leading-6 [&_h2]:text-[16px] [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:pl-4"
             dangerouslySetInnerHTML={{ __html: renderBriefing(t.briefing) }}
           />
+          {receipt}
           {depositForm}
           <div className="mt-4 border-t border-line pt-3">
             <p className="text-[13px] font-medium text-ink">{i18n(locale, "ao.whoWhatWhen")}</p>

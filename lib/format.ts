@@ -40,6 +40,16 @@ export function formatDate(d: Date | string | null | undefined, locale: FormatLo
   }).format(date);
 }
 
+export function formatTime(d: Date | string | null | undefined, locale: FormatLocale = "en"): string {
+  if (!d) return "—";
+  const date = typeof d === "string" ? new Date(d) : d;
+  return new Intl.DateTimeFormat(tag(locale), {
+    timeZone: PARIS,
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 export function formatDateTime(d: Date | string | null | undefined, locale: FormatLocale = "en"): string {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
