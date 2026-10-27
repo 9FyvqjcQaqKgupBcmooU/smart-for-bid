@@ -3,10 +3,17 @@
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/session";
+import { requireUser, requireAuthUser } from "@/lib/session";
 import { audit, notify, notifyMany } from "@/lib/audit";
 import { nextAO } from "@/lib/numbers";
 import { revalidateS2P } from "@/lib/revalidate";
+import {
+  assertMfaEnrolled,
+  hasAoRole,
+  requireAoRole,
+  requireFreshStepUp,
+  userRequiresMfa,
+} from "@/lib/authz";
 
 async function vendorUserIds(vendorIds: string[]) {
   const users = await prisma.user.findMany({
@@ -16,18 +23,27 @@ async function vendorUserIds(vendorIds: string[]) {
   return users.map((u) => u.id);
 }
 
+async function assertBuyerCanEdit(userId: string, tenderId: string) {
+  const ok =
+    (await hasAoRole(userId, tenderId, ["owner", "editor"])) ||
+    (await prisma.tender.findFirst({ where: { id: tenderId, createdById: userId } }));
+  if (!ok) throw new Error("Forbidden: owner or editor required");
+}
+
 export async function createTender(formData: FormData) {
-  const { current } = await requireUser();
+  const { user, twoFactorEnabled } = await requireAuthUser();
+  await assertMfaEnrolled(user.id, twoFactorEnabled);
+
   const title = String(formData.get("title") ?? "").trim();
   const briefing = String(formData.get("briefing") ?? "").trim();
   const deadline = String(formData.get("deadline") ?? "");
   const vendorIds = formData.getAll("vendorId").map(String);
   const requisitionId = String(formData.get("requisitionId") ?? "").trim();
+  const keyAUserId = String(formData.get("keyAUserId") ?? "").trim() || user.id;
+  const keyBUserId = String(formData.get("keyBUserId") ?? "").trim();
   if (!title || !briefing || !deadline) throw new Error("Required fields missing");
-
-  const hugo = await prisma.user.findFirst({ where: { role: "OPENING_A" } });
-  const ines = await prisma.user.findFirst({ where: { role: "OPENING_B" } });
-  if (!hugo || !ines) throw new Error("Bid officers not found");
+  if (!keyBUserId) throw new Error("Second keyholder required");
+  if (keyAUserId === keyBUserId) throw new Error("Two distinct keyholders required");
 
   const t = await prisma.tender.create({
     data: {
@@ -36,16 +52,30 @@ export async function createTender(formData: FormData) {
       briefing,
       status: "draft",
       deadline: new Date(deadline),
-      createdById: current.id,
-      keyAUserId: hugo.id,
-      keyBUserId: ines.id,
+      createdById: user.id,
+      keyAUserId,
+      keyBUserId,
       invites: { create: vendorIds.map((vendorId) => ({ vendorId })) },
+      assignments: {
+        create: [
+          { userId: user.id, aoRole: "owner" },
+          { userId: keyAUserId, aoRole: "keyholder", keySlot: "A" },
+          { userId: keyBUserId, aoRole: "keyholder", keySlot: "B" },
+        ],
+      },
     },
   });
   if (requisitionId) {
     await prisma.requisition.update({ where: { id: requisitionId }, data: { tenderId: t.id } });
   }
-  await audit({ entityType: "Tender", entityId: t.id, action: "create", actorId: current.id, details: { title, requisitionId } });
+  await audit({
+    entityType: "Tender",
+    entityId: t.id,
+    action: "create",
+    actorId: user.id,
+    aoId: t.id,
+    details: { title, requisitionId },
+  });
   revalidateS2P();
   redirect(`/appels-offres?id=${t.id}`);
 }
@@ -55,6 +85,8 @@ export async function updateBriefing(formData: FormData) {
   const id = String(formData.get("id"));
   const briefing = String(formData.get("briefing") ?? "");
   const summary = String(formData.get("summary") ?? "Briefing update").trim();
+  await assertBuyerCanEdit(current.id, id);
+
   const t = await prisma.tender.findUnique({ where: { id }, include: { invites: true } });
   if (!t) throw new Error("RFQ not found");
   if (t.status === "opened" || t.status === "awarded") throw new Error("RFQ already opened");
@@ -76,15 +108,18 @@ export async function updateBriefing(formData: FormData) {
       entityId: id,
       action: "briefing_edit",
       actorId: current.id,
-      details: { summary },
+      aoId: id,
+      details: { summary, notifiedSuppliers: uids.length },
     });
   }
   revalidateS2P();
 }
 
 export async function publishTender(formData: FormData) {
-  const { current } = await requireUser();
+  const { user, twoFactorEnabled } = await requireAuthUser();
+  await assertMfaEnrolled(user.id, twoFactorEnabled);
   const id = String(formData.get("id"));
+  await requireAoRole(user.id, id, ["owner"]);
   const passA = String(formData.get("passA") ?? "");
   const passB = String(formData.get("passB") ?? "");
   if (passA.length < 6 || passB.length < 6) throw new Error("Both passwords must be at least 6 characters");
@@ -108,14 +143,15 @@ export async function publishTender(formData: FormData) {
     body: `${t.title} — submit bids before the deadline.`,
     href: `/appels-offres/${id}`,
   });
-  await audit({ entityType: "Tender", entityId: id, action: "publish", actorId: current.id });
+  await audit({ entityType: "Tender", entityId: id, action: "publish", actorId: user.id, aoId: id });
   revalidateS2P();
 }
 
 export async function inviteVendor(formData: FormData) {
-  const { current } = await requireUser();
+  const { user } = await requireAuthUser();
   const tenderId = String(formData.get("tenderId"));
   const vendorId = String(formData.get("vendorId"));
+  await requireAoRole(user.id, tenderId, ["owner"]);
   await prisma.tenderInvite.upsert({
     where: { tenderId_vendorId: { tenderId, vendorId } },
     update: { notifiedAt: new Date() },
@@ -128,16 +164,40 @@ export async function inviteVendor(formData: FormData) {
     body: `You are invited to bid on: ${t?.title}`,
     href: `/appels-offres/${tenderId}`,
   });
-  await audit({ entityType: "Tender", entityId: tenderId, action: "invite", actorId: current.id, details: { vendorId } });
+  // Ensure bidder assignment for invited supplier users
+  for (const uid of uids) {
+    await prisma.tenderAssignment.upsert({
+      where: { tenderId_userId_aoRole: { tenderId, userId: uid, aoRole: "bidder" } },
+      update: {},
+      create: { tenderId, userId: uid, aoRole: "bidder" },
+    });
+  }
+  await audit({
+    entityType: "Tender",
+    entityId: tenderId,
+    action: "invite",
+    actorId: user.id,
+    aoId: tenderId,
+    details: { vendorId },
+  });
   revalidateS2P();
 }
 
 export async function submitBid(formData: FormData) {
-  const { current } = await requireUser();
-  if (current.role !== "VENDOR" || !current.vendorId) throw new Error("Only a vendor can submit a bid");
+  const { user } = await requireAuthUser();
+  const current = await prisma.user.findUnique({ where: { id: user.id } });
+  if (!current || current.role !== "VENDOR" || !current.vendorId) {
+    throw new Error("Only a vendor can submit a bid");
+  }
   const tenderId = String(formData.get("tenderId"));
-  const t = await prisma.tender.findUnique({ where: { id: tenderId } });
+  const t = await prisma.tender.findUnique({
+    where: { id: tenderId },
+    include: { invites: true },
+  });
   if (!t) throw new Error("RFQ not found");
+  if (!t.invites.some((i) => i.vendorId === current.vendorId)) {
+    throw new Error("Not invited to this RFQ");
+  }
   if (new Date() > t.deadline) throw new Error("Deadline passed");
   if (t.status !== "published") throw new Error("RFQ is not open for bids");
   const price = Number(String(formData.get("price")).replace(",", "."));
@@ -152,7 +212,18 @@ export async function submitBid(formData: FormData) {
       payload: JSON.stringify({ price, leadTimeDays, comments }),
     },
   });
-  await audit({ entityType: "Tender", entityId: tenderId, action: "bid_submit", actorId: current.id });
+  await prisma.tenderAssignment.upsert({
+    where: { tenderId_userId_aoRole: { tenderId, userId: current.id, aoRole: "bidder" } },
+    update: {},
+    create: { tenderId, userId: current.id, aoRole: "bidder" },
+  });
+  await audit({
+    entityType: "Tender",
+    entityId: tenderId,
+    action: "bid_submit",
+    actorId: current.id,
+    aoId: tenderId,
+  });
   await notify({
     userId: t.createdById,
     title: `Bid submitted — ${t.number}`,
@@ -163,7 +234,7 @@ export async function submitBid(formData: FormData) {
 }
 
 export async function unlockTender(formData: FormData) {
-  const { current } = await requireUser();
+  const { user, session, twoFactorEnabled } = await requireAuthUser();
   const id = String(formData.get("id"));
   const lock = String(formData.get("lock"));
   const password = String(formData.get("password") ?? "");
@@ -173,18 +244,56 @@ export async function unlockTender(formData: FormData) {
 
   const expectedUser = lock === "A" ? t.keyAUserId : t.keyBUserId;
   const hash = lock === "A" ? t.keyAHash : t.keyBHash;
-  const okUser = current.id === expectedUser;
+  const okUser = user.id === expectedUser;
+
+  // MFA mandatory for keyholders
+  const needsMfa = await userRequiresMfa(user.id);
+  if (needsMfa && !twoFactorEnabled) {
+    await prisma.tenderOpening.create({
+      data: { tenderId: id, officerId: user.id, lock, success: false },
+    });
+    await audit({
+      entityType: "Tender",
+      entityId: id,
+      action: "unlock_fail",
+      actorId: user.id,
+      aoId: id,
+      details: { lock, reason: "mfa_not_enrolled" },
+    });
+    revalidateS2P();
+    return { ok: false, reason: "mfa_required" as const };
+  }
+
+  try {
+    await requireFreshStepUp(user.id, "key_open", session.session.id);
+  } catch {
+    await prisma.tenderOpening.create({
+      data: { tenderId: id, officerId: user.id, lock, success: false },
+    });
+    await audit({
+      entityType: "Tender",
+      entityId: id,
+      action: "unlock_fail",
+      actorId: user.id,
+      aoId: id,
+      details: { lock, reason: "step_up_stale" },
+    });
+    revalidateS2P();
+    return { ok: false, reason: "step_up_required" as const };
+  }
+
   const okPass = hash ? await bcrypt.compare(password, hash) : false;
   const success = okUser && okPass;
 
   await prisma.tenderOpening.create({
-    data: { tenderId: id, officerId: current.id, lock, success },
+    data: { tenderId: id, officerId: user.id, lock, success },
   });
   await audit({
     entityType: "Tender",
     entityId: id,
     action: success ? "unlock_ok" : "unlock_fail",
-    actorId: current.id,
+    actorId: user.id,
+    aoId: id,
     details: { lock, okUser },
   });
 
@@ -195,27 +304,40 @@ export async function unlockTender(formData: FormData) {
 
   const data = lock === "A" ? { keyAUnlocked: true } : { keyBUnlocked: true };
   const updated = await prisma.tender.update({ where: { id }, data });
-  const both = (lock === "A" ? true : updated.keyAUnlocked) && (lock === "B" ? true : updated.keyBUnlocked);
+  const both =
+    (lock === "A" ? true : updated.keyAUnlocked) && (lock === "B" ? true : updated.keyBUnlocked);
   if (both) {
     await prisma.tender.update({ where: { id }, data: { status: "opened", openedAt: new Date() } });
-    await audit({ entityType: "Tender", entityId: id, action: "opened", actorId: current.id });
+    await audit({ entityType: "Tender", entityId: id, action: "opened", actorId: user.id, aoId: id });
   }
   revalidateS2P();
   return { ok: true };
 }
 
 export async function awardBid(formData: FormData) {
-  const { current } = await requireUser();
+  const { user, twoFactorEnabled } = await requireAuthUser();
+  await assertMfaEnrolled(user.id, twoFactorEnabled);
   const tenderId = String(formData.get("tenderId"));
   const bidId = String(formData.get("bidId"));
+  await requireAoRole(user.id, tenderId, ["owner"]);
   const t = await prisma.tender.findUnique({
     where: { id: tenderId },
     include: { bids: true },
   });
   if (!t || t.status !== "opened") throw new Error("RFQ is not opened");
-  await prisma.tender.update({ where: { id: tenderId }, data: { status: "awarded", awardedBidId: bidId } });
+  await prisma.tender.update({
+    where: { id: tenderId },
+    data: { status: "awarded", awardedBidId: bidId },
+  });
   const bid = t.bids.find((b) => b.id === bidId);
-  await audit({ entityType: "Tender", entityId: tenderId, action: "award", actorId: current.id, details: { bidId } });
+  await audit({
+    entityType: "Tender",
+    entityId: tenderId,
+    action: "award",
+    actorId: user.id,
+    aoId: tenderId,
+    details: { bidId },
+  });
   if (bid) {
     const uids = await vendorUserIds([bid.vendorId]);
     await notifyMany(uids, {

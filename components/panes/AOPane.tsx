@@ -37,6 +37,11 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
   const versions = t.versions;
 
   const revealed = t.status === "opened" || t.status === "awarded";
+  // Criterion 3: suppliers never see other suppliers' offers (or identities) pre-open.
+  const visibleBids =
+    current.role === "VENDOR" && !revealed
+      ? t.bids.filter((b) => b.vendorId === current.vendorId)
+      : t.bids;
   const myBid = current.vendorId ? t.bids.find((b) => b.vendorId === current.vendorId) : null;
   const invited = current.vendorId ? t.invites.some((i) => i.vendorId === current.vendorId) : false;
   // Number of times this supplier sent an offer (server-side audit) — >1 means it was replaced.
@@ -306,8 +311,8 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
                 </div>
               </div>
               <ul className="space-y-1.5">
-                {t.bids.length === 0 && <p className="text-[14px] text-ink-soft">{i18n(locale, "ao.noBids")}</p>}
-                {t.bids.map((b) => (
+                {visibleBids.length === 0 && <p className="text-[14px] text-ink-soft">{i18n(locale, "ao.noBids")}</p>}
+                {visibleBids.map((b) => (
                   <li key={b.id} className="soft-card flex min-h-11 flex-wrap items-center justify-between gap-x-3 px-3 py-2 text-[15px]">
                     <span className="inline-flex items-center gap-2">
                       <SealMark size={16} />
