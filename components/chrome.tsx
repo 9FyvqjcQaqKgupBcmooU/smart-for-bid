@@ -122,7 +122,7 @@ export { Chip } from "./Chip";
 export function PeopleChips({ people }: { people: PersonChip[] }) {
   if (!people.length) return null;
   return (
-    <div className="mt-3 flex flex-wrap items-center">
+    <div className="mt-2 flex flex-wrap items-center">
       {people.map((p, i) => (
         <span
           key={`${p.name}-${i}`}
@@ -178,6 +178,9 @@ export function Decision({
   people,
   rail,
   locale,
+  kicker,
+  meta,
+  accent = false,
 }: {
   question: string;
   title: string;
@@ -195,6 +198,12 @@ export function Decision({
   people?: PersonChip[];
   rail?: ReactNode;
   locale: Locale;
+  /** Small line above the question (e.g. seal mark + RFQ ref in mono). */
+  kicker?: ReactNode;
+  /** Right-hand header slot (e.g. live countdown). Shown when there is no amount, or below it. */
+  meta?: ReactNode;
+  /** Cobalt accent bar on the header's leading edge. */
+  accent?: boolean;
   /** Compact 5-node cycle. Omit to derive from the route; `null` = none current. */
   pipelineIndex?: number | null;
 }) {
@@ -205,14 +214,21 @@ export function Decision({
   return (
     <div className="flex min-h-0 flex-col md:h-full md:flex-row">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-paper">
-        <header className="shrink-0 border-b border-line/70 px-5 pt-5 pb-4 md:px-8 md:pt-6">
-          <div className="flex flex-wrap items-start justify-between gap-3 md:flex-nowrap md:gap-6">
+        <header
+          className={cn(
+            "relative shrink-0 border-b border-line/70 px-5 pt-4 pb-3 md:px-7 md:pt-4",
+            accent &&
+              "before:absolute before:inset-y-3 before:left-0 before:w-[3px] before:rounded-r-full before:bg-cobalt before:content-['']"
+          )}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 md:flex-nowrap md:gap-6">
             <div className="min-w-0">
-              <h2 className="text-[20px] font-medium leading-snug tracking-tight text-ink">
+              {kicker ? <div className="mb-1 flex flex-wrap items-center gap-x-2 gap-y-1">{kicker}</div> : null}
+              <h2 className="text-[19px] font-medium leading-[26px] tracking-tight text-ink">
                 {job ? question : title}
               </h2>
               {(job || subtitle) && (
-                <p className="mt-1 text-[14px] text-ink-soft md:truncate">
+                <p className="mt-0.5 text-[14px] leading-5 text-ink-soft md:truncate">
                   {job ? (
                     <>
                       {title}
@@ -230,25 +246,30 @@ export function Decision({
                 <p className="mt-1 text-[13px] leading-[18px] text-ink-soft">{amountHint}</p>
               ) : null}
             </div>
-            {amount != null && (
-              <div className="shrink-0 text-right">
-                <p className="text-[22px] font-medium leading-none tabular text-ink">
-                  <Money value={amount} locale={locale} />
-                </p>
-                {amountCaption != null && amountCaption !== false && (
-                  <p className="mt-1 text-[12px] leading-[16px] text-ink-soft">{amountCaption}</p>
+            {(amount != null || meta) && (
+              <div className="flex shrink-0 flex-col items-end gap-2 text-right max-md:w-full max-md:items-start max-md:text-left">
+                {amount != null && (
+                  <div>
+                    <p className="text-[22px] font-medium leading-none tabular text-ink">
+                      <Money value={amount} locale={locale} />
+                    </p>
+                    {amountCaption != null && amountCaption !== false && (
+                      <p className="mt-1 text-[12px] leading-[16px] text-ink-soft">{amountCaption}</p>
+                    )}
+                  </div>
                 )}
+                {meta && amount == null ? meta : null}
               </div>
             )}
           </div>
           {people && people.length > 0 ? <PeopleChips people={people} /> : null}
         </header>
-        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden px-5 py-5 md:overflow-y-auto md:px-8">
+        <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden px-5 py-4 md:overflow-y-auto md:px-7">
           {children}
           {below ? <div className="mt-4">{below}</div> : null}
         </div>
         {hasFooter && (
-          <div className="shrink-0 border-t border-line/70 px-5 py-4 md:px-8">
+          <div className="shrink-0 border-t border-line/70 px-5 py-3 md:px-7">
             {extra != null && extra !== false ? (
               <div className={actions ? "mb-3" : undefined}>{extra}</div>
             ) : null}
@@ -281,7 +302,7 @@ export function DocHead({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="flex shrink-0 items-center gap-3 border-b border-line/70 px-6 py-4">
+    <div className="flex shrink-0 items-center gap-3 border-b border-line/70 px-6 py-3">
       <span className="text-[13px] text-ink-soft">{kicker}</span>
       <h1 className="min-w-0 truncate text-[15px] font-medium">{title}</h1>
       <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{children}</div>
@@ -291,7 +312,7 @@ export function DocHead({
 
 export function ActionBar({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex shrink-0 items-center justify-end gap-3 border-t border-line/70 bg-paper px-6 py-4">
+    <div className="flex shrink-0 items-center justify-end gap-3 border-t border-line/70 bg-paper px-6 py-3">
       {children}
     </div>
   );
@@ -359,7 +380,7 @@ export function ListToolbar({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-11 shrink-0 items-center justify-between px-4 py-3">
+    <div className="flex min-h-11 shrink-0 items-center justify-between px-4 py-2">
       <p className="text-[13px] text-ink-soft">{title}</p>
       {action}
     </div>
@@ -390,8 +411,8 @@ export function Row({
     <Link
       href={href}
       className={cn(
-        "soft-card mx-3 mb-2 block px-4 py-3 text-[15px] hover:shadow-[0_2px_8px_rgba(15,23,42,0.08)]",
-        active && "ring-1 ring-cobalt/20"
+        "soft-card mx-3 mb-1.5 block min-h-11 px-3.5 py-2.5 text-[15px] hover:shadow-[0_2px_8px_rgba(15,23,42,0.08)]",
+        active && "ring-1 ring-cobalt/40"
       )}
     >
       {children}

@@ -55,6 +55,7 @@ html.dark {
   --color-danger-soft: color-mix(in srgb, var(--clay) 18%, var(--paper));
   --color-info: var(--sky);
   --font-sans: var(--font-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 html, body {
@@ -75,15 +76,71 @@ html, body {
 }
 
 .tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* Numbers, refs, dates: IBM Plex Mono with tabular figures. */
+.num {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
 }
 
+/* RFQ briefing rendered from markdown — tight, readable rhythm. */
+.brief {
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.brief > * { margin: 0; }
+.brief > * + * { margin-top: 8px; }
+.brief h2,
+.brief h3 {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+.brief > h2 + *,
+.brief > h3 + * { margin-top: 4px; }
+.brief > * + h2,
+.brief > * + h3 { margin-top: 14px; }
+.brief > h2:first-child {
+  font-size: 13px;
+  line-height: 18px;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cobalt);
+}
+.brief ul { list-style: none; padding-left: 0; }
+.brief li {
+  position: relative;
+  padding-left: 16px;
+  margin: 0;
+}
+.brief li + li { margin-top: 4px; }
+.brief li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 9px;
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: var(--cobalt);
+}
+.brief strong { font-weight: 600; }
+
 .paper-card {
   background: var(--paper);
   border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
-  border-radius: 16px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 6px 16px rgba(15, 23, 42, 0.04);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.04);
 }
 
 html.dark .paper-card {
@@ -92,8 +149,9 @@ html.dark .paper-card {
 
 .soft-card {
   background: var(--paper);
-  border-radius: 16px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 6px 16px rgba(15, 23, 42, 0.05);
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 html.dark .soft-card {

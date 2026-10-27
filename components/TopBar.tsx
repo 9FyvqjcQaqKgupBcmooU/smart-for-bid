@@ -5,6 +5,7 @@ import { t, type Locale } from "@/lib/i18n";
 import type { ThemePreference } from "@/lib/theme";
 import type { User, Vendor } from "@prisma/client";
 import { isDemo } from "@/lib/demo";
+import { SealMark } from "./SealMark";
 
 const RFQ_ROLES = new Set(["BUYER", "OPENING_A", "OPENING_B", "VENDOR"]);
 
@@ -24,8 +25,9 @@ export function TopBar({
     rfqUsers = [current, ...rfqUsers];
   }
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b border-line/70 bg-paper px-4 text-ink md:gap-4 md:px-6">
-      <Link href="/" className="shrink-0 text-[17px] font-semibold tracking-tight text-ink">
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line/70 bg-paper px-4 text-ink md:gap-4 md:px-6">
+      <Link href="/" className="inline-flex min-h-11 shrink-0 items-center gap-2 text-[17px] font-semibold tracking-tight text-ink">
+        <SealMark size={22} />
         {t(locale, "product.name")}
       </Link>
       <div className="ml-auto flex min-w-0 items-center gap-1.5 text-ink-soft md:gap-2">

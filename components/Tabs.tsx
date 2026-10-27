@@ -18,7 +18,7 @@ export function Tabs({
   return (
     <div>
       <div
-        className="relative grid w-full max-w-md rounded-full bg-paper-2 p-1"
+        className="relative grid w-full max-w-sm rounded-full bg-paper-2 p-1 ring-1 ring-line/60"
         style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
       >
         <span
@@ -35,15 +35,15 @@ export function Tabs({
             type="button"
             onClick={() => setI(idx)}
             className={cn(
-              "relative z-10 min-h-11 min-w-11 px-3 text-[14px]",
-              idx === i ? "font-medium text-ink" : "text-ink-soft hover:text-ink"
+              "relative z-10 min-h-11 min-w-11 px-3 text-[14px] md:min-h-9",
+              idx === i ? "font-medium text-cobalt" : "text-ink-soft hover:text-ink"
             )}
           >
             {l}
           </button>
         ))}
       </div>
-      <div className="pt-5">{panels[i]}</div>
+      <div className="pt-4">{panels[i]}</div>
     </div>
   );
 }

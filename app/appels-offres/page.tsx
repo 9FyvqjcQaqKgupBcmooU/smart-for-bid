@@ -60,19 +60,19 @@ export default async function TendersPage({ searchParams }: { searchParams: Prom
                   <Link
                     href={`/appels-offres?id=${row.id}`}
                     className={cn(
-                      "block border-b border-line px-3 py-2.5 hover:bg-paper-2/70",
+                      "block min-h-11 border-b border-line/70 px-3 py-2 hover:bg-paper-2/70",
                       selected?.id === row.id && "bg-paper-2"
                     )}
                   >
                     <span className="block truncate text-[14px] font-medium">{row.title}</span>
-                    <span className="mt-0.5 flex items-center gap-2 text-[13px] text-ink-soft">
-                      <span>{row.number}</span>
-                      <StatusPill status={row.status} locale={locale} />
-                      <span>
+                    <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 whitespace-nowrap text-[12px] text-ink-soft">
+                      <span className="num">{row.number}</span>
+                      <StatusPill status={row.status === "published" && d <= 0 ? "closed" : row.status} locale={locale} />
+                      <span className="num">
                         {d >= 0 ? t(locale, "lists.daysLeft", { n: d }) : t(locale, "lists.expired", { n: -d })}
                       </span>
                     </span>
-                    <span className="mt-0.5 block text-[13px] text-ink-soft">
+                    <span className="num mt-0.5 block text-[12px] text-ink-soft">
                       {row.bids.length}/{row.invites.length} · {formatDateTime(row.deadline, locale)}
                     </span>
                   </Link>

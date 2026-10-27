@@ -84,7 +84,7 @@ export async function getInbox(user: { id: string; role: string; vendorId: strin
             id: t.id,
             number: t.number,
             headline: t.title,
-            support: tx(locale, "inbox.sealedSupport", { n: t.bids.length }),
+            support: tx(locale, t.bids.length === 1 ? "inbox.sealedSupportOne" : "inbox.sealedSupport", { n: t.bids.length }),
             question: tx(locale, "inbox.qOpenBids"),
             cta: past && locked ? tx(locale, "actions.openBids") : tx(locale, "home.verbOffers"),
             tone: past && locked ? "info" : "ok",
@@ -166,7 +166,7 @@ export async function getInbox(user: { id: string; role: string; vendorId: strin
                 date: formatDate(myBid.submittedAt, locale),
                 time: formatTime(myBid.submittedAt, locale),
               })
-            : tx(locale, "inbox.sealedSupport", { n: t.bids.length }),
+            : tx(locale, t.bids.length === 1 ? "inbox.sealedSupportOne" : "inbox.sealedSupport", { n: t.bids.length }),
           question: t.title,
           cta: tx(locale, "home.verbFollowStatus"),
           tone: "ok",

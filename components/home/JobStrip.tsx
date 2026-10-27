@@ -16,13 +16,13 @@ export function JobStrip({ locale, role, itemKey, canCreate, canSubmit }: JobStr
 
   if (isSupplier) {
     return (
-      <div className="flex flex-wrap gap-1.5 px-4 pb-2">
+      <div className="flex flex-wrap gap-x-1.5 px-4 pb-1.5 max-md:gap-y-0 md:gap-y-1.5">
         {itemKey ? (
           <>
-            <Link href={`${base}&tab=brief`}>
+            <Link className="inline-flex min-h-11 items-center md:min-h-0" href={`${base}&tab=brief`}>
               <Chip tone="neutral">{t(locale, "home.verbBrief")}</Chip>
             </Link>
-            <Link href={`${base}&tab=brief`}>
+            <Link className="inline-flex min-h-11 items-center md:min-h-0" href={`${base}&tab=brief`}>
               <Chip tone="cobalt">{canSubmit ? t(locale, "home.verbSubmitOffer") : t(locale, "home.verbFollowStatus")}</Chip>
             </Link>
           </>
@@ -32,22 +32,22 @@ export function JobStrip({ locale, role, itemKey, canCreate, canSubmit }: JobStr
   }
 
   return (
-    <div className="flex flex-wrap gap-1.5 px-4 pb-2">
+    <div className="flex flex-wrap gap-x-1.5 px-4 pb-1.5 max-md:gap-y-0 md:gap-y-1.5">
       {itemKey ? (
         <>
-          <Link href={`${base}&tab=brief`}>
+          <Link className="inline-flex min-h-11 items-center md:min-h-0" href={`${base}&tab=brief`}>
             <Chip tone="neutral">{t(locale, "home.verbBrief")}</Chip>
           </Link>
-          <Link href={`${base}&tab=offers`}>
+          <Link className="inline-flex min-h-11 items-center md:min-h-0" href={`${base}&tab=offers`}>
             <Chip tone="neutral">{t(locale, "home.verbOffers")}</Chip>
           </Link>
-          <Link href={`${base}&tab=opening`}>
+          <Link className="inline-flex min-h-11 items-center md:min-h-0" href={`${base}&tab=opening`}>
             <Chip tone="cobalt">{t(locale, "home.verbOpenBids")}</Chip>
           </Link>
         </>
       ) : null}
       {canCreate ? (
-        <Link href="/appels-offres/nouveau">
+        <Link className="inline-flex min-h-11 items-center md:min-h-0" href="/appels-offres/nouveau">
           <Chip tone="cobalt">{t(locale, "home.verbCreateRfq")}</Chip>
         </Link>
       ) : null}

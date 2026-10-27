@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { Money } from "@/components/Money";
 import { formatDate, formatDateTime, formatTime, firstName } from "@/lib/format";
-import { Chip } from "@/components/Chip";
 import { renderBriefing } from "@/lib/markdown";
 import { OpeningCeremony } from "@/components/OpeningCeremony";
 import { awardBid, inviteVendor, publishTender, submitBid, updateBriefing } from "@/app/actions/tenders";
@@ -14,6 +13,10 @@ import { Tabs } from "@/components/Tabs";
 import { getLocale } from "@/lib/i18n/server";
 import { t as i18n } from "@/lib/i18n";
 import { isDemo } from "@/lib/demo";
+import { SealMark, sealStateOf } from "@/components/SealMark";
+import { Countdown } from "@/components/Countdown";
+import { StatusPill } from "@/components/StatusPill";
+import { tNum } from "@/lib/i18n/nodes";
 
 export async function AOPane({ id, tab }: { id: string; tab?: string }) {
   const locale = await getLocale();
@@ -80,7 +83,9 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
     : [];
   const cheapest = parsedBids.slice().sort((a, c) => a.payload.price - c.payload.price)[0];
 
-  const pastDeadline = new Date() >= t.deadline;
+  const now = new Date().getTime();
+  const pastDeadline = now >= t.deadline.getTime();
+  const seal = sealStateOf(t);
   const sealedLocked = !(t.keyAUnlocked && t.keyBUnlocked);
   let question = t.title;
   if (t.status === "opened" && current.role === "BUYER") question = i18n(locale, "inbox.qAward");
@@ -98,7 +103,7 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
         {versions.map((v) => (
           <li key={v.id}>
             <span className="font-medium">{v.changedBy.name}</span> · {v.summary}
-            <span className="block text-[13px] text-ink-soft">{formatDateTime(v.createdAt, locale)}</span>
+            <span className="num block text-[12px] text-ink-soft">{formatDateTime(v.createdAt, locale)}</span>
           </li>
         ))}
       </ol>
@@ -169,14 +174,16 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
   // Confirmation uses the offer's stored submittedAt (DB/server time), so it survives reloads.
   const receipt =
     current.role === "VENDOR" && myBid ? (
-      <div className="soft-card mt-4 space-y-1.5 px-3.5 py-3" data-testid="offer-receipt">
-        <Chip tone="ok">
-          ✓{" "}
-          {i18n(locale, "ao.offerReceived", {
+      <div className="soft-card mt-4 flex gap-3 px-3.5 py-3" data-testid="offer-receipt">
+        <SealMark state={seal} size={28} className="mt-0.5" />
+        <div className="min-w-0 space-y-1">
+        <p className="text-[13px] font-medium leading-[18px] text-cobalt">
+          <span aria-hidden>✓ </span>
+          {tNum(locale, "ao.offerReceived", {
             date: formatDate(myBid.submittedAt, locale),
             time: formatTime(myBid.submittedAt, locale),
           })}
-        </Chip>
+        </p>
         <p className="text-[15px] leading-[22px] text-ink">{i18n(locale, "ao.yourPliSealed")}</p>
         {mySubmits > 1 && (
           <p className="text-[13px] leading-[18px] text-ink-soft">
@@ -187,6 +194,7 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
           </p>
         )}
         {canDeposit && <p className="text-[13px] leading-[18px] text-ink-soft">{i18n(locale, "ao.offerReplaceHint")}</p>}
+        </div>
       </div>
     ) : null;
 
@@ -213,7 +221,20 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
       locale={locale}
       question={question}
       title={t.title}
-      subtitle={`${t.number} · ${i18n(locale, "ao.deadline", { date: formatDateTime(t.deadline, locale) })}`}
+      subtitle={i18n(locale, "ao.deadline", { date: formatDateTime(t.deadline, locale) })}
+      accent
+      kicker={
+        <>
+          <SealMark
+            state={seal}
+            size={18}
+            title={i18n(locale, seal === "opened" ? "seal.opened" : seal === "one" ? "seal.oneKey" : "seal.sealed")}
+          />
+          <span className="num text-[13px] font-medium tracking-[0.02em] text-cobalt">{t.number}</span>
+          <StatusPill status={t.status === "published" && pastDeadline ? "closed" : t.status} locale={locale} />
+        </>
+      }
+      meta={t.status === "draft" ? undefined : <Countdown deadline={t.deadline.toISOString()} locale={locale} now={now} />}
       people={[
         { name: t.keyAUser.name, hint: i18n(locale, "roles.full.OPENING_A"), active: current.id === t.keyAUser.id && !t.keyAUnlocked },
         { name: t.keyBUser.name, hint: i18n(locale, "roles.full.OPENING_B"), active: current.id === t.keyBUser.id && !t.keyBUnlocked },
@@ -239,12 +260,12 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
       <Tabs labels={labels} initial={initialTab}>
         <div>
           <div
-            className="space-y-1 break-words text-[16px] leading-6 [&_h2]:text-[16px] [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:pl-4"
+            className="brief"
             dangerouslySetInnerHTML={{ __html: renderBriefing(t.briefing) }}
           />
           {receipt}
           {depositForm}
-          <div className="mt-4 border-t border-line pt-3">
+          <div className="mt-4 border-t border-line/70 pt-3">
             <p className="text-[13px] font-medium text-ink">{i18n(locale, "ao.whoWhatWhen")}</p>
             {versions.length > 0 ? (
               <AddendaList />
@@ -267,15 +288,36 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
         </div>
         <div>
           {!revealed ? (
-            <ul className="space-y-2">
-              {t.bids.length === 0 && <p className="text-ink-soft">{i18n(locale, "ao.noBids")}</p>}
-              {t.bids.map((b) => (
-                <li key={b.id} className="soft-card flex justify-between px-3.5 py-3">
-                  <span>{current.role === "VENDOR" && b.vendorId !== current.vendorId ? i18n(locale, "ao.bidder") : b.vendor.name}</span>
-                  <span className="text-ink-soft">{i18n(locale, "ao.sealed", { date: formatDateTime(b.submittedAt, locale) })}</span>
-                </li>
-              ))}
-            </ul>
+            <>
+              <div className="mb-3 flex items-center gap-3">
+                <SealMark state={seal} size={32} />
+                <div className="min-w-0">
+                  <p className="text-[15px] font-medium leading-[22px] text-ink">
+                    {seal === "one" ? i18n(locale, "seal.oneKey") : i18n(locale, "seal.sealed")}
+                    <span className="num ml-2 text-[13px] font-normal text-ink-soft">
+                      {Number(t.keyAUnlocked) + Number(t.keyBUnlocked)}/2
+                    </span>
+                  </p>
+                  <p className="text-[13px] leading-[18px] text-ink-soft">
+                    {seal === "one"
+                      ? i18n(locale, "seal.oneKeyHint", { name: firstName((t.keyAUnlocked ? t.keyAUser : t.keyBUser).name) })
+                      : i18n(locale, "seal.sealedHint")}
+                  </p>
+                </div>
+              </div>
+              <ul className="space-y-1.5">
+                {t.bids.length === 0 && <p className="text-[14px] text-ink-soft">{i18n(locale, "ao.noBids")}</p>}
+                {t.bids.map((b) => (
+                  <li key={b.id} className="soft-card flex min-h-11 flex-wrap items-center justify-between gap-x-3 px-3 py-2 text-[15px]">
+                    <span className="inline-flex items-center gap-2">
+                      <SealMark size={16} />
+                      {current.role === "VENDOR" && b.vendorId !== current.vendorId ? i18n(locale, "ao.bidder") : b.vendor.name}
+                    </span>
+                    <span className="text-[13px] text-ink-soft">{tNum(locale, "ao.sealed", { date: formatDateTime(b.submittedAt, locale) })}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
           ) : (
             <div className="overflow-x-auto">
             <table className="w-full min-w-0 text-[16px]">
@@ -294,12 +336,12 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
                     <tr key={b.id} className="border-t border-line">
                       <td className="py-1.5 font-medium">
                         {b.vendor.name}
-                        {isAwarded && <span className="ml-1 text-[13px] text-success">{i18n(locale, "ao.awarded")}</span>}
+                        {isAwarded && <span className="ml-1.5 rounded-full bg-cobalt px-1.5 py-px text-[11px] font-medium text-paper">{i18n(locale, "ao.awarded")}</span>}
                       </td>
                       <td className="tabular">
                         <Money value={payload.price} locale={locale} />
                       </td>
-                      <td>{payload.leadTimeDays} d</td>
+                      <td className="num">{payload.leadTimeDays} d</td>
                       <td className="text-right">
                         {t.status === "opened" && current.role === "BUYER" && cheapest?.b.id !== b.id && (
                           <form action={awardBid}>
@@ -344,7 +386,7 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
                   <span className="font-medium">{o.officer.name}</span>
                   {" · "}
                   {o.success ? i18n(locale, "ao.keyOk") : i18n(locale, "ao.keyFail")}
-                  <span className="block text-[13px] text-ink-soft">{formatDateTime(o.createdAt, locale)}</span>
+                  <span className="num block text-[12px] text-ink-soft">{formatDateTime(o.createdAt, locale)}</span>
                 </li>
               ))}
             </ol>

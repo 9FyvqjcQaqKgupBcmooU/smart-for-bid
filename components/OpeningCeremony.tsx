@@ -85,10 +85,10 @@ export function OpeningCeremony({
     const first = firstName(officer.name);
     const field = lock === "A" ? "passwordA" : "passwordB";
     return (
-      <div className="soft-card p-4">
+      <div className="soft-card p-3">
         <span className="block text-[13px] text-ink-soft">{first}</span>
         {unlocked ? (
-          <p className="mt-2 flex min-h-11 items-center text-[16px] text-success">{t(locale, "opening.unlocked", { name: first })}</p>
+          <p className="mt-1 flex min-h-11 items-center text-[16px] font-medium text-cobalt">{t(locale, "opening.unlocked", { name: first })}</p>
         ) : mine ? (
           <form action={onSubmit} className="mt-2">
             <input
@@ -147,7 +147,7 @@ export function OpeningCeremony({
           {t(locale, "opening.demoPath", { a: DEMO_KEY_A, b: DEMO_KEY_B })}
         </p>
       ) : null}
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <Officer lock="A" officer={officerA} unlocked={keyAUnlocked} demoPassword={DEMO_KEY_A} />
         <Officer lock="B" officer={officerB} unlocked={keyBUnlocked} demoPassword={DEMO_KEY_B} />
       </div>

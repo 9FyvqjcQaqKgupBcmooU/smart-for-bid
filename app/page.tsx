@@ -53,8 +53,8 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ i
       leftClassName="w-[272px]"
       left={
         <>
-          <div className="px-4 pb-1 pt-4">
-            <p className="text-[16px] font-medium leading-6 text-ink">{greeting}</p>
+          <div className="px-4 pb-1 pt-3">
+            <p className="text-[15px] font-medium leading-[22px] text-ink">{greeting}</p>
           </div>
           <JobStrip
             locale={locale}
