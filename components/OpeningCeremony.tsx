@@ -57,6 +57,15 @@ export function OpeningCeremony({
     const res = await unlockTender(formData);
     setPending(false);
     if (res && "ok" in res && !res.ok) {
+      if (res.reason === "step_up_required") {
+        const dest = `/mfa/step-up?purpose=key_open&next=${encodeURIComponent(next)}`;
+        window.location.href = dest;
+        return;
+      }
+      if (res.reason === "mfa_required") {
+        window.location.href = "/mfa/enroll";
+        return;
+      }
       const reason =
         res.reason === "wrong_officer"
           ? t(locale, "opening.wrongOfficer")
