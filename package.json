@@ -3,14 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --port 3000",
+    "dev": "next dev --port 3100",
     "build": "next build",
-    "start": "next start --port 3000",
+    "start": "next start --port 3100",
     "lint": "eslint",
-    "db:push": "prisma db push",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:reset": "prisma db push --force-reset && tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "db:push": "env -u TURSO_DATABASE_URL -u TURSO_AUTH_TOKEN prisma db push",
+    "db:seed": "env -u TURSO_DATABASE_URL -u TURSO_AUTH_TOKEN tsx prisma/seed.ts",
+    "db:reset": "env -u TURSO_DATABASE_URL -u TURSO_AUTH_TOKEN prisma db push --force-reset && env -u TURSO_DATABASE_URL -u TURSO_AUTH_TOKEN tsx prisma/seed.ts",
+    "postinstall": "prisma generate",
+    "test": "vitest run",
+    "test:auth": "vitest run tests/auth"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -20,8 +22,11 @@
     "@prisma/adapter-libsql": "^7.10.0",
     "@prisma/client": "^6.19.3",
     "bcryptjs": "^3.0.3",
+    "better-auth": "^1.7.14",
     "next": "16.3.2",
+    "otplib": "^13.5.0",
     "pdf-parse": "^2.4.5",
+    "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
@@ -29,13 +34,16 @@
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
+    "@types/qrcode": "^1.5.6",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
+    "playwright": "^1.64.1",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.12",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.12"
   }
 }

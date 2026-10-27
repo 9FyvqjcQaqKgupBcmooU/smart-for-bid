@@ -2,6 +2,15 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 export async function seedDemo(prisma: PrismaClient) {
+  await prisma.mfaStepUp.deleteMany();
+  await prisma.tenderAssignment.deleteMany();
+  await prisma.orgInvitation.deleteMany();
+  await prisma.membership.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.account.deleteMany();
+  await prisma.twoFactor.deleteMany();
+  await prisma.verification.deleteMany();
+  await prisma.organization.deleteMany();
   await prisma.paymentItem.deleteMany();
   await prisma.payment.deleteMany();
   await prisma.invoiceLine.deleteMany();
@@ -985,23 +994,94 @@ Submit bids before **23 August 2026, 12:00**.`,
     ],
   });
 
+
+  // --- Auth + org model (local seed passwords; never for production Turso) ---
+  const { hashPassword } = await import("better-auth/crypto");
+  const DEMO_PASSWORD = process.env.SEED_DEMO_PASSWORD || "DemoPass123!";
+  const passwordHash = await hashPassword(DEMO_PASSWORD);
+
+  async function attachCredential(u: { id: string; email: string }) {
+    await prisma.account.create({
+      data: {
+        accountId: u.id,
+        providerId: "credential",
+        userId: u.id,
+        password: passwordHash,
+      },
+    });
+    await prisma.user.update({
+      where: { id: u.id },
+      data: { emailVerified: true },
+    });
+  }
+
+  const buyerOrg = await prisma.organization.create({
+    data: { name: "Demo Acheteur", type: "buyer" },
+  });
+  const nordOrg = await prisma.organization.create({
+    data: { name: "NordLog", type: "supplier", vendorId: nordlog.id },
+  });
+  const sportOrg = await prisma.organization.create({
+    data: { name: "Sportline SAS", type: "supplier", vendorId: sportline.id },
+  });
+  const lumenOrg = await prisma.organization.create({
+    data: { name: "Atelier Lumen", type: "supplier", vendorId: lumen.id },
+  });
+
+  const buyerMembers: Array<{ userId: string; orgRole: string }> = [
+    { userId: lea.id, orgRole: "owner" },
+    { userId: hugo.id, orgRole: "admin" },
+    { userId: ines.id, orgRole: "admin" },
+    { userId: camille.id, orgRole: "member" },
+    { userId: thomas.id, orgRole: "member" },
+    { userId: nadia.id, orgRole: "member" },
+    { userId: julien.id, orgRole: "member" },
+    { userId: claire.id, orgRole: "member" },
+    { userId: antoine.id, orgRole: "member" },
+  ];
+  for (const m of buyerMembers) {
+    await prisma.membership.create({ data: { ...m, orgId: buyerOrg.id } });
+  }
+  await prisma.membership.create({ data: { userId: uNordlog.id, orgId: nordOrg.id, orgRole: "owner" } });
+  await prisma.membership.create({ data: { userId: uSportline.id, orgId: sportOrg.id, orgRole: "owner" } });
+  await prisma.membership.create({ data: { userId: uLumen.id, orgId: lumenOrg.id, orgRole: "owner" } });
+
+  for (const u of [lea, hugo, ines, camille, thomas, nadia, julien, claire, antoine, uSportline, uNordlog, uLumen]) {
+    await attachCredential(u);
+  }
+
+  // Wire featured RFQ AO roles (idempotent with tender create)
+  const featured = await prisma.tender.findFirst({ where: { number: "AO-2026-0001" } });
+  if (featured) {
+    await prisma.tenderAssignment.createMany({
+      data: [
+        { tenderId: featured.id, userId: lea.id, aoRole: "owner" },
+        { tenderId: featured.id, userId: hugo.id, aoRole: "keyholder", keySlot: "A" },
+        { tenderId: featured.id, userId: ines.id, aoRole: "keyholder", keySlot: "B" },
+        { tenderId: featured.id, userId: uNordlog.id, aoRole: "bidder" },
+        { tenderId: featured.id, userId: uSportline.id, aoRole: "bidder" },
+        { tenderId: featured.id, userId: uLumen.id, aoRole: "bidder" },
+      ],
+    });
+  }
+
+  console.log("Auth/org seed OK — demo password for all users:", DEMO_PASSWORD);
+
   console.log("Helios Distribution seed OK");
 }
 
 const isDirect = process.argv.some((a) => /(?:^|[\\/])seed\.(ts|js)$/.test(a));
 if (isDirect) {
   async function main() {
-    let prisma: PrismaClient;
-    if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
-      const { PrismaLibSql } = await import("@prisma/adapter-libsql");
-      const adapter = new PrismaLibSql({
-        url: process.env.TURSO_DATABASE_URL,
-        authToken: process.env.TURSO_AUTH_TOKEN,
-      });
-      prisma = new PrismaClient({ adapter });
-    } else {
-      prisma = new PrismaClient();
+    if (process.env.TURSO_DATABASE_URL || process.env.TURSO_AUTH_TOKEN) {
+      console.error("REFUSING to seed: TURSO_* env is set. Unset them and use local SQLite only.");
+      process.exit(2);
     }
+    if (!(process.env.DATABASE_URL || "").startsWith("file:")) {
+      console.error("REFUSING to seed: DATABASE_URL must be a local file: SQLite URL.");
+      process.exit(2);
+    }
+    const prisma: PrismaClient = new PrismaClient();
     try {
       await seedDemo(prisma);
     } finally {

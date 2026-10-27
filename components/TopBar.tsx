@@ -5,7 +5,9 @@ import { t, type Locale } from "@/lib/i18n";
 import type { ThemePreference } from "@/lib/theme";
 import type { User, Vendor } from "@prisma/client";
 import { isDemo } from "@/lib/demo";
+import { isDemoRoleSwitchOn } from "@/lib/authz";
 import { SealMark } from "./SealMark";
+import { UserMenu } from "./UserMenu";
 
 const RFQ_ROLES = new Set(["BUYER", "OPENING_A", "OPENING_B", "VENDOR"]);
 
@@ -24,6 +26,7 @@ export function TopBar({
   if (!rfqUsers.some((u) => u.id === current.id)) {
     rfqUsers = [current, ...rfqUsers];
   }
+  const showDemoSwitch = isDemoRoleSwitchOn();
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line/70 bg-paper px-4 text-ink md:gap-4 md:px-6">
       <Link href="/" className="inline-flex min-h-11 shrink-0 items-center gap-2 text-[17px] font-semibold tracking-tight text-ink">
@@ -32,7 +35,11 @@ export function TopBar({
       </Link>
       <div className="ml-auto flex min-w-0 items-center gap-1.5 text-ink-soft md:gap-2">
         <PrefsMenu locale={locale} theme={theme} demo={isDemo()} />
-        <RoleSwitcher users={rfqUsers} currentId={current.id} locale={locale} />
+        {showDemoSwitch ? (
+          <RoleSwitcher users={rfqUsers} currentId={current.id} locale={locale} />
+        ) : (
+          <UserMenu name={current.name} locale={locale} />
+        )}
       </div>
     </header>
   );

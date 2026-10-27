@@ -22,21 +22,33 @@ model Company {
 }
 
 model User {
-  id        String  @id @default(cuid())
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id])
-  name      String
-  email     String  @unique
-  role      String
-  title     String
+  id               String   @id @default(cuid())
+  name             String
+  email            String   @unique
+  emailVerified    Boolean  @default(false)
+  image            String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  twoFactorEnabled Boolean  @default(false)
+
+  /// Legacy demo role (BUYER/VENDOR/OPENING_*). Prefer Membership + TenderAssignment.
+  role      String  @default("member")
+  title     String  @default("")
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
   vendorId  String?
-  vendor    Vendor? @relation(fields: [vendorId], references: [id])
+  vendor    Vendor?  @relation(fields: [vendorId], references: [id])
 
-  createdAt DateTime @default(now())
-
-  tendersCreated     Tender[]          @relation("TenderCreator")
-  tendersKeyA        Tender[]          @relation("TenderKeyA")
-  tendersKeyB        Tender[]          @relation("TenderKeyB")
+  sessions           Session[]
+  accounts           Account[]
+  twofactors         TwoFactor[]
+  memberships        Membership[]
+  invitationsSent    OrgInvitation[]     @relation("InvitationInviter")
+  tenderAssignments  TenderAssignment[]
+  mfaStepUps         MfaStepUp[]
+  tendersCreated     Tender[]            @relation("TenderCreator")
+  tendersKeyA        Tender[]            @relation("TenderKeyA")
+  tendersKeyB        Tender[]            @relation("TenderKeyB")
   tenderVersions     TenderVersion[]
   requisitions       Requisition[]
   approvalSteps      ApprovalStep[]
@@ -47,7 +59,119 @@ model User {
   notifications      Notification[]
   auditEvents        AuditEvent[]
   tenderOpenings     TenderOpening[]
-  mismatchApprovals  Invoice[]         @relation("MismatchApprover")
+  mismatchApprovals  Invoice[]           @relation("MismatchApprover")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TwoFactor {
+  id                      String    @id @default(cuid())
+  secret                  String
+  backupCodes             String
+  userId                  String
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified                Boolean   @default(true)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+}
+
+/// Buyer or supplier organization (additive; Company/Vendor kept for RFQ compatibility).
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  type      String // buyer | supplier
+  vendorId  String?  @unique
+  vendor    Vendor?  @relation(fields: [vendorId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  memberships Membership[]
+  invitations OrgInvitation[]
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  orgRole   String // owner | admin | member
+  createdAt DateTime @default(now())
+  @@unique([userId, orgId])
+}
+
+model OrgInvitation {
+  id          String    @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  email       String
+  token       String    @unique
+  orgRole     String    @default("member")
+  invitedById String
+  invitedBy   User      @relation("InvitationInviter", fields: [invitedById], references: [id])
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+/// Per-AO (tender) role assignment on the buyer/supplier side.
+model TenderAssignment {
+  id        String   @id @default(cuid())
+  tenderId  String
+  tender    Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aoRole    String // owner | editor | keyholder | evaluator | viewer | bidder
+  keySlot   String? // A | B for keyholders
+  createdAt DateTime @default(now())
+  @@unique([tenderId, userId, aoRole])
+}
+
+model MfaStepUp {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionId  String
+  purpose    String // key_open | sensitive
+  verifiedAt DateTime @default(now())
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  @@index([userId, purpose])
 }
 
 model ApprovalThreshold {
@@ -75,11 +199,12 @@ model Vendor {
   email     String?
   city      String?
   category  String?
-  users     User[]
-  invites   TenderInvite[]
-  bids      Bid[]
-  pos       PurchaseOrder[]
-  invoices  Invoice[]
+  users         User[]
+  invites       TenderInvite[]
+  bids          Bid[]
+  pos           PurchaseOrder[]
+  invoices      Invoice[]
+  organization  Organization?
 }
 
 model Notification {
@@ -101,6 +226,10 @@ model AuditEvent {
   actorId    String
   actor      User     @relation(fields: [actorId], references: [id])
   details    String
+  orgId      String?
+  aoId       String?
+  ipAddress  String?
+  userAgent  String?
   createdAt  DateTime @default(now())
 }
 
@@ -131,6 +260,7 @@ model Tender {
   bids          Bid[]
   openings      TenderOpening[]
   requisitions  Requisition[]
+  assignments   TenderAssignment[]
 }
 
 model TenderInvite {
