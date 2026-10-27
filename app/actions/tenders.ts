@@ -39,11 +39,30 @@ export async function createTender(formData: FormData) {
   const deadline = String(formData.get("deadline") ?? "");
   const vendorIds = formData.getAll("vendorId").map(String);
   const requisitionId = String(formData.get("requisitionId") ?? "").trim();
-  const keyAUserId = String(formData.get("keyAUserId") ?? "").trim() || user.id;
-  const keyBUserId = String(formData.get("keyBUserId") ?? "").trim();
+  let keyAUserId = String(formData.get("keyAUserId") ?? "").trim();
+  let keyBUserId = String(formData.get("keyBUserId") ?? "").trim();
   if (!title || !briefing || !deadline) throw new Error("Required fields missing");
-  if (!keyBUserId) throw new Error("Second keyholder required");
-  if (keyAUserId === keyBUserId) throw new Error("Two distinct keyholders required");
+
+  // Default keyholders: two distinct buyer-org admins/members when the form omits them.
+  if (!keyAUserId || !keyBUserId || keyAUserId === keyBUserId) {
+    const membership = await prisma.membership.findFirst({
+      where: { userId: user.id, org: { type: "buyer" } },
+      include: { org: { include: { memberships: true } } },
+    });
+    const candidates = (membership?.org.memberships ?? [])
+      .map((m) => m.userId)
+      .filter((id, i, arr) => arr.indexOf(id) === i);
+    if (!keyAUserId) keyAUserId = candidates.find((id) => id !== user.id) || user.id;
+    if (!keyBUserId || keyBUserId === keyAUserId) {
+      keyBUserId =
+        candidates.find((id) => id !== keyAUserId) ||
+        (await prisma.user.findFirst({ where: { id: { not: keyAUserId }, role: { in: ["OPENING_B", "OPENING_A", "BUYER"] } } }))?.id ||
+        "";
+    }
+  }
+  if (!keyBUserId || keyAUserId === keyBUserId) {
+    throw new Error("Two distinct keyholders required — assign via AO roles");
+  }
 
   const t = await prisma.tender.create({
     data: {
