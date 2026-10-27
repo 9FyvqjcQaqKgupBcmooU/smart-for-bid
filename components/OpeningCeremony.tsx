@@ -41,7 +41,7 @@ export function OpeningCeremony({
   const firstA = firstName(officerA.name);
   const firstB = firstName(officerB.name);
   const already = myLock === "A" ? keyAUnlocked : myLock === "B" ? keyBUnlocked : true;
-  const next = `/?item=${encodeURIComponent(itemKey ?? `ao:${tenderId}`)}&tab=opening`;
+  const next = `/appels-offres/${tenderId}?tab=keys`;
 
   async function onSubmit(formData: FormData) {
     if (!myLock) {
@@ -69,6 +69,7 @@ export function OpeningCeremony({
 
   void compact;
   void currentName;
+  void itemKey;
 
   function Officer({
     lock,

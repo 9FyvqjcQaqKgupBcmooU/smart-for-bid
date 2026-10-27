@@ -47,7 +47,7 @@ export async function createTender(formData: FormData) {
   }
   await audit({ entityType: "Tender", entityId: t.id, action: "create", actorId: current.id, details: { title, requisitionId } });
   revalidateS2P();
-  redirect(`/appels-offres?id=${t.id}`);
+  redirect(`/appels-offres/${t.id}`);
 }
 
 export async function updateBriefing(formData: FormData) {
@@ -221,9 +221,9 @@ export async function awardBid(formData: FormData) {
     await notifyMany(uids, {
       title: `Bid awarded — ${t.number}`,
       body: `Your bid was awarded for “${t.title}”.`,
-      href: `/appels-offres?id=${tenderId}`,
+      href: `/appels-offres/${tenderId}`,
     });
   }
   revalidateS2P();
-  redirect(`/appels-offres?id=${tenderId}`);
+  redirect(`/appels-offres/${tenderId}`);
 }

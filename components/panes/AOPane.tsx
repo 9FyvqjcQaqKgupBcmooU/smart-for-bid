@@ -62,8 +62,9 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
 
   const labels = [
     i18n(locale, "ao.briefing"),
-    revealed ? i18n(locale, "ao.offers") : i18n(locale, "ao.opening"),
-    i18n(locale, "ao.log"),
+    i18n(locale, "ao.offers"),
+    i18n(locale, "shell.keys"),
+    i18n(locale, "shell.history"),
   ];
 
   const parsedBids = revealed
@@ -94,11 +95,19 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
   else if (showOpening && !revealed && pastDeadline && sealedLocked) question = i18n(locale, "inbox.qOpenBids");
   else question = i18n(locale, "inbox.qReadBrief");
 
-  const requestedTab = tab === "opening" || tab === "offers" ? 1 : tab === "log" ? 2 : tab === "brief" || tab === "briefing" ? 0 : null;
+  const requestedTab =
+    tab === "brief" || tab === "briefing"
+      ? 0
+      : tab === "offers" || tab === "opening"
+        ? 1
+        : tab === "keys" || tab === "cles"
+          ? 2
+          : tab === "log" || tab === "history" || tab === "historique"
+            ? 3
+            : null;
   const initialTab = requestedTab ?? 0;
 
-  function AddendaList() {
-    return (
+  const addendaList = (
       <ol className="mt-1 space-y-1">
         {versions.map((v) => (
           <li key={v.id}>
@@ -108,7 +117,6 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
         ))}
       </ol>
     );
-  }
 
   let upNext: ReactNode = null;
   if (showOpening && !revealed) {
@@ -265,14 +273,6 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
           />
           {receipt}
           {depositForm}
-          <div className="mt-4 border-t border-line/70 pt-3">
-            <p className="text-[13px] font-medium text-ink">{i18n(locale, "ao.whoWhatWhen")}</p>
-            {versions.length > 0 ? (
-              <AddendaList />
-            ) : (
-              <p className="mt-1 text-[13px] text-ink-soft">{i18n(locale, "ao.notifyInvited")}</p>
-            )}
-          </div>
           {(current.role === "BUYER" || current.id === t.createdById) && t.status !== "awarded" && (
             <details className="mt-3 border-t border-line pt-3">
               <summary className="cursor-pointer text-[13px] font-medium text-cobalt hover:opacity-90">{i18n(locale, "ao.editBriefHint")}</summary>
@@ -289,22 +289,6 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
         <div>
           {!revealed ? (
             <>
-              <div className="mb-3 flex items-center gap-3">
-                <SealMark state={seal} size={32} />
-                <div className="min-w-0">
-                  <p className="text-[15px] font-medium leading-[22px] text-ink">
-                    {seal === "one" ? i18n(locale, "seal.oneKey") : i18n(locale, "seal.sealed")}
-                    <span className="num ml-2 text-[13px] font-normal text-ink-soft">
-                      {Number(t.keyAUnlocked) + Number(t.keyBUnlocked)}/2
-                    </span>
-                  </p>
-                  <p className="text-[13px] leading-[18px] text-ink-soft">
-                    {seal === "one"
-                      ? i18n(locale, "seal.oneKeyHint", { name: firstName((t.keyAUnlocked ? t.keyAUser : t.keyBUser).name) })
-                      : i18n(locale, "seal.sealedHint")}
-                  </p>
-                </div>
-              </div>
               <ul className="space-y-1.5">
                 {t.bids.length === 0 && <p className="text-[14px] text-ink-soft">{i18n(locale, "ao.noBids")}</p>}
                 {t.bids.map((b) => (
@@ -358,27 +342,56 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
             </table>
             </div>
           )}
-          {showOpening && !revealed && (
-            <div className="mt-4">
-              <OpeningCeremony
-                tenderId={t.id}
-                itemKey={`ao:${t.id}`}
-                deadline={t.deadline.toISOString()}
-                keyAUnlocked={t.keyAUnlocked}
-                keyBUnlocked={t.keyBUnlocked}
-                officerA={{ id: t.keyAUser.id, name: t.keyAUser.name }}
-                officerB={{ id: t.keyBUser.id, name: t.keyBUser.name }}
-                currentUserId={current.id}
-                currentName={current.name}
-                locale={locale}
-                demo={isDemo()}
-              />
+        </div>
+        <div>
+          <div className="mb-3 flex items-center gap-3">
+            <SealMark state={seal} size={32} />
+            <div className="min-w-0">
+              <p className="text-[15px] font-medium leading-[22px] text-ink">
+                {seal === "opened"
+                  ? i18n(locale, "seal.opened")
+                  : seal === "one"
+                    ? i18n(locale, "seal.oneKey")
+                    : i18n(locale, "seal.sealed")}
+                <span className="num ml-2 text-[13px] font-normal text-ink-soft">
+                  {Number(t.keyAUnlocked) + Number(t.keyBUnlocked)}/2
+                </span>
+              </p>
+              <p className="text-[13px] leading-[18px] text-ink-soft">
+                {seal === "opened"
+                  ? i18n(locale, "seal.openedHint")
+                  : seal === "one"
+                    ? i18n(locale, "seal.oneKeyHint", { name: firstName((t.keyAUnlocked ? t.keyAUser : t.keyBUser).name) })
+                    : i18n(locale, "seal.sealedHint")}
+              </p>
             </div>
+          </div>
+          {showOpening && !revealed && (
+            <OpeningCeremony
+              tenderId={t.id}
+              itemKey={`ao:${t.id}`}
+              deadline={t.deadline.toISOString()}
+              keyAUnlocked={t.keyAUnlocked}
+              keyBUnlocked={t.keyBUnlocked}
+              officerA={{ id: t.keyAUser.id, name: t.keyAUser.name }}
+              officerB={{ id: t.keyBUser.id, name: t.keyBUser.name }}
+              currentUserId={current.id}
+              currentName={current.name}
+              locale={locale}
+              demo={isDemo()}
+            />
+          )}
+          {(!showOpening || revealed) && (
+            <p className="text-[13px] text-ink-soft">
+              {t.keyAUser.name}: {t.keyAUnlocked ? i18n(locale, "ao.keyOk") : "—"}
+              {" · "}
+              {t.keyBUser.name}: {t.keyBUnlocked ? i18n(locale, "ao.keyOk") : "—"}
+            </p>
           )}
         </div>
         <div>
           <p className="text-[13px] text-ink-soft">{i18n(locale, "ao.whoWhatWhen")}</p>
-          <AddendaList />
+          {addendaList}
           {t.openings.length > 0 && (
             <ol className="mt-2 space-y-1">
               {t.openings.map((o) => (

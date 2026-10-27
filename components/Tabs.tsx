@@ -18,7 +18,7 @@ export function Tabs({
   return (
     <div>
       <div
-        className="relative grid w-full max-w-sm rounded-full bg-paper-2 p-1 ring-1 ring-line/60"
+        className="relative grid w-full max-w-xl rounded-full bg-paper-2 p-1 ring-1 ring-line/60"
         style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
       >
         <span
