@@ -9,7 +9,30 @@ import { formatParisStamp } from "@/lib/format";
 
 export const runtime = "nodejs";
 
+function safeText(s: string) {
+  // Helvetica (WinAnsi) cannot encode all Unicode; ASCII-fold for the PDF.
+  return Array.from(s.normalize("NFKD"))
+    .map((ch) => {
+      const code = ch.codePointAt(0) ?? 0;
+      if (code >= 0x0300 && code <= 0x036f) return "";
+      if (ch === "\u2014" || ch === "\u2013") return "-";
+      if (ch === "\u00b7" || ch === "\u2022") return ".";
+      if (ch === "\u0153") return "oe";
+      if (ch === "\u0152") return "OE";
+      if (ch === "\u00e6") return "ae";
+      if (ch === "\u00c6") return "AE";
+      if (ch === "\u2019" || ch === "\u2018") return "'";
+      if (ch === "\u201c" || ch === "\u201d") return '"';
+      if (code === 0x202f || code === 0x00a0) return " ";
+      if (code < 32 && ch !== "\t" && ch !== "\n" && ch !== "\r") return "";
+      if (code > 255) return "?";
+      return ch;
+    })
+    .join("");
+}
+
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  try {
   const { id } = await ctx.params;
   await requireUser();
   const tender = await prisma.tender.findUnique({
@@ -62,7 +85,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   }
   function line(text: string, opts?: { bold?: boolean; size?: number; color?: ReturnType<typeof rgb> }) {
     ensure();
-    page.drawText(text.slice(0, 110), {
+    page.drawText(safeText(text).slice(0, 110), {
       x: 48,
       y,
       size: opts?.size ?? 10,
@@ -129,4 +152,9 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       "Cache-Control": "no-store",
     },
   });
+  } catch (err) {
+    console.error("[preuve.pdf]", err);
+    const msg = err instanceof Error ? err.stack || err.message : String(err);
+    return new NextResponse("Erreur PDF: " + msg, { status: 500, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+  }
 }
