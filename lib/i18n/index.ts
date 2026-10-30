@@ -3,7 +3,7 @@ import { fr } from "./fr";
 
 export const LANG_COOKIE = "pli-lang";
 export type Locale = "en" | "fr";
-export const DEFAULT_LOCALE: Locale = "en";
+export const DEFAULT_LOCALE: Locale = "fr";
 
 export { en, fr };
 

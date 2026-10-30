@@ -129,19 +129,19 @@ export async function seedDemo(prisma: PrismaClient) {
   const hugo = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Hugo Santos",
-      email: "hugo.santos@helios-distribution.fr",
+      name: "Hugo Martin",
+      email: "hugo.martin@helios-distribution.fr",
       role: "OPENING_A",
-      title: "Bid officer A",
+      title: "Officier d'ouverture A",
     },
   });
   const ines = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Inès Benali",
-      email: "ines.benali@helios-distribution.fr",
+      name: "Inès Duval",
+      email: "ines.duval@helios-distribution.fr",
       role: "OPENING_B",
-      title: "Bid officer B",
+      title: "Officière d'ouverture B",
     },
   });
   const antoine = await prisma.user.create({
@@ -217,34 +217,62 @@ export async function seedDemo(prisma: PrismaClient) {
   const hashA = await bcrypt.hash("alpha-ouvre", 10);
   const hashB = await bcrypt.hash("bravo-ouvre", 10);
 
-  const briefingV1 = `# RFQ — Store furniture 2026-2028
+  const budget = (n: number) => `\n\n<!--bid-budget:${n}-->`;
 
-Helios Distribution is consulting for a **national framework agreement** for supply and installation of sales furniture (gondolas, gondola ends, checkout displays).
+  const briefingMobilier = `# AO — Mobilier de magasin 2026-2028
 
-## Scope
-- 38 stores in France, rollout in waves
-- Term: 24 months firm + 12 months renewable
-- Installation except Sundays, 21:00–06:00 window
+Helios Distribution consulte pour un **accord-cadre national** de fourniture et pose de mobilier de vente (gondoles, têtes de gondole, meubles de caisse).
 
-## Expected deliverables
-- Priced catalogue excl. VAT, free delivery to Lille warehouse
-- Replenishment lead time ≤ 12 working days
-- Parts and labour warranty 5 years
+## Périmètre
+- 38 magasins en France, déploiement par vagues
+- Durée : 24 mois fermes + 12 mois reconductibles
+- Pose hors dimanche, créneau 21 h – 6 h
 
-Please submit a single bid: estimated year-1 global price, standard lead time, and comments on installation capacity.`;
+## Attendus
+- Catalogue chiffré HT, livraison franco entrepôt Lille
+- Délai de réassort ≤ 12 jours ouvrés
+- Garantie pièces et main-d'œuvre 5 ans
 
-  const briefingV2 = briefingV1 + `
+Déposez une offre unique : montant global année 1, délai standard, capacité de pose.` + budget(210000);
 
-## Addendum — 12 August 2026
-Following a pilot-store visit, the **checkout display** lot is raised from 38 to **46 units** (eight e-reservation corners). The price criterion remains the year-1 global amount, all options included.`;
+  const briefingTransport = `# AO — Charte transport régional — rentrée 2026
 
+Besoin d'un **transporteur unique** pour les flux entrepôt Lille → magasins Hauts-de-France (saison de rentrée).
+
+## Volumes
+- 18 tournées / semaine, 7,5 t à 12 t
+- Fenêtres magasin 6 h – 11 h
+- Palettes EUR, gerbage 1,80 m
+
+## Attendus
+- Prix au km chargé + minimum de tournée
+- Plan de continuité (grève, météo)
+- Reporting POD J+1` + budget(48000);
+
+  const briefingDraft = `# AO — Signalétique magasins (brouillon)
+
+Refonte de la signalétique intérieure pour 12 magasins pilotes. Brief en cours de rédaction avec le marketing.` + budget(32000);
+
+  const briefingEclairage = `# AO — Éclairage LED entrepôt Lomme
+
+Remplacement de 84 luminaires LED (4000 K) dans l'entrepôt de Lomme, pose de nuit.` + budget(56000);
+
+  const briefingNettoyage = `# AO — Prestations de nettoyage sites
+
+Nettoyage multi-sites (entrepôt + 6 magasins) — contrat 12 mois.` + budget(78000);
+
+  const briefingIT = `# AO — Postes de travail acheteurs
+
+Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget(42000);
+
+  // Clos / scellé — échéance récente, prêt à ouvrir (pas d'étiquette « en retard » dans l'UI)
   const tenderClosed = await prisma.tender.create({
     data: {
       number: "AO-2026-0001",
-      title: "Store furniture framework agreement 2026-2028",
-      briefing: briefingV2,
+      title: "Mobilier de magasin — accord-cadre 2026-2028",
+      briefing: briefingMobilier,
       status: "published",
-      deadline: new Date("2026-08-20T17:00:00+02:00"),
+      deadline: new Date("2026-10-28T17:00:00+01:00"),
       currency: "EUR",
       createdById: lea.id,
       keyAUserId: hugo.id,
@@ -253,16 +281,16 @@ Following a pilot-store visit, the **checkout display** lot is raised from 38 to
       keyBHash: hashB,
       keyAUnlocked: false,
       keyBUnlocked: false,
-      publishedAt: new Date("2026-08-04T09:30:00+02:00"),
-      createdAt: new Date("2026-08-01T14:10:00+02:00"),
+      publishedAt: new Date("2026-10-06T09:30:00+02:00"),
+      createdAt: new Date("2026-10-03T14:10:00+02:00"),
     },
   });
 
   await prisma.tenderInvite.createMany({
     data: [
-      { tenderId: tenderClosed.id, vendorId: sportline.id, notifiedAt: new Date("2026-08-04T09:31:00+02:00") },
-      { tenderId: tenderClosed.id, vendorId: nordlog.id, notifiedAt: new Date("2026-08-04T09:31:00+02:00") },
-      { tenderId: tenderClosed.id, vendorId: lumen.id, notifiedAt: new Date("2026-08-04T09:31:00+02:00") },
+      { tenderId: tenderClosed.id, vendorId: sportline.id, notifiedAt: new Date("2026-10-06T09:31:00+02:00") },
+      { tenderId: tenderClosed.id, vendorId: nordlog.id, notifiedAt: new Date("2026-10-06T09:31:00+02:00") },
+      { tenderId: tenderClosed.id, vendorId: lumen.id, notifiedAt: new Date("2026-10-06T09:31:00+02:00") },
     ],
   });
 
@@ -270,9 +298,9 @@ Following a pilot-store visit, the **checkout display** lot is raised from 38 to
     data: {
       tenderId: tenderClosed.id,
       changedById: lea.id,
-      summary: "Addendum: 46 checkout displays instead of 38. Price criterion unchanged.",
-      briefing: briefingV2,
-      createdAt: new Date("2026-08-12T11:05:00+02:00"),
+      summary: "Précision périmètre : 46 meubles de caisse au lieu de 38.",
+      briefing: briefingMobilier,
+      createdAt: new Date("2026-10-14T11:05:00+02:00"),
     },
   });
 
@@ -284,9 +312,9 @@ Following a pilot-store visit, the **checkout display** lot is raised from 38 to
         payload: JSON.stringify({
           price: 186400,
           leadTimeDays: 14,
-          comments: "Installation by trained in-house crews. Optional annual maintenance +2.4%.",
+          comments: "Pose par équipes internes formées. Maintenance annuelle optionnelle +2,4 %.",
         }),
-        submittedAt: new Date("2026-08-18T16:42:00+02:00"),
+        submittedAt: new Date("2026-10-24T16:42:00+02:00"),
       },
       {
         tenderId: tenderClosed.id,
@@ -294,9 +322,9 @@ Following a pilot-store visit, the **checkout display** lot is raised from 38 to
         payload: JSON.stringify({
           price: 174900,
           leadTimeDays: 18,
-          comments: "Certified installation subcontracting. Capacity 6 stores / month.",
+          comments: "Sous-traitance de pose certifiée. Capacité 6 magasins / mois.",
         }),
-        submittedAt: new Date("2026-08-19T10:15:00+02:00"),
+        submittedAt: new Date("2026-10-26T10:15:00+02:00"),
       },
       {
         tenderId: tenderClosed.id,
@@ -304,48 +332,36 @@ Following a pilot-store visit, the **checkout display** lot is raised from 38 to
         payload: JSON.stringify({
           price: 191250,
           leadTimeDays: 10,
-          comments: "Manufactured in Tourcoing, PEFC-certified wood. Short lead time on the checkout lot.",
+          comments: "Fabrication Tourcoing, bois PEFC. Délai court sur le lot caisse.",
         }),
-        submittedAt: new Date("2026-08-19T21:03:00+02:00"),
+        submittedAt: new Date("2026-10-27T21:03:00+02:00"),
       },
     ],
   });
 
+  // Publié — échéance future
   const tenderOpen = await prisma.tender.create({
     data: {
       number: "AO-2026-0002",
-      title: "Regional transport charter — back-to-school 2026",
-      briefing: `# RFQ — regional transport
-
-Need for a **single haulier** for Lille warehouse → Hauts-de-France store flows during the back-to-school season (25 August – 15 October).
-
-## Volumes
-- 18 rounds / week, 7.5 t to 12 t
-- Store delivery windows 06:00–11:00
-- EUR pallets, stacking 1.80 m
-
-## Expected
-- Price per loaded km + round minimum
-- Continuity plan (strike, weather)
-- POD reporting D+1
-
-Submit bids before **23 August 2026, 12:00**.`,
+      title: "Charte transport régional — rentrée 2026",
+      briefing: briefingTransport,
       status: "published",
-      deadline: new Date("2026-08-23T12:00:00+02:00"),
+      deadline: new Date("2026-11-18T12:00:00+01:00"),
       currency: "EUR",
       createdById: lea.id,
       keyAUserId: hugo.id,
       keyBUserId: ines.id,
       keyAHash: hashA,
       keyBHash: hashB,
-      publishedAt: new Date("2026-08-16T08:00:00+02:00"),
+      publishedAt: new Date("2026-10-20T08:00:00+02:00"),
+      createdAt: new Date("2026-10-18T10:00:00+02:00"),
     },
   });
 
   await prisma.tenderInvite.createMany({
     data: [
-      { tenderId: tenderOpen.id, vendorId: nordlog.id, notifiedAt: new Date("2026-08-16T08:01:00+02:00") },
-      { tenderId: tenderOpen.id, vendorId: sportline.id, notifiedAt: new Date("2026-08-16T08:01:00+02:00") },
+      { tenderId: tenderOpen.id, vendorId: nordlog.id, notifiedAt: new Date("2026-10-20T08:01:00+02:00") },
+      { tenderId: tenderOpen.id, vendorId: sportline.id, notifiedAt: new Date("2026-10-20T08:01:00+02:00") },
     ],
   });
 
@@ -356,11 +372,160 @@ Submit bids before **23 August 2026, 12:00**.`,
       payload: JSON.stringify({
         price: 42800,
         leadTimeDays: 2,
-        comments: "Dedicated fleet of 4 trucks. Saturday-morning on-call.",
+        comments: "Flotte dédiée de 4 camions. Astreinte samedi matin.",
       }),
-      submittedAt: new Date("2026-08-21T09:12:00+02:00"),
+      submittedAt: new Date("2026-10-27T09:12:00+02:00"),
     },
   });
+
+  // Brouillon
+  const tenderDraft = await prisma.tender.create({
+    data: {
+      number: "AO-2026-0003",
+      title: "Signalétique magasins — pilote 12 sites",
+      briefing: briefingDraft,
+      status: "draft",
+      deadline: new Date("2026-12-05T17:00:00+01:00"),
+      currency: "EUR",
+      createdById: lea.id,
+      keyAUserId: hugo.id,
+      keyBUserId: ines.id,
+      createdAt: new Date("2026-10-28T15:20:00+01:00"),
+    },
+  });
+
+  // Publié sans offre encore
+  const tenderPub2 = await prisma.tender.create({
+    data: {
+      number: "AO-2026-0004",
+      title: "Éclairage LED entrepôt Lomme",
+      briefing: briefingEclairage,
+      status: "published",
+      deadline: new Date("2026-11-28T17:00:00+01:00"),
+      currency: "EUR",
+      createdById: lea.id,
+      keyAUserId: hugo.id,
+      keyBUserId: ines.id,
+      keyAHash: hashA,
+      keyBHash: hashB,
+      publishedAt: new Date("2026-10-25T09:00:00+02:00"),
+      createdAt: new Date("2026-10-22T11:00:00+02:00"),
+    },
+  });
+  await prisma.tenderInvite.createMany({
+    data: [
+      { tenderId: tenderPub2.id, vendorId: lumen.id, notifiedAt: new Date("2026-10-25T09:01:00+02:00") },
+      { tenderId: tenderPub2.id, vendorId: nordlog.id, notifiedAt: new Date("2026-10-25T09:01:00+02:00") },
+    ],
+  });
+
+  // Ouvert (cérémonie faite)
+  const tenderOpened = await prisma.tender.create({
+    data: {
+      number: "AO-2026-0005",
+      title: "Nettoyage multi-sites — contrat annuel",
+      briefing: briefingNettoyage,
+      status: "opened",
+      deadline: new Date("2026-10-15T17:00:00+02:00"),
+      currency: "EUR",
+      createdById: lea.id,
+      keyAUserId: hugo.id,
+      keyBUserId: ines.id,
+      keyAHash: hashA,
+      keyBHash: hashB,
+      keyAUnlocked: true,
+      keyBUnlocked: true,
+      publishedAt: new Date("2026-09-20T09:00:00+02:00"),
+      openedAt: new Date("2026-10-16T10:05:00+02:00"),
+      createdAt: new Date("2026-09-18T14:00:00+02:00"),
+    },
+  });
+  await prisma.tenderInvite.createMany({
+    data: [
+      { tenderId: tenderOpened.id, vendorId: nordlog.id, notifiedAt: new Date("2026-09-20T09:01:00+02:00") },
+      { tenderId: tenderOpened.id, vendorId: sportline.id, notifiedAt: new Date("2026-09-20T09:01:00+02:00") },
+    ],
+  });
+  const bidOpenedA = await prisma.bid.create({
+    data: {
+      tenderId: tenderOpened.id,
+      vendorId: nordlog.id,
+      payload: JSON.stringify({ price: 71200, leadTimeDays: 5, comments: "Équipes dédiées sites Nord." }),
+      submittedAt: new Date("2026-10-12T11:00:00+02:00"),
+    },
+  });
+  await prisma.bid.create({
+    data: {
+      tenderId: tenderOpened.id,
+      vendorId: sportline.id,
+      payload: JSON.stringify({ price: 74500, leadTimeDays: 7, comments: "Option produits écolabel." }),
+      submittedAt: new Date("2026-10-14T16:20:00+02:00"),
+    },
+  });
+  await prisma.tenderOpening.createMany({
+    data: [
+      { tenderId: tenderOpened.id, officerId: hugo.id, lock: "A", success: true, createdAt: new Date("2026-10-16T09:58:00+02:00") },
+      { tenderId: tenderOpened.id, officerId: ines.id, lock: "B", success: true, createdAt: new Date("2026-10-16T10:05:00+02:00") },
+    ],
+  });
+
+  // Attribué
+  const tenderAwarded = await prisma.tender.create({
+    data: {
+      number: "AO-2026-0006",
+      title: "Postes de travail équipe achats",
+      briefing: briefingIT,
+      status: "awarded",
+      deadline: new Date("2026-09-30T17:00:00+02:00"),
+      currency: "EUR",
+      createdById: lea.id,
+      keyAUserId: hugo.id,
+      keyBUserId: ines.id,
+      keyAHash: hashA,
+      keyBHash: hashB,
+      keyAUnlocked: true,
+      keyBUnlocked: true,
+      publishedAt: new Date("2026-09-05T09:00:00+02:00"),
+      openedAt: new Date("2026-10-01T11:20:00+02:00"),
+      createdAt: new Date("2026-09-01T10:00:00+02:00"),
+    },
+  });
+  await prisma.tenderInvite.createMany({
+    data: [
+      { tenderId: tenderAwarded.id, vendorId: lumen.id, notifiedAt: new Date("2026-09-05T09:01:00+02:00") },
+      { tenderId: tenderAwarded.id, vendorId: sportline.id, notifiedAt: new Date("2026-09-05T09:01:00+02:00") },
+    ],
+  });
+  const bidAward = await prisma.bid.create({
+    data: {
+      tenderId: tenderAwarded.id,
+      vendorId: lumen.id,
+      payload: JSON.stringify({ price: 38400, leadTimeDays: 12, comments: "Garantie constructeur 3 ans." }),
+      submittedAt: new Date("2026-09-22T14:00:00+02:00"),
+    },
+  });
+  await prisma.bid.create({
+    data: {
+      tenderId: tenderAwarded.id,
+      vendorId: sportline.id,
+      payload: JSON.stringify({ price: 40100, leadTimeDays: 10, comments: "Livraison Lille incluse." }),
+      submittedAt: new Date("2026-09-28T09:30:00+02:00"),
+    },
+  });
+  await prisma.tender.update({
+    where: { id: tenderAwarded.id },
+    data: { awardedBidId: bidAward.id },
+  });
+  await prisma.tenderOpening.createMany({
+    data: [
+      { tenderId: tenderAwarded.id, officerId: hugo.id, lock: "A", success: true, createdAt: new Date("2026-10-01T11:12:00+02:00") },
+      { tenderId: tenderAwarded.id, officerId: ines.id, lock: "B", success: true, createdAt: new Date("2026-10-01T11:20:00+02:00") },
+    ],
+  });
+
+  // silence unused draft id for TS (referenced via DB)
+  void tenderDraft;
+  void bidOpenedA;
 
   // 3. DA pending N+2 — Rayonnage Lille 18 400 €
   const daRayonnage = await prisma.requisition.create({
@@ -874,43 +1039,43 @@ Submit bids before **23 August 2026, 12:00**.`,
       },
       {
         userId: hugo.id,
-        title: "Bids to open — AO-2026-0001",
-        body: "The 20 August 17:00 deadline has passed. 3 sealed bids. Inès Benali must be present.",
+        title: "Plis à ouvrir — AO-2026-0001",
+        body: "L'échéance du 28 oct. 17 h 00 est passée. 3 plis scellés. Inès Duval doit être présente.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-20T17:01:00+02:00"),
       },
       {
         userId: ines.id,
-        title: "Opening ceremony — AO-2026-0001",
-        body: "3 sealed bids (Sportline, NordLog, Atelier Lumen). Dual key with Hugo Santos.",
+        title: "Ouverture à deux clés — AO-2026-0001",
+        body: "3 plis scellés (Sportline, NordLog, Atelier Lumen). Ouverture avec Hugo Martin.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-20T17:01:00+02:00"),
       },
       {
         userId: lea.id,
         title: "Addendum notified to bidders",
-        body: "AO-2026-0001: briefing changed on 12 August. Sportline, NordLog and Atelier Lumen notified.",
+        body: "AO-2026-0001 : brief modifié le 14 oct. Sportline, NordLog et Atelier Lumen notifiés.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
         read: true,
       },
       {
         userId: uSportline.id,
-        title: "Addendum to RFQ AO-2026-0001",
+        title: "Addendum AO-2026-0001",
         body: "The briefing was changed: 46 checkout displays instead of 38. Your already submitted bid remains valid.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
       },
       {
         userId: uNordlog.id,
-        title: "Addendum to RFQ AO-2026-0001",
+        title: "Addendum AO-2026-0001",
         body: "The briefing was changed: 46 checkout displays instead of 38.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
       },
       {
         userId: uLumen.id,
-        title: "Addendum to RFQ AO-2026-0001",
+        title: "Addendum AO-2026-0001",
         body: "The briefing was changed: 46 checkout displays instead of 38.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
@@ -945,18 +1110,114 @@ Submit bids before **23 August 2026, 12:00**.`,
       {
         entityType: "Tender",
         entityId: tenderClosed.id,
+        action: "create",
+        actorId: lea.id,
+        details: JSON.stringify({ number: "AO-2026-0001" }),
+        createdAt: new Date("2026-10-03T14:10:00+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderClosed.id,
         action: "publish",
         actorId: lea.id,
-        details: JSON.stringify({ deadline: "2026-08-20T17:00:00+02:00", invites: 3 }),
-        createdAt: new Date("2026-08-04T09:30:00+02:00"),
+        details: JSON.stringify({ deadline: "2026-10-28T17:00:00+01:00", invites: 3 }),
+        createdAt: new Date("2026-10-06T09:30:00+02:00"),
       },
       {
         entityType: "Tender",
         entityId: tenderClosed.id,
         action: "briefing_edit",
         actorId: lea.id,
-        details: JSON.stringify({ summary: "Addendum 46 checkout displays" }),
-        createdAt: new Date("2026-08-12T11:05:00+02:00"),
+        details: JSON.stringify({ summary: "46 meubles de caisse" }),
+        createdAt: new Date("2026-10-14T11:05:00+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderClosed.id,
+        action: "bid_submit",
+        actorId: uSportline.id,
+        details: JSON.stringify({ vendor: "Sportline SAS" }),
+        createdAt: new Date("2026-10-24T16:42:00+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderClosed.id,
+        action: "bid_submit",
+        actorId: uNordlog.id,
+        details: JSON.stringify({ vendor: "NordLog" }),
+        createdAt: new Date("2026-10-26T10:15:00+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderClosed.id,
+        action: "bid_submit",
+        actorId: uLumen.id,
+        details: JSON.stringify({ vendor: "Atelier Lumen" }),
+        createdAt: new Date("2026-10-27T21:03:00+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderClosed.id,
+        action: "deadline_passed",
+        actorId: lea.id,
+        details: JSON.stringify({ bids: 3 }),
+        createdAt: new Date("2026-10-28T17:00:01+01:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderOpened.id,
+        action: "publish",
+        actorId: lea.id,
+        details: JSON.stringify({ number: "AO-2026-0005" }),
+        createdAt: new Date("2026-09-20T09:00:00+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderOpened.id,
+        action: "unlock_ok",
+        actorId: hugo.id,
+        details: JSON.stringify({ lock: "A" }),
+        createdAt: new Date("2026-10-16T09:58:00+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderOpened.id,
+        action: "unlock_ok",
+        actorId: ines.id,
+        details: JSON.stringify({ lock: "B" }),
+        createdAt: new Date("2026-10-16T10:05:00+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderOpened.id,
+        action: "opened",
+        actorId: ines.id,
+        details: JSON.stringify({ bids: 2 }),
+        createdAt: new Date("2026-10-16T10:05:01+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderAwarded.id,
+        action: "publish",
+        actorId: lea.id,
+        details: JSON.stringify({ number: "AO-2026-0006" }),
+        createdAt: new Date("2026-09-05T09:00:00+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderAwarded.id,
+        action: "opened",
+        actorId: ines.id,
+        details: JSON.stringify({ bids: 2 }),
+        createdAt: new Date("2026-10-01T11:20:00+02:00"),
+      },
+      {
+        entityType: "Tender",
+        entityId: tenderAwarded.id,
+        action: "award",
+        actorId: lea.id,
+        details: JSON.stringify({ vendor: "Atelier Lumen", price: 38400 }),
+        createdAt: new Date("2026-10-02T09:15:00+02:00"),
       },
       {
         entityType: "Requisition",
@@ -992,7 +1253,8 @@ const isDirect = process.argv.some((a) => /(?:^|[\\/])seed\.(ts|js)$/.test(a));
 if (isDirect) {
   async function main() {
     let prisma: PrismaClient;
-    if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN) {
+    // SAFETY: never touch shared Turso unless explicitly allowed.
+    if (process.env.TURSO_DATABASE_URL && process.env.TURSO_AUTH_TOKEN && process.env.ALLOW_TURSO_SEED === "1") {
       const { PrismaLibSql } = await import("@prisma/adapter-libsql");
       const adapter = new PrismaLibSql({
         url: process.env.TURSO_DATABASE_URL,
@@ -1000,6 +1262,14 @@ if (isDirect) {
       });
       prisma = new PrismaClient({ adapter });
     } else {
+      if (process.env.TURSO_DATABASE_URL && process.env.ALLOW_TURSO_SEED !== "1") {
+        delete process.env.TURSO_DATABASE_URL;
+        delete process.env.TURSO_AUTH_TOKEN;
+        console.log("Refusing Turso seed (set ALLOW_TURSO_SEED=1 to override). Using DATABASE_URL SQLite.");
+      }
+      if (!process.env.DATABASE_URL || !process.env.DATABASE_URL.startsWith("file:")) {
+        throw new Error("DATABASE_URL must be a file: SQLite path for local seed");
+      }
       prisma = new PrismaClient();
     }
     try {

@@ -89,3 +89,21 @@ export function agingDays(d: Date | string): number {
 export function cn(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(" ");
 }
+
+/** Stamp style: 28 oct. 2026 · 09:17 (Europe/Paris, never Z). */
+export function formatParisStamp(d: Date | string | null | undefined, locale: FormatLocale = "fr"): string {
+  if (!d) return "—";
+  const date = typeof d === "string" ? new Date(d) : d;
+  const day = new Intl.DateTimeFormat(tag(locale), {
+    timeZone: PARIS,
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
+  const time = new Intl.DateTimeFormat(tag(locale), {
+    timeZone: PARIS,
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+  return `${day} · ${time}`;
+}

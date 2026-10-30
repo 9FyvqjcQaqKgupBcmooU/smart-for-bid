@@ -47,7 +47,7 @@ export async function createTender(formData: FormData) {
   }
   await audit({ entityType: "Tender", entityId: t.id, action: "create", actorId: current.id, details: { title, requisitionId } });
   revalidateS2P();
-  redirect(`/appels-offres?id=${t.id}`);
+  redirect(`/appels-offres/${t.id}`);
 }
 
 export async function updateBriefing(formData: FormData) {
@@ -56,8 +56,8 @@ export async function updateBriefing(formData: FormData) {
   const briefing = String(formData.get("briefing") ?? "");
   const summary = String(formData.get("summary") ?? "Briefing update").trim();
   const t = await prisma.tender.findUnique({ where: { id }, include: { invites: true } });
-  if (!t) throw new Error("RFQ not found");
-  if (t.status === "opened" || t.status === "awarded") throw new Error("RFQ already opened");
+  if (!t) throw new Error("AO introuvable");
+  if (t.status === "opened" || t.status === "awarded") throw new Error("AO déjà ouvert");
 
   await prisma.tender.update({ where: { id }, data: { briefing } });
 
@@ -68,7 +68,7 @@ export async function updateBriefing(formData: FormData) {
     const uids = await vendorUserIds(t.invites.map((i) => i.vendorId));
     await notifyMany(uids, {
       title: `Addendum — ${t.number}`,
-      body: `${current.name} updated the briefing: ${summary}`,
+      body: `${current.name} a mis à jour le brief : ${summary}`,
       href: `/appels-offres/${id}`,
     });
     await audit({
@@ -89,7 +89,7 @@ export async function publishTender(formData: FormData) {
   const passB = String(formData.get("passB") ?? "");
   if (passA.length < 6 || passB.length < 6) throw new Error("Both passwords must be at least 6 characters");
   const t = await prisma.tender.findUnique({ where: { id }, include: { invites: true } });
-  if (!t) throw new Error("RFQ not found");
+  if (!t) throw new Error("AO introuvable");
 
   await prisma.tender.update({
     where: { id },
@@ -104,8 +104,8 @@ export async function publishTender(formData: FormData) {
   });
   const uids = await vendorUserIds(t.invites.map((i) => i.vendorId));
   await notifyMany(uids, {
-    title: `New RFQ ${t.number}`,
-    body: `${t.title} — submit bids before the deadline.`,
+    title: `Nouvel AO ${t.number}`,
+    body: `${t.title} — déposez votre offre avant l'échéance.`,
     href: `/appels-offres/${id}`,
   });
   await audit({ entityType: "Tender", entityId: id, action: "publish", actorId: current.id });
@@ -125,7 +125,7 @@ export async function inviteVendor(formData: FormData) {
   const uids = await vendorUserIds([vendorId]);
   await notifyMany(uids, {
     title: `Invitation ${t?.number}`,
-    body: `You are invited to bid on: ${t?.title}`,
+    body: `Vous êtes invité à répondre à : ${t?.title}`,
     href: `/appels-offres/${tenderId}`,
   });
   await audit({ entityType: "Tender", entityId: tenderId, action: "invite", actorId: current.id, details: { vendorId } });
@@ -137,9 +137,9 @@ export async function submitBid(formData: FormData) {
   if (current.role !== "VENDOR" || !current.vendorId) throw new Error("Only a vendor can submit a bid");
   const tenderId = String(formData.get("tenderId"));
   const t = await prisma.tender.findUnique({ where: { id: tenderId } });
-  if (!t) throw new Error("RFQ not found");
+  if (!t) throw new Error("AO introuvable");
   if (new Date() > t.deadline) throw new Error("Deadline passed");
-  if (t.status !== "published") throw new Error("RFQ is not open for bids");
+  if (t.status !== "published") throw new Error("AO non ouvert aux offres");
   const price = Number(String(formData.get("price")).replace(",", "."));
   const leadTimeDays = Number(formData.get("leadTimeDays"));
   const comments = String(formData.get("comments") ?? "");
@@ -155,8 +155,8 @@ export async function submitBid(formData: FormData) {
   await audit({ entityType: "Tender", entityId: tenderId, action: "bid_submit", actorId: current.id });
   await notify({
     userId: t.createdById,
-    title: `Bid submitted — ${t.number}`,
-    body: `${current.name} submitted a sealed bid.`,
+    title: `Offre déposée — ${t.number}`,
+    body: `${current.name} a déposé une offre scellée.`,
     href: `/appels-offres/${tenderId}`,
   });
   revalidateS2P();
@@ -168,8 +168,8 @@ export async function unlockTender(formData: FormData) {
   const lock = String(formData.get("lock"));
   const password = String(formData.get("password") ?? "");
   const t = await prisma.tender.findUnique({ where: { id } });
-  if (!t) throw new Error("RFQ not found");
-  if (new Date() < t.deadline) throw new Error("Cannot open before the deadline");
+  if (!t) throw new Error("AO introuvable");
+  if (new Date() < t.deadline) throw new Error("Ouverture impossible avant l'échéance");
 
   const expectedUser = lock === "A" ? t.keyAUserId : t.keyBUserId;
   const hash = lock === "A" ? t.keyAHash : t.keyBHash;
@@ -212,18 +212,18 @@ export async function awardBid(formData: FormData) {
     where: { id: tenderId },
     include: { bids: true },
   });
-  if (!t || t.status !== "opened") throw new Error("RFQ is not opened");
+  if (!t || t.status !== "opened") throw new Error("AO non encore ouvert");
   await prisma.tender.update({ where: { id: tenderId }, data: { status: "awarded", awardedBidId: bidId } });
   const bid = t.bids.find((b) => b.id === bidId);
   await audit({ entityType: "Tender", entityId: tenderId, action: "award", actorId: current.id, details: { bidId } });
   if (bid) {
     const uids = await vendorUserIds([bid.vendorId]);
     await notifyMany(uids, {
-      title: `Bid awarded — ${t.number}`,
-      body: `Your bid was awarded for “${t.title}”.`,
-      href: `/appels-offres?id=${tenderId}`,
+      title: `Offre retenue — ${t.number}`,
+      body: `Votre offre a été retenue pour « ${t.title} ».`,
+      href: `/appels-offres/${tenderId}`,
     });
   }
   revalidateS2P();
-  redirect(`/appels-offres?id=${tenderId}`);
+  redirect(`/appels-offres/${tenderId}?tab=cles`);
 }
