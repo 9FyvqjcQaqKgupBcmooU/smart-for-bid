@@ -23,7 +23,7 @@ function byDemoOrder(a: SwitchUser, b: SwitchUser) {
 export function RoleSwitcher({
   users,
   currentId,
-  locale = "en",
+  locale = "fr",
 }: {
   users: SwitchUser[];
   currentId: string;

@@ -31,7 +31,7 @@ const TONE: Record<string, string> = {
   SERVICE: "bg-paper-2 text-ink-soft",
 };
 
-export function StatusPill({ status, locale = "en" }: { status: string; locale?: Locale }) {
+export function StatusPill({ status, locale = "fr" }: { status: string; locale?: Locale }) {
   const key = `status.${status}`;
   const translated = t(locale, key);
   const label = translated === key ? status : translated;

@@ -46,7 +46,7 @@ export async function seedDemo(prisma: PrismaClient) {
       iban: "FR76 3000 6000 0112 3456 7890 189",
       email: "facturation@sportline.fr",
       city: "Roubaix",
-      category: "Sports equipment",
+      category: "Équipement sportif",
     },
   });
   const nordlog = await prisma.vendor.create({
@@ -57,7 +57,7 @@ export async function seedDemo(prisma: PrismaClient) {
       iban: "FR76 3000 4000 0412 0001 3344 512",
       email: "ops@nordlog.fr",
       city: "Dunkerque",
-      category: "Logistics & site services",
+      category: "Logistique et services sur site",
     },
   });
   const lumen = await prisma.vendor.create({
@@ -68,7 +68,7 @@ export async function seedDemo(prisma: PrismaClient) {
       iban: "FR76 1470 6000 1112 3344 5566 789",
       email: "hello@atelier-lumen.fr",
       city: "Tourcoing",
-      category: "Lighting & fit-out",
+      category: "Éclairage et aménagement",
     },
   });
 
@@ -78,7 +78,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Camille Leroy",
       email: "camille.leroy@helios-distribution.fr",
       role: "REQUESTER",
-      title: "Requester — store purchasing",
+      title: "Demandeur — achats magasin",
     },
   });
   const thomas = await prisma.user.create({
@@ -87,7 +87,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Thomas Bernard",
       email: "thomas.bernard@helios-distribution.fr",
       role: "N1",
-      title: "Store manager — Lille Fives",
+      title: "Responsable magasin — Lille Fives",
     },
   });
   const nadia = await prisma.user.create({
@@ -96,7 +96,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Nadia El Amrani",
       email: "nadia.elamrani@helios-distribution.fr",
       role: "N2",
-      title: "Regional director Hauts-de-France",
+      title: "Directeur régional Hauts-de-France",
     },
   });
   const julien = await prisma.user.create({
@@ -105,7 +105,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Julien Moreau",
       email: "julien.moreau@helios-distribution.fr",
       role: "N3",
-      title: "Country finance director",
+      title: "Directeur finance pays",
     },
   });
   const claire = await prisma.user.create({
@@ -114,7 +114,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Claire Petit",
       email: "claire.petit@helios-distribution.fr",
       role: "N4",
-      title: "Group CFO",
+      title: "CFO groupe",
     },
   });
   const lea = await prisma.user.create({
@@ -123,7 +123,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Léa Hoffmann",
       email: "lea.hoffmann@helios-distribution.fr",
       role: "BUYER",
-      title: "Buyer — equipment & services",
+      title: "Acheteuse — équipement et services",
     },
   });
   const hugo = await prisma.user.create({
@@ -150,7 +150,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Antoine Girard",
       email: "antoine.girard@helios-distribution.fr",
       role: "AP",
-      title: "Accounts payable",
+      title: "Comptabilité fournisseur",
     },
   });
   const uSportline = await prisma.user.create({
@@ -159,7 +159,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Sportline SAS",
       email: "portail@sportline.fr",
       role: "VENDOR",
-      title: "Vendor portal",
+      title: "Portail fournisseur",
       vendorId: sportline.id,
     },
   });
@@ -169,7 +169,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "NordLog",
       email: "portail@nordlog.fr",
       role: "VENDOR",
-      title: "Vendor portal",
+      title: "Portail fournisseur",
       vendorId: nordlog.id,
     },
   });
@@ -179,35 +179,35 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Atelier Lumen",
       email: "portail@atelier-lumen.fr",
       role: "VENDOR",
-      title: "Vendor portal",
+      title: "Portail fournisseur",
       vendorId: lumen.id,
     },
   });
 
   await prisma.approvalThreshold.createMany({
     data: [
-      { minAmount: 0, maxAmount: 999.99, levels: JSON.stringify(["N+1"]), label: "Below €1,000 excl. VAT — N+1 only" },
-      { minAmount: 1000, maxAmount: 9999.99, levels: JSON.stringify(["N+1", "N+2"]), label: "€1,000 – €9,999 excl. VAT — N+1 then N+2" },
-      { minAmount: 10000, maxAmount: 49999.99, levels: JSON.stringify(["N+1", "N+2", "N+3"]), label: "€10,000 – €49,999 excl. VAT — up to N+3" },
-      { minAmount: 50000, maxAmount: null, levels: JSON.stringify(["N+1", "N+2", "N+3", "N+4"]), label: "≥ €50,000 excl. VAT — up to N+4 (CFO)" },
+      { minAmount: 0, maxAmount: 999.99, levels: JSON.stringify(["N+1"]), label: "Moins de 1 000 € HT — N+1 seul" },
+      { minAmount: 1000, maxAmount: 9999.99, levels: JSON.stringify(["N+1", "N+2"]), label: "1 000 – 9 999 € HT — N+1 puis N+2" },
+      { minAmount: 10000, maxAmount: 49999.99, levels: JSON.stringify(["N+1", "N+2", "N+3"]), label: "10 000 – 49 999 € HT — jusqu'à N+3" },
+      { minAmount: 50000, maxAmount: null, levels: JSON.stringify(["N+1", "N+2", "N+3", "N+4"]), label: "≥ 50 000 € HT — jusqu'à N+4 (CFO)" },
     ],
   });
 
   const accounts = [
-    { code: "401", label: "Vendors", type: "liability" },
-    { code: "408", label: "Vendors — invoices not received (GR/IR)", type: "liability" },
-    { code: "44566", label: "Deductible VAT on goods and services", type: "tax" },
-    { code: "44571", label: "Output VAT", type: "tax" },
-    { code: "442", label: "State — withholding tax (WHT)", type: "tax" },
-    { code: "512", label: "Banks", type: "asset" },
-    { code: "606", label: "Non-stock purchases of materials and supplies", type: "expense" },
-    { code: "607", label: "Merchandise purchases", type: "expense" },
-    { code: "611", label: "General subcontracting", type: "expense" },
-    { code: "613", label: "Rent", type: "expense" },
-    { code: "615", label: "Maintenance and repairs", type: "expense" },
-    { code: "622", label: "Fees and commissions", type: "expense" },
-    { code: "624", label: "Freight and staff transport", type: "expense" },
-    { code: "626", label: "Postage and telecommunications", type: "expense" },
+    { code: "401", label: "Fournisseurs", type: "liability" },
+    { code: "408", label: "Fournisseurs — factures non parvenues", type: "liability" },
+    { code: "44566", label: "TVA déductible sur biens et services", type: "tax" },
+    { code: "44571", label: "TVA collectée", type: "tax" },
+    { code: "442", label: "État — retenue à la source", type: "tax" },
+    { code: "512", label: "Banques", type: "asset" },
+    { code: "606", label: "Achats non stockés de matières et fournitures", type: "expense" },
+    { code: "607", label: "Achats de marchandises", type: "expense" },
+    { code: "611", label: "Sous-traitance générale", type: "expense" },
+    { code: "613", label: "Locations", type: "expense" },
+    { code: "615", label: "Entretien et réparations", type: "expense" },
+    { code: "622", label: "Honoraires et commissions", type: "expense" },
+    { code: "624", label: "Transports de biens et du personnel", type: "expense" },
+    { code: "626", label: "Frais postaux et télécommunications", type: "expense" },
   ];
   await prisma.chartOfAccount.createMany({ data: accounts });
   const gl = Object.fromEntries(
@@ -531,7 +531,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const daRayonnage = await prisma.requisition.create({
     data: {
       number: "DA-2026-0003",
-      title: "Lille warehouse racking",
+      title: "Rayonnage entrepôt Lille",
       description:
         "Replacement of 12 pallet-racking bays (900 kg loads) in aisle E of the Lille-Lomme warehouse, following the 2 August safety audit. Supply + assembly, civil works excluded. Indicative quote from Atelier Lumen €18,400 excl. VAT.",
       type: "ONE_OFF",
@@ -576,7 +576,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const daBallons = await prisma.requisition.create({
     data: {
       number: "DA-2026-0001",
-      title: "Balls and accessories — summer season",
+      title: "Ballons et accessoires — saison d'été",
       description:
         "Replenishment for Lille Fives store and club corner: size 5 balls, bibs, cones. Combined Sportline order, free delivery to warehouse.",
       type: "ONE_OFF",
@@ -680,7 +680,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const daClean = await prisma.requisition.create({
     data: {
       number: "DA-2026-0002",
-      title: "Cleaning contract — Lille / Roubaix sites",
+      title: "Contrat de nettoyage — sites Lille / Roubaix",
       description:
         "24-month framework: industrial cleaning of Lille-Lomme warehouse (3,200 m²) and Roubaix stockroom (900 m²), 5 visits / week, ecolabel products. Vendor NordLog Services.",
       type: "RECURRING",
@@ -756,7 +756,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const daLumen = await prisma.requisition.create({
     data: {
       number: "DA-2026-0004",
-      title: "LED relamping — checkout aisles, Lille Fives store",
+      title: "Relamping LED — caisses, magasin Lille Fives",
       description:
         "Replacement of 48 checkout-aisle pendants with 4000 K LED luminaires, night installation, take-back of existing fittings.",
       type: "ONE_OFF",
@@ -893,7 +893,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const daFreight = await prisma.requisition.create({
     data: {
       number: "DA-2026-0005",
-      title: "Warehouse-to-store shuttles — week 32",
+      title: "Navettes entrepôt-magasin — semaine 32",
       description: "Exceptional charter of 6 rounds after a back-to-school volume spike, outside the framework contract.",
       type: "ONE_OFF",
       amountHT: 5400,
@@ -1002,38 +1002,38 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
     data: [
       {
         userId: nadia.id,
-        title: "DA-2026-0003 awaiting your approval",
-        body: "Lille warehouse racking — €18,400.00 excl. VAT. Thomas Bernard approved on 18 August.",
+        title: "DA-2026-0003 en attente de votre validation",
+        body: "Rayonnage entrepôt Lille — 18 400,00 € HT. Validé par Thomas Bernard le 18 août.",
         href: "/demandes",
         createdAt: new Date("2026-08-18T14:06:00+02:00"),
       },
       {
         userId: camille.id,
-        title: "Partial receipt BR-2026-0001",
-        body: "Sportline: 40 cones short. 408 accrual opened for €4,000.00 excl. VAT received.",
+        title: "Réception partielle BR-2026-0001",
+        body: "Sportline : 40 cônes manquants. Compte 408 ouvert pour 4 000,00 € HT reçus.",
         href: "/receptions",
         createdAt: new Date("2026-08-14T15:21:00+02:00"),
         read: true,
       },
       {
         userId: camille.id,
-        title: "BC-2026-0001 issued to Sportline",
-        body: "Léa Hoffmann issued the purchase order Balls and accessories — summer season.",
+        title: "BC-2026-0001 émis à Sportline",
+        body: "Léa Hoffmann a émis le bon de commande Ballons et accessoires — saison d'été.",
         href: "/commandes",
         createdAt: new Date("2026-08-06T09:01:00+02:00"),
         read: true,
       },
       {
         userId: julien.id,
-        title: "Invoice variance AL-2026-114",
+        title: "Écart de facture AL-2026-114",
         body: "Atelier Lumen billed €9,600 excl. VAT vs €8,640 on PO/GR (+€960). N+1 AP approval required.",
         href: "/factures",
         createdAt: new Date("2026-08-15T11:12:00+02:00"),
       },
       {
         userId: antoine.id,
-        title: "Invoice NL-2026-0772 approved",
-        body: "NordLog €5,400 excl. VAT — matched, ready for the next payment run.",
+        title: "Facture NL-2026-0772 approuvée",
+        body: "NordLog 5 400 € HT — rapprochement OK, prêt pour le prochain lot de paiement.",
         href: "/paiements",
         createdAt: new Date("2026-08-16T09:41:00+02:00"),
       },
@@ -1053,7 +1053,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       },
       {
         userId: lea.id,
-        title: "Addendum notified to bidders",
+        title: "Addendum notifié aux soumissionnaires",
         body: "AO-2026-0001 : brief modifié le 14 oct. Sportline, NordLog et Atelier Lumen notifiés.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
@@ -1062,42 +1062,42 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       {
         userId: uSportline.id,
         title: "Addendum AO-2026-0001",
-        body: "The briefing was changed: 46 checkout displays instead of 38. Your already submitted bid remains valid.",
+        body: "Le brief a changé : 46 présentoirs de caisse au lieu de 38. Votre offre déjà déposée reste valable.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
       },
       {
         userId: uNordlog.id,
         title: "Addendum AO-2026-0001",
-        body: "The briefing was changed: 46 checkout displays instead of 38.",
+        body: "Le brief a changé : 46 présentoirs de caisse au lieu de 38.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
       },
       {
         userId: uLumen.id,
         title: "Addendum AO-2026-0001",
-        body: "The briefing was changed: 46 checkout displays instead of 38.",
+        body: "Le brief a changé : 46 présentoirs de caisse au lieu de 38.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
       },
       {
         userId: uSportline.id,
-        title: "Purchase order BC-2026-0001",
-        body: "Helios Distribution issued a PO of €4,200.00 excl. VAT — Balls and accessories — summer season.",
+        title: "Bon de commande BC-2026-0001",
+        body: "Helios Distribution a émis un BC de 4 200,00 € HT — Ballons et accessoires — saison d'été.",
         href: "/commandes",
         createdAt: new Date("2026-08-06T09:01:00+02:00"),
       },
       {
         userId: uSportline.id,
-        title: "Partial receipt BR-2026-0001",
-        body: "Receipt variance: 160 cones received of 200 ordered.",
+        title: "Réception partielle BR-2026-0001",
+        body: "Écart de réception : 160 cônes reçus sur 200 commandés.",
         href: "/receptions",
         createdAt: new Date("2026-08-14T15:21:00+02:00"),
       },
       {
         userId: uNordlog.id,
-        title: "New PO — cleaning contract BC-2026-0003",
-        body: "24-month contract, €28,800 excl. VAT. Start of performance 1 September 2026.",
+        title: "Nouveau BC — contrat de nettoyage BC-2026-0003",
+        body: "Contrat 24 mois, 28 800 € HT. Début d'exécution le 1er septembre 2026.",
         href: "/commandes",
         createdAt: new Date("2026-07-25T10:01:00+02:00"),
       },
