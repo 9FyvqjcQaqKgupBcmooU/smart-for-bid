@@ -215,8 +215,8 @@ export async function seedDemo(prisma: PrismaClient) {
     (await prisma.chartOfAccount.findMany()).map((a) => [a.code, a])
   );
 
-  const hashA = await bcrypt.hash("alpha-ouvre", 10);
-  const hashB = await bcrypt.hash("bravo-ouvre", 10);
+  const hashA = await bcrypt.hash("alpha-open", 10);
+  const hashB = await bcrypt.hash("bravo-open", 10);
 
   const budget = (n: number) => `\n\n<!--bid-budget:${n}-->`;
 

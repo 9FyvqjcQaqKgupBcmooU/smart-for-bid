@@ -57,7 +57,7 @@ export function OpeningHero({
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink/60">{k.lock}</div>
                 <div className="text-[14px] font-semibold text-ink">{k.o.name}</div>
-                <div className="text-[12px] font-medium text-ink/65">{k.o.title ?? "Officier d'ouverture"}</div>
+                <div className="text-[12px] font-medium text-ink/65">{k.o.title ?? "Opening officer"}</div>
               </div>
               <span className="inline-flex h-5 items-center rounded-full bg-[#ECFDF5] px-2 text-[10px] font-semibold text-[#0F766E]">
                 ● Authenticated
@@ -69,7 +69,7 @@ export function OpeningHero({
                 <span className="num font-semibold text-ink">{k.at ? formatParisStamp(k.at, locale) : "—"}</span>
               </div>
               <div className="flex justify-between py-1">
-                <span className="text-ink/65">Statut</span>
+                <span className="text-ink/65">Status</span>
                 <span className="font-semibold text-[#0F766E]">{k.ok}</span>
               </div>
             </div>
@@ -83,7 +83,7 @@ export function OpeningHero({
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] font-medium text-ink/80">
           <span>{match ? "✓" : "✗"} Fingerprint before = after</span>
           <span>✓ No buyer read before deadline</span>
-          <span>✓ Deux personnes physiques distinctes</span>
+          <span>✓ Two distinct officers</span>
         </div>
       </div>
 
@@ -111,12 +111,12 @@ export function OpeningHero({
               <dd className="num font-semibold text-ink">{formatParisStamp(openedAt, locale)}</dd>
             </div>
             <div className="flex justify-between gap-2 border-b border-line/60 py-1.5">
-              <dt className="text-ink/65">AO</dt>
+              <dt className="text-ink/65">RFQ</dt>
               <dd className="font-semibold text-ink">{number}</dd>
             </div>
             <div className="flex justify-between gap-2 py-1.5">
               <dt className="text-ink/65">Result</dt>
-              <dd className="font-semibold text-[#0F766E]">Sceau intact · offres ouvertes</dd>
+              <dd className="font-semibold text-[#0F766E]">Seal intact · bids opened</dd>
             </div>
           </dl>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -130,7 +130,7 @@ export function OpeningHero({
           {budget != null ? (
             <p className="mt-2 text-[12px] text-ink/60">Budget {formatEUR(budget, locale)} · {title}</p>
           ) : null}
-          <p className="mt-1 text-[11px] text-ink/50">pointe {shortHash(sealAfter)}</p>
+          <p className="mt-1 text-[11px] text-ink/50">tip {shortHash(sealAfter)}</p>
         </div>
       </div>
     </div>

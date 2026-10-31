@@ -2,7 +2,7 @@
 
 Sealed-bid RFQs (appels d'offres) for **Decathlon** (démo interne). Dual-key bid opening: two officers must be present. Requisitions, approvals, goods receipt, invoice, and payment are parked.
 
-Default locale is **French**. Language and theme live under **Préférences** (cookie `pli-lang`). Primary actions use the cobalt pill (`#1D4ED8`). Brand identity of the app remains Smart For Bid (cobalt, IBM Plex); the Decathlon logo appears in the chrome for the demo org.
+Default locale is **English**. Language and theme live under **Preferences** (cookie `pli-lang`). Primary actions use the cobalt pill (`#1D4ED8`). Brand identity of the app remains Smart For Bid (cobalt, IBM Plex); the Decathlon logo appears in the chrome for the demo org.
 
 ## Run
 
@@ -15,12 +15,12 @@ Requires Node 20+. In the project folder:
 
 Open http://localhost:3000
 
-SQLite database: `prisma/demo.db` (or `dev.db`). No real accounts: the header has a **role switcher** that impersonates demo users (Paule T. acheteuse, Florent G. valideur N+1 / clé B, Hugo S. clé A, portails fournisseurs).
+SQLite database: `prisma/demo.db` (or `dev.db`). No real accounts: the header has a **role switcher** that impersonates demo users (Paule T. buyer, Florent G. Approver / key B, Hugo S. key A, supplier portals).
 
 ## Bid-opening passwords
 
-- Officer A — Hugo S.: `alpha-ouvre`
-- Officer B — Florent G.: `bravo-ouvre`
+- Officer A — Hugo S.: `alpha-open`
+- Officer B — Florent G.: `bravo-open`
 
 ## Demo (sealed RFQ + validation N+1)
 

@@ -115,11 +115,12 @@ function SortLink({
 
 function savingsDisplay(locale: Locale, pct: number | null) {
   if (pct == null) return { label: t(locale, "shell.kpiSavings"), value: "—", hint: t(locale, "shell.kpiSavingsHint"), accent: true, over: false };
-  const abs = Math.abs(pct).toFixed(1).replace(".", ",");
+  // Always English-style decimals for KPIs (en-GB): 8.6% not 8,6 %
+  const abs = Math.abs(pct).toFixed(1);
   if (pct >= 0) {
     return {
       label: t(locale, "shell.kpiSavings"),
-      value: `${abs} %`,
+      value: `${abs}%`,
       hint: t(locale, "shell.kpiSavingsHint"),
       accent: true,
       over: false,
@@ -127,7 +128,7 @@ function savingsDisplay(locale: Locale, pct: number | null) {
   }
   return {
     label: t(locale, "shell.kpiOverBudget"),
-    value: `${abs} %`,
+    value: `${abs}%`,
     hint: t(locale, "shell.kpiOverBudgetHint"),
     accent: false,
     over: true,
@@ -275,7 +276,7 @@ export function AOTable({
             { label: t(locale, "shell.kpiOpen"), value: String(kpis.openCount), hint: t(locale, "shell.kpiOpenHint") },
             { label: t(locale, "shell.kpiAmount"), value: formatEUR(kpis.amountUnder, locale).replace(/\s/g, "\u00a0"), hint: t(locale, "shell.kpiAmountHint") },
             { label: t(locale, "shell.kpiOffers"), value: String(kpis.offersMonth), hint: t(locale, "shell.kpiOffersHint") },
-            { label: t(locale, "shell.kpiCycle"), value: kpis.avgAwardDays != null ? `${kpis.avgAwardDays} d` : "—", hint: t(locale, "shell.kpiCycleHint") },
+            { label: t(locale, "shell.kpiCycle"), value: kpis.avgAwardDays != null ? `${kpis.avgAwardDays} ${kpis.avgAwardDays === 1 ? "day" : "days"}` : "—", hint: t(locale, "shell.kpiCycleHint") },
             { label: sav.label, value: sav.value, hint: sav.hint, accent: sav.accent, over: sav.over },
           ].map((k) => (
             <div key={k.label} className="rounded-xl border border-line bg-paper px-3 py-2.5">

@@ -5,7 +5,6 @@ import { unlockTender } from "@/app/actions/tenders";
 import { switchUser } from "@/app/actions/session";
 import { t, type Locale } from "@/lib/i18n";
 import { firstName } from "@/lib/format";
-import { DEMO_KEY_A, DEMO_KEY_B } from "@/lib/demo";
 
 export function OpeningCeremony({
   tenderId,
@@ -69,17 +68,19 @@ export function OpeningCeremony({
 
   void compact;
   void currentName;
+  void demo;
+  void firstA;
+  void firstB;
+  void itemKey;
 
   function Officer({
     lock,
     officer,
     unlocked,
-    demoPassword,
   }: {
     lock: "A" | "B";
     officer: { id: string; name: string };
     unlocked: boolean;
-    demoPassword: string;
   }) {
     const mine = currentUserId === officer.id;
     const first = firstName(officer.name);
@@ -96,13 +97,9 @@ export function OpeningCeremony({
               name={field}
               autoComplete="off"
               disabled={!past}
-              defaultValue={demo && past ? demoPassword : ""}
               placeholder={t(locale, "opening.password")}
               className="min-h-11 w-full rounded-full border border-line bg-paper px-4 text-[16px] disabled:bg-paper-2 disabled:text-ink-soft"
             />
-            {demo ? (
-              <p className="mt-1.5 font-mono text-[12px] text-ink-soft">{t(locale, "opening.demoHint", { password: demoPassword })}</p>
-            ) : null}
             {past && !already && (
               <button
                 disabled={pending}
@@ -120,9 +117,6 @@ export function OpeningCeremony({
               placeholder={t(locale, "opening.locked")}
               className="mt-2 min-h-11 w-full rounded-full border border-line bg-paper-2 px-4 text-[16px] text-ink-soft"
             />
-            {demo ? (
-              <p className="mt-1.5 font-mono text-[12px] text-ink-soft">{t(locale, "opening.demoHint", { password: demoPassword })}</p>
-            ) : null}
             <form action={switchUser} className="mt-3">
               <input type="hidden" name="userId" value={officer.id} />
               <input type="hidden" name="next" value={next} />
@@ -141,15 +135,9 @@ export function OpeningCeremony({
 
   return (
     <div>
-      <p className="text-[13px] leading-[18px] text-ink-soft">{t(locale, "opening.why")}</p>
-      {demo ? (
-        <p className="mt-1.5 text-[13px] leading-[18px] text-ink">
-          {t(locale, "opening.demoPath", { a: DEMO_KEY_A, b: DEMO_KEY_B })}
-        </p>
-      ) : null}
-      <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-        <Officer lock="A" officer={officerA} unlocked={keyAUnlocked} demoPassword={DEMO_KEY_A} />
-        <Officer lock="B" officer={officerB} unlocked={keyBUnlocked} demoPassword={DEMO_KEY_B} />
+      <div className="mt-0 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <Officer lock="A" officer={officerA} unlocked={keyAUnlocked} />
+        <Officer lock="B" officer={officerB} unlocked={keyBUnlocked} />
       </div>
       {msg && <p className="mt-2 text-[15px] text-danger">{msg}</p>}
     </div>

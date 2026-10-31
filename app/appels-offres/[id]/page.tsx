@@ -134,10 +134,12 @@ export default async function TenderDetail({
             <div className="flex flex-wrap items-center gap-2">
               <span className="num text-[13px] font-semibold text-cobalt">{tender.number}</span>
               <StatusPill status={status} locale={locale} />
-              <span className="inline-flex items-center gap-1 rounded-full bg-cobalt-soft px-2 py-0.5 text-[11px] font-semibold text-cobalt">
-                <SealMark state={seal} size={12} />
-                {seal === "opened" ? "Opened" : seal === "one" ? "1/2 key" : "Sealed"}
-              </span>
+              {seal === "one" ? (
+                <span className="inline-flex items-center gap-1 rounded-full bg-cobalt-soft px-2 py-0.5 text-[11px] font-semibold text-cobalt">
+                  <SealMark state={seal} size={12} />
+                  1/2 key
+                </span>
+              ) : null}
             </div>
             <h1 className="mt-1 text-[18px] font-semibold tracking-tight text-ink">{tender.title}</h1>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] font-medium text-ink/70">
@@ -174,13 +176,13 @@ export default async function TenderDetail({
                 </form>
                 <form action={returnTender} className="flex flex-wrap items-end gap-2">
                   <input type="hidden" name="id" value={tender.id} />
-                  <input name="comment" required placeholder="Commentaire de renvoi" className="min-h-10 rounded-full border border-line px-3 text-[14px]" />
+                  <input name="comment" required placeholder="Return comment" className="min-h-10 rounded-full border border-line px-3 text-[14px]" />
                   <button className="inline-flex min-h-10 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold">Return</button>
                 </form>
               </div>
             ) : null}
             {tender.status === "pending_validation" && current.role !== "VALIDATOR" ? (
-              <p className="max-w-xs text-[13px] text-ink/70">En attente de validation N+1 avant publication fournisseurs.</p>
+              <p className="max-w-xs text-[13px] text-ink/70">Waiting for N+1 approval before suppliers are notified.</p>
             ) : null}
             {tender.validationNote && tender.status === "draft" ? (
               <p className="max-w-sm rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-[13px] text-danger">
@@ -189,7 +191,7 @@ export default async function TenderDetail({
             ) : null}
             {showOpening && !revealed && pastDeadline ? (
               <Link href="?tab=cles" className="inline-flex min-h-9 items-center rounded-full bg-cobalt px-3.5 text-[13px] font-semibold text-paper">
-                Ouvrir les plis
+                Open bids
               </Link>
             ) : null}
             {tender.status === "opened" && current.role === "BUYER" && parsed[0] ? (
@@ -252,20 +254,20 @@ export default async function TenderDetail({
                   <ConditionsAccept items={conditions} />
                 </div>
                 <label className="text-[14px] font-medium text-ink">
-                  Prix HT (€)
+                  Price excl. VAT (€)
                   <input name="price" required className="mt-1 min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
                 </label>
                 <label className="text-[14px] font-medium text-ink">
                   Lead time (days)
                   <input name="leadTimeDays" required type="number" className="mt-1 min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
                 </label>
-                <textarea name="comments" rows={2} placeholder="Commentaires" className="col-span-full min-h-10 rounded-2xl border border-line px-4 py-2 text-[14px]" />
+                <textarea name="comments" rows={2} placeholder="Comments" className="col-span-full min-h-10 rounded-2xl border border-line px-4 py-2 text-[14px]" />
                 <button className={btnPrimary("col-span-full min-h-11")}>{myBid ? "Replace bid" : "Submit bid"}</button>
               </form>
             ) : null}
             {(current.role === "BUYER" || current.id === tender.createdById) && tender.status !== "awarded" && tender.status !== "opened" ? (
               <details className="rounded-xl border border-line p-4">
-                <summary className="cursor-pointer text-[14px] font-semibold text-cobalt">Modifier le brief et les conditions</summary>
+                <summary className="cursor-pointer text-[14px] font-semibold text-cobalt">Edit brief and conditions</summary>
                 <form action={updateBriefing} className="mt-3 space-y-3">
                   <input type="hidden" name="id" value={tender.id} />
                   <BriefEditor name="briefing" defaultValue={tender.briefing} rows={8} />
@@ -273,7 +275,7 @@ export default async function TenderDetail({
                     <p className="mb-1 text-[14px] font-medium">Non-negotiable conditions</p>
                     <ConditionsEditor name="nonNegotiables" defaultItems={conditions} />
                   </div>
-                  <input name="summary" placeholder="Note de changement" className="min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
+                  <input name="summary" placeholder="Change note" className="min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
                   <button className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-[14px] font-semibold">Save</button>
                 </form>
               </details>
@@ -303,7 +305,7 @@ export default async function TenderDetail({
                 <thead>
                   <tr className="border-b border-line text-[11px] uppercase tracking-[0.06em] text-ink/60">
                     <th className="py-2 font-semibold">Supplier</th>
-                    <th className="py-2 font-semibold">Prix HT</th>
+                    <th className="py-2 font-semibold">Price excl. VAT</th>
                     <th className="py-2 font-semibold">Received</th>
                   </tr>
                 </thead>
@@ -390,7 +392,7 @@ export default async function TenderDetail({
                 ) : (
                   <p className="text-[13px] text-ink/65">
                     {pastDeadline
-                      ? `En attente de ${firstName(tender.keyAUnlocked ? tender.keyBUser.name : tender.keyAUser.name)}.`
+                      ? `Waiting for ${firstName(tender.keyAUnlocked ? tender.keyBUser.name : tender.keyAUser.name)}.`
                       : "Opening will be available after the deadline."}
                   </p>
                 )}
