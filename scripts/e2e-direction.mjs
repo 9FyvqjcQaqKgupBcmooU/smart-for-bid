@@ -6,14 +6,14 @@ const PREVIEW = process.env.PREVIEW;
 const LOCAL = process.env.LOCAL || "http://127.0.0.1:3017";
 const PROOF = "/workspace/bid-proof-2026-10-30-direction";
 const USERS = {
-  lea: "cmvv6twlf000f9k02onyhparl",
-  hugo: "cmvv6twlh000h9k02u8phj20o",
-  ines: "cmvv6twli000j9k022tjly1g8",
-  sport: "cmvv6twlm000n9k02maermru0",
-  nord: "cmvv6twlq000p9k02z8knka97",
+  anna: "cmvwpyl2w000f9kol7tippk0c",
+  hugo: "cmvwpyl2x000h9kolbci5famo",
+  ines: "cmvwpyl2y000j9koltk2xx2ql",
+  sport: "cmvwpyl2z000n9koloek362gq",
+  nord: "cmvwpyl31000p9koletga1pdy",
 };
-const AO_SEALED = "cmvv6twq4001b9k02pdf2ta5y"; // AO-0001 past deadline, 3 bids
-const AO_PUB_EMPTY = "cmvv6twqj001t9k02vcjmnltb"; // AO-0004 published future, 0 bids, invites
+const AO_SEALED = "cmvwpyl72001b9kolmw27whhh"; // AO-0001 past deadline, 3 bids
+const AO_PUB_EMPTY = "cmvwpyl7q001t9kolf9vcmuus"; // AO-0004 published future, 0 bids, invites
 
 const results = [];
 function ok(step, pass, detail = "") {
@@ -29,7 +29,7 @@ async function asUser(page, base, userId, next = "/") {
 }
 
 async function createPublish(page, base, label) {
-  await asUser(page, base, USERS.lea, "/appels-offres/nouveau");
+  await asUser(page, base, USERS.anna, "/appels-offres/nouveau");
   await page.waitForSelector('input[name="title"]', { timeout: 20000 });
   await page.fill('input[name="title"]', `E2E ${label} fournitures`);
   await page.fill('textarea[name="briefing"]', "# Brief E2E\n\n<!--bid-budget:15000-->");
@@ -56,7 +56,7 @@ async function createPublish(page, base, label) {
   ok(`[${label}] création AO`, !!tenderId, tenderId || "missing");
   if (!tenderId) return null;
 
-  await asUser(page, base, USERS.lea, `/appels-offres/${tenderId}`);
+  await asUser(page, base, USERS.anna, `/appels-offres/${tenderId}`);
   if (await page.locator('input[name="passA"]').count()) {
     await page.fill('input[name="passA"]', "alpha-ouvre");
     await page.fill('input[name="passB"]', "bravo-ouvre");
@@ -112,11 +112,11 @@ async function openAwardPdf(page, base, label, tenderId, note) {
     ok(`[${label}] clé B UI (${note})`, /Ouverture à deux clés terminée/i.test(await page.content()), "state");
   }
 
-  await asUser(page, base, USERS.lea, `/appels-offres/${tenderId}?tab=cles`);
+  await asUser(page, base, USERS.anna, `/appels-offres/${tenderId}?tab=cles`);
   const hero = await page.content();
   ok(`[${label}] cérémonie/empreinte (${note})`, /Ouverture à deux clés terminée/i.test(hero), "hero");
 
-  await asUser(page, base, USERS.lea, `/appels-offres/${tenderId}`);
+  await asUser(page, base, USERS.anna, `/appels-offres/${tenderId}`);
   const awardBtn = page.getByRole("button", { name: /Attribuer/i });
   if (await awardBtn.count()) {
     await awardBtn.first().click();
@@ -165,7 +165,7 @@ async function assertNoEnglish(page, base, label) {
   const rawKey = /\b[a-z]+\.[a-z][A-Za-z]+\b/;
   // visible text only (main + aside + header)
   for (const [name, path] of screens) {
-    const uid = name === "supplier-home" ? USERS.sport : USERS.lea;
+    const uid = name === "supplier-home" ? USERS.sport : USERS.anna;
     await asUser(page, base, uid, path);
     const text = await page.locator("body").innerText();
     const hitWord = text.match(bannedWords);
@@ -187,7 +187,7 @@ async function runOn(base, label) {
   page.setDefaultTimeout(30000);
 
   // Helios proof
-  await asUser(page, base, USERS.lea, "/");
+  await asUser(page, base, USERS.anna, "/");
   ok(`[${label}] Helios demo data`, /Helios Distribution|Mobilier de magasin/i.test(await page.content()));
 
   const created = await createPublish(page, base, label);
