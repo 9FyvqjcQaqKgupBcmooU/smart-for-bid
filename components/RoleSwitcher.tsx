@@ -9,7 +9,7 @@ import { cn, firstName } from "@/lib/format";
 import { roleLabel, roleShort } from "@/lib/roles";
 
 /** Demo switcher order: Client → Opening A/B → Suppliers. */
-const ROLE_ORDER = ["BUYER", "OPENING_A", "OPENING_B", "VENDOR"];
+const ROLE_ORDER = ["BUYER", "VALIDATOR", "OPENING_A", "OPENING_B", "VENDOR"];
 
 type SwitchUser = User & { vendor: { name: string } | null };
 

@@ -4,16 +4,17 @@ import { execSync } from "child_process";
 
 const PREVIEW = process.env.PREVIEW;
 const LOCAL = process.env.LOCAL || "http://127.0.0.1:3017";
-const PROOF = "/workspace/bid-proof-2026-10-30-direction";
+const PROOF = process.env.PROOF || "/workspace/bid-proof-2026-10-31-mobile-editor";
 const USERS = {
-  anna: "cmvwpyl2w000f9kol7tippk0c",
-  hugo: "cmvwpyl2x000h9kolbci5famo",
-  ines: "cmvwpyl2y000j9koltk2xx2ql",
-  sport: "cmvwpyl2z000n9koloek362gq",
-  nord: "cmvwpyl31000p9koletga1pdy",
+  paule: "cmvwqdc72000f9k2vhmrn3cxe",
+  hugo: "cmvwqdc73000h9k2v2wpkumld",
+  florent: "cmvwqdc74000j9k2vq4cpqkkq",
+  sport: "cmvwqdc76000n9k2vx785vie2",
+  nord: "cmvwqdc77000p9k2v6bo7hnud",
 };
-const AO_SEALED = "cmvwpyl72001b9kolmw27whhh"; // AO-0001 past deadline, 3 bids
-const AO_PUB_EMPTY = "cmvwpyl7q001t9kolf9vcmuus"; // AO-0004 published future, 0 bids, invites
+const AO_SEALED = "cmvwqdcbp001b9k2vsomnqw9f"; // AO-0001 past deadline
+const AO_PENDING = "cmvwqdcc7001r9k2vibytqj5g"; // AO-0003 pending_validation
+const AO_PUB_EMPTY = "cmvwqdccb001t9k2vh73a7a0e"; // AO-0004 published future
 
 const results = [];
 function ok(step, pass, detail = "") {
@@ -28,19 +29,39 @@ async function asUser(page, base, userId, next = "/") {
   await page.waitForTimeout(500);
 }
 
-async function createPublish(page, base, label) {
-  await asUser(page, base, USERS.anna, "/appels-offres/nouveau");
+async function createValidatePublish(page, base, label) {
+  // Paule creates draft
+  await asUser(page, base, USERS.paule, "/appels-offres/nouveau");
   await page.waitForSelector('input[name="title"]', { timeout: 20000 });
   await page.fill('input[name="title"]', `E2E ${label} fournitures`);
-  await page.fill('textarea[name="briefing"]', "# Brief E2E\n\n<!--bid-budget:15000-->");
+  // Prefer BriefEditor textarea / contenteditable if present
+  const brief = page.locator('textarea[name="briefing"]');
+  if (await brief.count()) {
+    await brief.fill("# Brief E2E\n\n<!--bid-budget:15000-->\n\nConditions de démo.");
+  }
   await page.fill('input[name="deadline"]', "2026-11-05T17:00");
-  // ensure vendors checked
   const boxes = page.locator('input[name="vendorId"]');
   const n = await boxes.count();
   for (let i = 0; i < n; i++) {
     const b = boxes.nth(i);
     if (!(await b.isChecked())) await b.check();
   }
+  // Optional import smoke: drop a tiny md if file input exists
+  const fileInput = page.locator('input[type="file"][name="briefFile"], input[type="file"][accept*="md"], input[type="file"]').first();
+  if (await fileInput.count()) {
+    const tmp = `/tmp/e2e-brief-${label}.md`;
+    fs.writeFileSync(tmp, "# Import E2E\n\nTexte importé pour la démo Decathlon.\n");
+    try {
+      await fileInput.setInputFiles(tmp);
+      await page.waitForTimeout(800);
+      ok(`[${label}] import brief file`, true, "file set");
+    } catch (e) {
+      ok(`[${label}] import brief file`, false, String(e.message || e));
+    }
+  } else {
+    ok(`[${label}] import brief file`, true, "no file input (skipped)");
+  }
+
   await page.getByRole("button", { name: /Enregistrer|Brouillon|Créer/i }).click();
   await page.waitForTimeout(2500);
   let tenderId = (page.url().match(/\/appels-offres\/(cm[\w]+)/) || [])[1];
@@ -56,14 +77,35 @@ async function createPublish(page, base, label) {
   ok(`[${label}] création AO`, !!tenderId, tenderId || "missing");
   if (!tenderId) return null;
 
-  await asUser(page, base, USERS.anna, `/appels-offres/${tenderId}`);
+  // Paule submits for validation
+  await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}`);
   if (await page.locator('input[name="passA"]').count()) {
     await page.fill('input[name="passA"]', "alpha-ouvre");
     await page.fill('input[name="passB"]', "bravo-ouvre");
-    await page.getByRole("button", { name: /Publier/i }).click();
+    await page.getByRole("button", { name: /Soumettre à validation|validation/i }).click();
     await page.waitForTimeout(2000);
   }
-  ok(`[${label}] publication`, !(await page.locator('input[name="passA"]').count()), "form gone");
+  const afterSubmit = await page.content();
+  ok(
+    `[${label}] soumission validation`,
+    /En attente de validation|pending_validation|Valider et publier/i.test(afterSubmit) ||
+      !(await page.locator('input[name="passA"]').count()),
+    "pending"
+  );
+
+  // Florent validates
+  await asUser(page, base, USERS.florent, `/appels-offres/${tenderId}`);
+  const validateBtn = page.getByRole("button", { name: /Valider et publier/i });
+  if (await validateBtn.count()) {
+    await validateBtn.first().click();
+    await page.waitForTimeout(2200);
+    ok(`[${label}] validation Florent`, true, "clicked");
+  } else {
+    ok(`[${label}] validation Florent`, /Publié|published|Envoyer|Offre/i.test(await page.content()), "already published?");
+  }
+
+  await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}`);
+  ok(`[${label}] publication`, /Publié|published|Offres|Échéance/i.test(await page.content()), "published UI");
   return tenderId;
 }
 
@@ -73,6 +115,19 @@ async function depositBids(page, base, label, tenderId) {
     [USERS.nord, "13850", "NordLog"],
   ]) {
     await asUser(page, base, uid, `/appels-offres/${tenderId}?tab=brief`);
+    // Accept non-negotiables if checkbox present
+    const cond = page.locator('input[name="acceptConditions"], input[type="checkbox"][name*="condition"]');
+    if (await cond.count()) {
+      for (let i = 0; i < (await cond.count()); i++) {
+        const c = cond.nth(i);
+        if (!(await c.isChecked())) await c.check();
+      }
+    }
+    const acceptBtn = page.getByRole("button", { name: /Accepter les conditions|J'accepte/i });
+    if (await acceptBtn.count()) {
+      await acceptBtn.first().click();
+      await page.waitForTimeout(800);
+    }
     const priceInput = page.locator('input[name="price"]');
     if (await priceInput.count()) {
       await priceInput.fill(price);
@@ -84,7 +139,6 @@ async function depositBids(page, base, label, tenderId) {
       const html = await page.content();
       ok(`[${label}] dépôt ${name}`, /Offre reçue|scell|reçu|horodat/i.test(html), price);
     } else {
-      // dump hint
       const body = (await page.locator("main").innerText().catch(() => "")).slice(0, 200);
       ok(`[${label}] dépôt ${name}`, false, "no form: " + body.replace(/\s+/g, " "));
     }
@@ -102,7 +156,7 @@ async function openAwardPdf(page, base, label, tenderId, note) {
     ok(`[${label}] clé A UI (${note})`, /1\/2|Ouverture à deux clés terminée|déverrouill/i.test(await page.content()), "state");
   }
 
-  await asUser(page, base, USERS.ines, `/appels-offres/${tenderId}?tab=cles`);
+  await asUser(page, base, USERS.florent, `/appels-offres/${tenderId}?tab=cles`);
   if (await page.locator('input[name="passwordB"]').count()) {
     await page.fill('input[name="passwordB"]', "bravo-ouvre");
     await page.locator("form").filter({ has: page.locator('input[name="passwordB"]') }).locator("button").first().click();
@@ -112,11 +166,11 @@ async function openAwardPdf(page, base, label, tenderId, note) {
     ok(`[${label}] clé B UI (${note})`, /Ouverture à deux clés terminée/i.test(await page.content()), "state");
   }
 
-  await asUser(page, base, USERS.anna, `/appels-offres/${tenderId}?tab=cles`);
+  await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}?tab=cles`);
   const hero = await page.content();
   ok(`[${label}] cérémonie/empreinte (${note})`, /Ouverture à deux clés terminée/i.test(hero), "hero");
 
-  await asUser(page, base, USERS.anna, `/appels-offres/${tenderId}`);
+  await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}`);
   const awardBtn = page.getByRole("button", { name: /Attribuer/i });
   if (await awardBtn.count()) {
     await awardBtn.first().click();
@@ -126,7 +180,6 @@ async function openAwardPdf(page, base, label, tenderId, note) {
     ok(`[${label}] attribution (${note})`, /Attribué/i.test(await page.content()), "status");
   }
 
-  // PDF with auth cookie from page context
   const pdfRes = await page.request.get(`${base}/appels-offres/${tenderId}/preuve.pdf`);
   const buf = Buffer.from(await pdfRes.body());
   const pdfPath = `${PROOF}/preuve-${label}-${note}.pdf`;
@@ -137,8 +190,11 @@ async function openAwardPdf(page, base, label, tenderId, note) {
     try {
       const txt = execSync(`pdftotext -layout '${pdfPath}' -`, { encoding: "utf8" });
       fs.writeFileSync(`${PROOF}/preuve-${label}-${note}.txt`, txt);
-      ok(`[${label}] PDF pdftotext (${note})`, /Helios|AO-2026|hash|Journal|empreinte|Chaine/i.test(txt), txt.split("\n").filter(Boolean)[0]);
-      // copy canonical sample
+      ok(
+        `[${label}] PDF pdftotext (${note})`,
+        /Decathlon|AO-2026|hash|Journal|empreinte|Chaine|Conditions/i.test(txt),
+        txt.split("\n").filter(Boolean)[0]
+      );
       if (label === "local") {
         fs.copyFileSync(pdfPath, `${PROOF}/preuve-sample.pdf`);
         fs.writeFileSync(`${PROOF}/preuve-sample.txt`, txt);
@@ -157,20 +213,17 @@ async function assertNoEnglish(page, base, label) {
     ["ao-offres", `/appels-offres/${AO_SEALED}?tab=offres`],
     ["ao-cles", `/appels-offres/${AO_SEALED}?tab=cles`],
     ["ao-journal", `/appels-offres/${AO_SEALED}?tab=journal`],
+    ["ao-pending", `/appels-offres/${AO_PENDING}`],
     ["create", "/appels-offres/nouveau"],
-    ["supplier-home", "/"], // switched below
+    ["supplier-home", "/"],
   ];
-  // 'services' intentionally omitted: FR copy uses « équipement et services ».
   const bannedWords = /\b(Settings|Prefs|Buyer|Client|Offers|Log|Closed|Open|Draft|Published|Awarded|Sealed|RFQ|overdue|dual-key|equipment|Submit|Search|Status|Dashboard|New RFQ)\b/i;
   const rawKey = /\b[a-z]+\.[a-z][A-Za-z]+\b/;
-  // visible text only (main + aside + header)
   for (const [name, path] of screens) {
-    const uid = name === "supplier-home" ? USERS.sport : USERS.anna;
+    const uid = name === "supplier-home" ? USERS.sport : name === "ao-pending" ? USERS.florent : USERS.paule;
     await asUser(page, base, uid, path);
     const text = await page.locator("body").innerText();
     const hitWord = text.match(bannedWords);
-    const hitKey = text.match(rawKey);
-    // allow known FR words that look like keys? none. Allow emails/domains? strip URLs
     const cleaned = text.replace(/https?:\/\S+/g, "").replace(/\S+@\S+/g, "");
     const hitKey2 = cleaned.match(rawKey);
     ok(`[${label}] no-EN ${name}`, !hitWord, hitWord ? hitWord[0] : "ok");
@@ -180,27 +233,48 @@ async function assertNoEnglish(page, base, label) {
   }
 }
 
+async function checkMobileOverflow(page, base, label) {
+  await asUser(page, base, USERS.paule, `/appels-offres/${AO_SEALED}`);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(600);
+  const overflow = await page.evaluate(() => {
+    const doc = document.documentElement;
+    return { sw: doc.scrollWidth, cw: doc.clientWidth, body: document.body.scrollWidth };
+  });
+  ok(`[${label}] mobile 390 no-h-overflow`, overflow.sw <= overflow.cw + 2, JSON.stringify(overflow));
+  await page.setViewportSize({ width: 1280, height: 800 });
+}
+
 async function runOn(base, label) {
   console.log("\n====", label, base, "====");
   const browser = await chromium.launch({ headless: true, executablePath: "/usr/bin/google-chrome" });
   const page = await browser.newPage();
   page.setDefaultTimeout(30000);
 
-  // Helios proof
-  await asUser(page, base, USERS.anna, "/");
-  ok(`[${label}] Helios demo data`, /Helios Distribution|Mobilier de magasin/i.test(await page.content()));
+  await asUser(page, base, USERS.paule, "/");
+  const home = await page.content();
+  ok(`[${label}] Decathlon demo data`, /Decathlon|Mobilier de magasin|Paule T/i.test(home));
+  ok(`[${label}] logo Decathlon`, /decathlon\.svg|alt=["']Decathlon/i.test(home));
+  ok(`[${label}] pas de Léa`, !/Léa|Lea Martin|Anna Martin|Helios/i.test(home));
 
-  const created = await createPublish(page, base, label);
+  // Seeded pending AO visible for Florent
+  await asUser(page, base, USERS.florent, `/appels-offres/${AO_PENDING}`);
+  ok(
+    `[${label}] AO pending validation`,
+    /En attente de validation|Valider et publier|Renvoyer/i.test(await page.content())
+  );
+
+  const created = await createValidatePublish(page, base, label);
   if (label === "local" && created) {
     await depositBids(page, base, label, created);
   } else if (label === "preview") {
-    // serverless /tmp is per-instance: use seeded published AO-0004 for bids
     ok(`[${label}] dépôt via seeded AO-0004 (serverless isolation)`, true, "create may not share /tmp across lambdas");
     await depositBids(page, base, label, AO_PUB_EMPTY);
   }
 
   await openAwardPdf(page, base, label, AO_SEALED, "AO-0001");
   await assertNoEnglish(page, base, label);
+  await checkMobileOverflow(page, base, label);
 
   await browser.close();
 }

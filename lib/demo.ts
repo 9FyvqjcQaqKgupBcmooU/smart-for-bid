@@ -5,7 +5,7 @@ export const FEATURED_RFQ_NUMBER = "AO-2026-0001";
 export const DEMO_KEY_A = "alpha-ouvre";
 export const DEMO_KEY_B = "bravo-ouvre";
 
-/** SQLite / BID_DEMO_DB = démo Helios, pas un tenant live. */
+/** SQLite / BID_DEMO_DB = démo Decathlon, pas un tenant live. */
 export function isDemo() {
   if (process.env.BID_DEMO_DB === "1" || process.env.PLI_DEMO === "1") return true;
   const url = process.env.DATABASE_URL ?? "";

@@ -9,16 +9,17 @@ datasource db {
 }
 
 model Company {
-  id        String   @id @default(cuid())
-  name      String
-  legalName String
-  siren     String
-  address   String
-  city      String
-  zip       String
-  country   String   @default("FR")
-  createdAt DateTime @default(now())
-  users     User[]
+  id              String   @id @default(cuid())
+  name            String
+  legalName       String
+  siren           String
+  address         String
+  city            String
+  zip             String
+  country         String   @default("FR")
+  nonNegotiables  String   @default("[]") // JSON string[] org defaults
+  createdAt       DateTime @default(now())
+  users           User[]
 }
 
 model User {
@@ -35,6 +36,7 @@ model User {
   createdAt DateTime @default(now())
 
   tendersCreated     Tender[]          @relation("TenderCreator")
+  tendersValidated   Tender[]          @relation("TenderValidator")
   tendersKeyA        Tender[]          @relation("TenderKeyA")
   tendersKeyB        Tender[]          @relation("TenderKeyB")
   tenderVersions     TenderVersion[]
@@ -105,32 +107,36 @@ model AuditEvent {
 }
 
 model Tender {
-  id            String   @id @default(cuid())
-  number        String   @unique
-  title         String
-  briefing      String
-  status        String
-  deadline      DateTime
-  currency      String   @default("EUR")
-  createdById   String
-  createdBy     User     @relation("TenderCreator", fields: [createdById], references: [id])
-  awardedBidId  String?
-  keyAUserId    String
-  keyAUser      User     @relation("TenderKeyA", fields: [keyAUserId], references: [id])
-  keyBUserId    String
-  keyBUser      User     @relation("TenderKeyB", fields: [keyBUserId], references: [id])
-  keyAHash      String?
-  keyBHash      String?
-  keyAUnlocked  Boolean  @default(false)
-  keyBUnlocked  Boolean  @default(false)
-  publishedAt   DateTime?
-  openedAt      DateTime?
-  createdAt     DateTime @default(now())
-  invites       TenderInvite[]
-  versions      TenderVersion[]
-  bids          Bid[]
-  openings      TenderOpening[]
-  requisitions  Requisition[]
+  id              String   @id @default(cuid())
+  number          String   @unique
+  title           String
+  briefing        String
+  status          String
+  deadline        DateTime
+  currency        String   @default("EUR")
+  nonNegotiables  String   @default("[]") // JSON string[] per-AO conditions
+  createdById     String
+  createdBy       User     @relation("TenderCreator", fields: [createdById], references: [id])
+  validatorId     String?
+  validator       User?    @relation("TenderValidator", fields: [validatorId], references: [id])
+  validationNote  String?  // last return comment from validator
+  awardedBidId    String?
+  keyAUserId      String
+  keyAUser        User     @relation("TenderKeyA", fields: [keyAUserId], references: [id])
+  keyBUserId      String
+  keyBUser        User     @relation("TenderKeyB", fields: [keyBUserId], references: [id])
+  keyAHash        String?
+  keyBHash        String?
+  keyAUnlocked    Boolean  @default(false)
+  keyBUnlocked    Boolean  @default(false)
+  publishedAt     DateTime?
+  openedAt        DateTime?
+  createdAt       DateTime @default(now())
+  invites         TenderInvite[]
+  versions        TenderVersion[]
+  bids            Bid[]
+  openings        TenderOpening[]
+  requisitions    Requisition[]
 }
 
 model TenderInvite {
@@ -144,24 +150,26 @@ model TenderInvite {
 }
 
 model TenderVersion {
-  id          String   @id @default(cuid())
-  tenderId    String
-  tender      Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
-  changedById String
-  changedBy   User     @relation(fields: [changedById], references: [id])
-  summary     String
-  briefing    String
-  createdAt   DateTime @default(now())
+  id              String   @id @default(cuid())
+  tenderId        String
+  tender          Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  changedById     String
+  changedBy       User     @relation(fields: [changedById], references: [id])
+  summary         String
+  briefing        String
+  nonNegotiables  String   @default("[]")
+  createdAt       DateTime @default(now())
 }
 
 model Bid {
-  id          String   @id @default(cuid())
-  tenderId    String
-  tender      Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
-  vendorId    String
-  vendor      Vendor   @relation(fields: [vendorId], references: [id])
-  payload     String
-  submittedAt DateTime @default(now())
+  id                  String   @id @default(cuid())
+  tenderId            String
+  tender              Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  vendorId            String
+  vendor              Vendor   @relation(fields: [vendorId], references: [id])
+  payload             String
+  acceptedConditions  String?  // JSON { items: string[], acceptedAt: ISO }
+  submittedAt         DateTime @default(now())
   @@unique([tenderId, vendorId])
 }
 

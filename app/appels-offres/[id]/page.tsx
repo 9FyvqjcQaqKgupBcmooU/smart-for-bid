@@ -14,10 +14,14 @@ import { OpeningHero } from "@/components/OpeningHero";
 import { OpeningCeremony } from "@/components/OpeningCeremony";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { renderBriefing } from "@/lib/markdown";
-import { awardBid, inviteVendor, publishTender, submitBid, updateBriefing } from "@/app/actions/tenders";
+import { awardBid, inviteVendor, publishTender, submitBid, updateBriefing, validateTender, returnTender } from "@/app/actions/tenders";
 import { btnPrimary } from "@/components/chrome";
 import { isDemo } from "@/lib/demo";
 import { Money } from "@/components/Money";
+import { BriefEditor } from "@/components/BriefEditor";
+import { ConditionsEditor } from "@/components/ConditionsEditor";
+import { ConditionsAccept } from "@/components/ConditionsAccept";
+import { parseConditions } from "@/lib/conditions";
 
 export default async function TenderDetail({
   params,
@@ -51,6 +55,7 @@ export default async function TenderDetail({
   const seal = sealStateOf(tender);
   const budget = extractBudget(tender.briefing);
   const myBid = current.vendorId ? tender.bids.find((b) => b.vendorId === current.vendorId) : null;
+  const conditions = parseConditions(tender.nonNegotiables);
   const invited = current.vendorId ? tender.invites.some((i) => i.vendorId === current.vendorId) : false;
   const canDeposit = invited && current.role === "VENDOR" && tender.status === "published" && !pastDeadline;
   const showOpening =
@@ -68,7 +73,7 @@ export default async function TenderDetail({
     action: e.action,
     actorId: e.actorId,
     actorName: e.actor.name,
-    orgName: e.actor.vendor?.name ?? e.actor.company?.name ?? "Helios Distribution",
+    orgName: e.actor.vendor?.name ?? e.actor.company?.name ?? "Decathlon",
     details: e.details ?? "",
     createdAt: e.createdAt,
   }));
@@ -156,10 +161,31 @@ export default async function TenderDetail({
             {tender.status === "draft" && (current.role === "BUYER" || current.id === tender.createdById) ? (
               <form action={publishTender} className="flex flex-wrap items-end gap-2">
                 <input type="hidden" name="id" value={tender.id} />
-                <input name="passA" type="password" required placeholder="Mot de passe clé A" className="min-h-9 rounded-full border border-line px-3 text-[13px]" />
-                <input name="passB" type="password" required placeholder="Mot de passe clé B" className="min-h-9 rounded-full border border-line px-3 text-[13px]" />
-                <button className={btnPrimary()}>Publier l&apos;AO</button>
+                <input name="passA" type="password" required placeholder="Mot de passe clé A" className="min-h-10 rounded-full border border-line px-3 text-[14px]" />
+                <input name="passB" type="password" required placeholder="Mot de passe clé B" className="min-h-10 rounded-full border border-line px-3 text-[14px]" />
+                <button className={btnPrimary() + " min-h-10"}>Soumettre à validation</button>
               </form>
+            ) : null}
+            {tender.status === "pending_validation" && current.role === "VALIDATOR" ? (
+              <div className="flex flex-wrap items-end gap-2">
+                <form action={validateTender}>
+                  <input type="hidden" name="id" value={tender.id} />
+                  <button className={btnPrimary() + " min-h-10"}>Valider et publier</button>
+                </form>
+                <form action={returnTender} className="flex flex-wrap items-end gap-2">
+                  <input type="hidden" name="id" value={tender.id} />
+                  <input name="comment" required placeholder="Commentaire de renvoi" className="min-h-10 rounded-full border border-line px-3 text-[14px]" />
+                  <button className="inline-flex min-h-10 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold">Renvoyer</button>
+                </form>
+              </div>
+            ) : null}
+            {tender.status === "pending_validation" && current.role !== "VALIDATOR" ? (
+              <p className="max-w-xs text-[13px] text-ink/70">En attente de validation N+1 avant publication fournisseurs.</p>
+            ) : null}
+            {tender.validationNote && tender.status === "draft" ? (
+              <p className="max-w-sm rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-[13px] text-danger">
+                Renvoyé : {tender.validationNote}
+              </p>
             ) : null}
             {showOpening && !revealed && pastDeadline ? (
               <Link href="?tab=cles" className="inline-flex min-h-9 items-center rounded-full bg-cobalt px-3.5 text-[13px] font-semibold text-paper">
@@ -197,36 +223,56 @@ export default async function TenderDetail({
       <div className="min-h-0 flex-1 overflow-auto px-4 py-4 md:px-6">
         {active === "brief" ? (
           <div className="max-w-3xl space-y-4">
-            <div className="brief" dangerouslySetInnerHTML={{ __html: renderBriefing(tender.briefing) }} />
+            {conditions.length > 0 ? (
+              <div className="rounded-xl border-2 border-cobalt/30 bg-cobalt-soft/30 p-4" data-testid="non-negotiables">
+                <h2 className="text-[15px] font-semibold text-ink">Conditions non négociables</h2>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-[14px] leading-5 text-ink">
+                  {conditions.map((c, i) => (
+                    <li key={i}>{c}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+            <div className="brief text-[14px] leading-5" dangerouslySetInnerHTML={{ __html: renderBriefing(tender.briefing) }} />
             {myBid ? (
               <div className="rounded-xl border border-line bg-cobalt-soft/50 p-4" data-testid="offer-receipt">
                 <p className="text-[13px] font-semibold text-cobalt">
                   Offre reçue le {formatParisStamp(myBid.submittedAt, locale)}
                 </p>
                 <p className="mt-1 text-[14px] text-ink">Votre pli est scellé en sécurité.</p>
+                {myBid.acceptedConditions ? (
+                  <p className="mt-2 text-[13px] text-ink/70">Conditions non négociables acceptées (horodatées Paris).</p>
+                ) : null}
               </div>
             ) : null}
             {canDeposit ? (
               <form action={submitBid} className="grid grid-cols-1 gap-3 rounded-xl border border-line p-4 sm:grid-cols-2">
                 <input type="hidden" name="tenderId" value={tender.id} />
-                <label className="text-[13px] font-medium text-ink">
+                <div className="col-span-full">
+                  <ConditionsAccept items={conditions} />
+                </div>
+                <label className="text-[14px] font-medium text-ink">
                   Prix HT (€)
                   <input name="price" required className="mt-1 min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
                 </label>
-                <label className="text-[13px] font-medium text-ink">
+                <label className="text-[14px] font-medium text-ink">
                   Délai (jours)
                   <input name="leadTimeDays" required type="number" className="mt-1 min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
                 </label>
-                <textarea name="comments" rows={2} placeholder="Commentaires" className="col-span-full rounded-2xl border border-line px-4 py-2 text-[14px]" />
-                <button className={btnPrimary("col-span-full")}>{myBid ? "Remplacer l'offre" : "Envoyer l'offre"}</button>
+                <textarea name="comments" rows={2} placeholder="Commentaires" className="col-span-full min-h-10 rounded-2xl border border-line px-4 py-2 text-[14px]" />
+                <button className={btnPrimary("col-span-full min-h-11")}>{myBid ? "Remplacer l'offre" : "Envoyer l'offre"}</button>
               </form>
             ) : null}
-            {(current.role === "BUYER" || current.id === tender.createdById) && tender.status !== "awarded" ? (
+            {(current.role === "BUYER" || current.id === tender.createdById) && tender.status !== "awarded" && tender.status !== "opened" ? (
               <details className="rounded-xl border border-line p-4">
-                <summary className="cursor-pointer text-[13px] font-semibold text-cobalt">Modifier le brief</summary>
-                <form action={updateBriefing} className="mt-2 space-y-2">
+                <summary className="cursor-pointer text-[14px] font-semibold text-cobalt">Modifier le brief et les conditions</summary>
+                <form action={updateBriefing} className="mt-3 space-y-3">
                   <input type="hidden" name="id" value={tender.id} />
-                  <textarea name="briefing" rows={5} defaultValue={tender.briefing} className="w-full rounded-2xl border border-line px-3 py-2 font-mono text-[13px]" />
+                  <BriefEditor name="briefing" defaultValue={tender.briefing} rows={8} />
+                  <div>
+                    <p className="mb-1 text-[14px] font-medium">Conditions non négociables</p>
+                    <ConditionsEditor name="nonNegotiables" defaultItems={conditions} />
+                  </div>
                   <input name="summary" placeholder="Note de changement" className="min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
                   <button className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-[14px] font-semibold">Enregistrer</button>
                 </form>
@@ -253,7 +299,7 @@ export default async function TenderDetail({
                 </div>
               </div>
             ) : (
-              <table className="w-full text-left text-[13px]">
+              <div className="overflow-x-auto"><table className="w-full min-w-[480px] text-left text-[14px]">
                 <thead>
                   <tr className="border-b border-line text-[11px] uppercase tracking-[0.06em] text-ink/60">
                     <th className="py-2 font-semibold">Fournisseur</th>
@@ -272,9 +318,9 @@ export default async function TenderDetail({
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </table></div>
             )}
-            <ul className="text-[13px] text-ink/70">
+            <ul className="text-[14px] text-ink/70">
               {tender.invites.map((i) => (
                 <li key={i.id}>
                   {i.vendor.name}

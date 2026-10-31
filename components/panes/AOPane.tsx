@@ -6,7 +6,7 @@ import { Money } from "@/components/Money";
 import { formatDate, formatDateTime, formatTime, firstName } from "@/lib/format";
 import { renderBriefing } from "@/lib/markdown";
 import { OpeningCeremony } from "@/components/OpeningCeremony";
-import { awardBid, inviteVendor, publishTender, submitBid, updateBriefing } from "@/app/actions/tenders";
+import { awardBid, inviteVendor, publishTender, submitBid, updateBriefing, validateTender, returnTender } from "@/app/actions/tenders";
 import { Decision, btnPrimary, UpNext } from "@/components/chrome";
 import { Explain } from "@/components/Explain";
 import { Tabs } from "@/components/Tabs";
@@ -16,6 +16,8 @@ import { isDemo } from "@/lib/demo";
 import { SealMark, sealStateOf } from "@/components/SealMark";
 import { Countdown } from "@/components/Countdown";
 import { StatusPill } from "@/components/StatusPill";
+import { ConditionsAccept } from "@/components/ConditionsAccept";
+import { parseConditions } from "@/lib/conditions";
 import { tNum } from "@/lib/i18n/nodes";
 
 export async function AOPane({ id, tab }: { id: string; tab?: string }) {
@@ -35,6 +37,7 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
   });
   if (!t) notFound();
   const versions = t.versions;
+  const conditions = parseConditions(t.nonNegotiables);
 
   const revealed = t.status === "opened" || t.status === "awarded";
   const myBid = current.vendorId ? t.bids.find((b) => b.vendorId === current.vendorId) : null;
@@ -133,6 +136,8 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
     } else if (!t.keyBUnlocked) {
       upNext = <UpNext locale={locale} label={i18n(locale, "next.unlocks", { name: firstName(t.keyBUser.name) })} />;
     }
+  } else if (t.status === "pending_validation") {
+    upNext = <UpNext locale={locale} label={i18n(locale, "ao.pendingHint")} />;
   } else if (t.status === "opened") {
     upNext = <UpNext locale={locale} label={i18n(locale, "next.award")} />;
   }
@@ -158,8 +163,21 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
     <>
       {t.status === "draft" && (current.role === "BUYER" || current.id === t.createdById) && (
         <button form="publish-form" className={btnPrimary()}>
-          {i18n(locale, "actions.publishRFQ")}
+          {i18n(locale, "ao.requestValidation")}
         </button>
+      )}
+      {t.status === "pending_validation" && current.role === "VALIDATOR" && (
+        <>
+          <form action={validateTender}>
+            <input type="hidden" name="id" value={t.id} />
+            <button className={btnPrimary()}>{i18n(locale, "ao.validatePublish")}</button>
+          </form>
+          <form action={returnTender} className="flex flex-wrap items-end gap-2">
+            <input type="hidden" name="id" value={t.id} />
+            <input name="comment" required placeholder="Commentaire de renvoi" className="min-h-11 rounded-full border border-line bg-paper px-4 text-[16px]" />
+            <button className="inline-flex min-h-11 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold">Renvoyer</button>
+          </form>
+        </>
       )}
       {t.status === "opened" && current.role === "BUYER" && cheapest && (
         <form action={awardBid}>
@@ -201,6 +219,11 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
   const depositForm = canDeposit ? (
     <form action={submitBid} className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
       <input type="hidden" name="tenderId" value={t.id} />
+      {conditions.length > 0 ? (
+        <div className="col-span-2">
+          <ConditionsAccept items={conditions} />
+        </div>
+      ) : null}
       <label>
         <Explain tip={i18n(locale, locale === "fr" ? "learn.ht" : "learn.exclTax")}>{i18n(locale, "ao.priceNet")}</Explain>
         <input name="price" required className="mt-1 min-h-11 w-full rounded-full border border-line bg-paper px-4 text-[16px]" />
@@ -250,11 +273,12 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
       extra={t.status === "draft" && (current.role === "BUYER" || current.id === t.createdById) ? extra : false}
       actions={
         (t.status === "draft" && (current.role === "BUYER" || current.id === t.createdById)) ||
+        (t.status === "pending_validation" && current.role === "VALIDATOR") ||
         (t.status === "opened" && current.role === "BUYER" && cheapest)
           ? actions
           : undefined
       }
-      upNext={showOpening && !revealed ? upNext : t.status === "opened" && current.role === "BUYER" ? upNext : null}
+      upNext={showOpening && !revealed ? upNext : t.status === "pending_validation" ? upNext : t.status === "opened" && current.role === "BUYER" ? upNext : null}
       rail={false}
     >
       <Tabs labels={labels} initial={initialTab}>

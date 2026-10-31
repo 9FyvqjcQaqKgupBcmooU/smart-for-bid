@@ -178,3 +178,27 @@ textarea {
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+
+/* Mobile readability — tables as horizontal scroll / cards */
+@media (max-width: 640px) {
+  .ao-table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ao-table-scroll table {
+    min-width: 640px;
+  }
+  .brief {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+  .brief table {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* Touch targets */
+button, a, summary, [role="button"] {
+  touch-action: manipulation;
+}

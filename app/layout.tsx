@@ -20,7 +20,7 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "Smart For Bid",
-  description: "Appels d'offres scellés — Helios Distribution",
+  description: "Appels d'offres scellés — Decathlon",
 };
 
 export const viewport: Viewport = {

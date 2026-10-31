@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/session";
 import { buildAuditChain, sealFingerprint, verifyAuditChain, type ChainableEvent } from "@/lib/audit-chain";
 import { auditActionLabel } from "@/lib/audit-labels";
+import { parseConditions } from "@/lib/conditions";
 import { extractBudget } from "@/lib/budget";
 import { formatParisStamp } from "@/lib/format";
 
@@ -60,7 +61,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     action: e.action,
     actorId: e.actorId,
     actorName: e.actor.name,
-    orgName: e.actor.vendor?.name ?? e.actor.company?.name ?? "Helios Distribution",
+    orgName: e.actor.vendor?.name ?? e.actor.company?.name ?? "Decathlon",
     details: e.details ?? "",
     createdAt: e.createdAt,
   }));
@@ -121,7 +122,28 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     line(o.lock + " / " + o.officer.name + " / " + (o.success ? "ok" : "fail") + " / " + formatParisStamp(o.createdAt, "fr"), { size: 9 });
   }
   y -= 8;
-  line("Journal d'audit (ordre chronologique)", { bold: true, size: 11 });
+  
+  // Conditions non négociables + acceptations fournisseurs
+  const conditions = parseConditions(tender.nonNegotiables);
+  if (conditions.length) {
+    line("Conditions non negociables", { size: 11, bold: true });
+    for (const c of conditions) line("- " + c, { size: 9 });
+    y -= 4;
+  }
+  for (const b of tender.bids) {
+    if (!b.acceptedConditions) continue;
+    try {
+      const acc = JSON.parse(b.acceptedConditions) as { acceptedAt?: string; items?: string[] };
+      const when = acc.acceptedAt ? new Date(acc.acceptedAt) : b.submittedAt;
+      line(
+        "Acceptation conditions — " + b.vendor.name + " — " + formatParisStamp(when, "fr"),
+        { size: 9 }
+      );
+    } catch { /* ignore */ }
+  }
+  y -= 6;
+
+line("Journal d'audit (ordre chronologique)", { bold: true, size: 11 });
   for (const ev of chain) {
     line(formatParisStamp(ev.createdAt, "fr") + " - " + auditActionLabel(ev.action), { bold: true, size: 9 });
     line(ev.actorName + " / " + ev.orgName, { size: 8, color: soft });
@@ -140,7 +162,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     line("Plis encore scelles.", { size: 9, color: soft });
   }
   y -= 16;
-  line("Donnees de demonstration fictives - Helios Distribution - Smart For Bid", { size: 8, color: soft });
+  line("Donnees de demonstration fictives - Decathlon - Smart For Bid", { size: 8, color: soft });
   line("Genere le " + formatParisStamp(new Date(), "fr") + " (Europe/Paris)", { size: 8, color: soft });
 
   const bytes = await pdf.save();

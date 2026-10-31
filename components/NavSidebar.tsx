@@ -49,12 +49,17 @@ function NavContents({
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-cobalt text-[12px] font-semibold text-paper">
             SF
           </span>
-          <span className="min-w-0">
+          <span className="min-w-0 flex-1">
             <span className="block truncate text-[14px] font-semibold tracking-tight text-ink">
               {t(locale, "product.name")}
             </span>
-            <span className="block truncate text-[12px] font-medium text-ink/70">
-              {companyName || "Helios Distribution"}
+            {/* Logo Decathlon (source Wikimedia Commons) — couleurs d'origine, non déformées */}
+            <span className="mt-1.5 block">
+              <img
+                src="/decathlon.svg"
+                alt={companyName || "Decathlon"}
+                className="h-5 w-auto max-w-[140px] object-contain object-left"
+              />
             </span>
           </span>
         </Link>

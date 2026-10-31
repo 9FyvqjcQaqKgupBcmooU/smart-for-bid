@@ -28,12 +28,13 @@ export async function seedDemo(prisma: PrismaClient) {
 
   const company = await prisma.company.create({
     data: {
-      name: "Helios Distribution",
-      legalName: "Helios Distribution SAS",
-      siren: "891 245 667",
-      address: "42 avenue de la Marne",
-      city: "Lille",
-      zip: "59000",
+      name: "Decathlon",
+      legalName: "Decathlon SE",
+      siren: "500569405",
+      address: "4 Boulevard de Mons",
+      city: "Villeneuve-d'Ascq",
+      zip: "59650",
+      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
       country: "FR",
     },
   });
@@ -75,8 +76,8 @@ export async function seedDemo(prisma: PrismaClient) {
   const camille = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Camille Leroy",
-      email: "camille.leroy@helios-distribution.fr",
+      name: "Camille L.",
+      email: "camille.l@decathlon.com",
       role: "REQUESTER",
       title: "Demandeur — achats magasin",
     },
@@ -84,8 +85,8 @@ export async function seedDemo(prisma: PrismaClient) {
   const thomas = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Thomas Bernard",
-      email: "thomas.bernard@helios-distribution.fr",
+      name: "Thomas B.",
+      email: "thomas.b@decathlon.com",
       role: "N1",
       title: "Responsable magasin — Lille Fives",
     },
@@ -93,8 +94,8 @@ export async function seedDemo(prisma: PrismaClient) {
   const nadia = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Nadia El Amrani",
-      email: "nadia.elamrani@helios-distribution.fr",
+      name: "Nadia E.",
+      email: "nadia.e@decathlon.com",
       role: "N2",
       title: "Directeur régional Hauts-de-France",
     },
@@ -102,8 +103,8 @@ export async function seedDemo(prisma: PrismaClient) {
   const julien = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Julien Moreau",
-      email: "julien.moreau@helios-distribution.fr",
+      name: "Julien M.",
+      email: "julien.m@decathlon.com",
       role: "N3",
       title: "Directeur finance pays",
     },
@@ -111,44 +112,44 @@ export async function seedDemo(prisma: PrismaClient) {
   const claire = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Claire Petit",
-      email: "claire.petit@helios-distribution.fr",
+      name: "Claire P.",
+      email: "claire.p@decathlon.com",
       role: "N4",
       title: "CFO groupe",
     },
   });
-  const anna = await prisma.user.create({
+  const paule = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Anna Martin",
-      email: "anna.martin@helios-distribution.fr",
+      name: "Paule T.",
+      email: "paule.t@decathlon.com",
       role: "BUYER",
-      title: "Acheteuse — équipement et services",
+      title: "Acheteuse — équipements magasins",
     },
   });
   const hugo = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Hugo Santos",
-      email: "hugo.santos@helios-distribution.fr",
+      name: "Hugo S.",
+      email: "hugo.s@decathlon.com",
       role: "OPENING_A",
       title: "Officier d'ouverture A",
     },
   });
-  const ines = await prisma.user.create({
+  const florent = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Inès Benali",
-      email: "ines.benali@helios-distribution.fr",
-      role: "OPENING_B",
-      title: "Officière d'ouverture B",
+      name: "Florent G.",
+      email: "florent.g@decathlon.com",
+      role: "VALIDATOR",
+      title: "Valideur N+1 — appels d'offres",
     },
   });
   const antoine = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Antoine Girard",
-      email: "antoine.girard@helios-distribution.fr",
+      name: "Antoine G.",
+      email: "antoine.g@decathlon.com",
       role: "AP",
       title: "Comptabilité fournisseur",
     },
@@ -221,7 +222,7 @@ export async function seedDemo(prisma: PrismaClient) {
 
   const briefingMobilier = `# AO — Mobilier de magasin 2026-2028
 
-Helios Distribution consulte pour un **accord-cadre national** de fourniture et pose de mobilier de vente (gondoles, têtes de gondole, meubles de caisse).
+Decathlon consulte pour un **accord-cadre national** de fourniture et pose de mobilier de vente (gondoles, têtes de gondole, meubles de caisse).
 
 ## Périmètre
 - 38 magasins en France, déploiement par vagues
@@ -274,9 +275,11 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       status: "published",
       deadline: new Date("2026-10-31T10:00:00+01:00"),
       currency: "EUR",
-      createdById: anna.id,
+      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      validatorId: florent.id,
+      createdById: paule.id,
       keyAUserId: hugo.id,
-      keyBUserId: ines.id,
+      keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
       keyAUnlocked: false,
@@ -297,7 +300,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   await prisma.tenderVersion.create({
     data: {
       tenderId: tenderClosed.id,
-      changedById: anna.id,
+      changedById: paule.id,
       summary: "Précision périmètre : 46 meubles de caisse au lieu de 38.",
       briefing: briefingMobilier,
       createdAt: new Date("2026-10-14T11:05:00+02:00"),
@@ -348,9 +351,11 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       status: "published",
       deadline: new Date("2026-11-18T12:00:00+01:00"),
       currency: "EUR",
-      createdById: anna.id,
+      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      validatorId: florent.id,
+      createdById: paule.id,
       keyAUserId: hugo.id,
-      keyBUserId: ines.id,
+      keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
       publishedAt: new Date("2026-10-20T08:00:00+02:00"),
@@ -384,12 +389,14 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       number: "AO-2026-0003",
       title: "Signalétique magasins — pilote 12 sites",
       briefing: briefingDraft,
-      status: "draft",
+      status: "pending_validation",
       deadline: new Date("2026-12-05T17:00:00+01:00"),
       currency: "EUR",
-      createdById: anna.id,
+      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      validatorId: florent.id,
+      createdById: paule.id,
       keyAUserId: hugo.id,
-      keyBUserId: ines.id,
+      keyBUserId: florent.id,
       createdAt: new Date("2026-10-28T15:20:00+01:00"),
     },
   });
@@ -403,9 +410,11 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       status: "published",
       deadline: new Date("2026-11-28T17:00:00+01:00"),
       currency: "EUR",
-      createdById: anna.id,
+      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      validatorId: florent.id,
+      createdById: paule.id,
       keyAUserId: hugo.id,
-      keyBUserId: ines.id,
+      keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
       publishedAt: new Date("2026-10-25T09:00:00+02:00"),
@@ -428,9 +437,11 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       status: "opened",
       deadline: new Date("2026-10-15T17:00:00+02:00"),
       currency: "EUR",
-      createdById: anna.id,
+      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      validatorId: florent.id,
+      createdById: paule.id,
       keyAUserId: hugo.id,
-      keyBUserId: ines.id,
+      keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
       keyAUnlocked: true,
@@ -465,7 +476,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   await prisma.tenderOpening.createMany({
     data: [
       { tenderId: tenderOpened.id, officerId: hugo.id, lock: "A", success: true, createdAt: new Date("2026-10-16T09:58:00+02:00") },
-      { tenderId: tenderOpened.id, officerId: ines.id, lock: "B", success: true, createdAt: new Date("2026-10-16T10:05:00+02:00") },
+      { tenderId: tenderOpened.id, officerId: florent.id, lock: "B", success: true, createdAt: new Date("2026-10-16T10:05:00+02:00") },
     ],
   });
 
@@ -478,9 +489,11 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       status: "awarded",
       deadline: new Date("2026-09-30T17:00:00+02:00"),
       currency: "EUR",
-      createdById: anna.id,
+      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      validatorId: florent.id,
+      createdById: paule.id,
       keyAUserId: hugo.id,
-      keyBUserId: ines.id,
+      keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
       keyAUnlocked: true,
@@ -519,7 +532,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   await prisma.tenderOpening.createMany({
     data: [
       { tenderId: tenderAwarded.id, officerId: hugo.id, lock: "A", success: true, createdAt: new Date("2026-10-01T11:12:00+02:00") },
-      { tenderId: tenderAwarded.id, officerId: ines.id, lock: "B", success: true, createdAt: new Date("2026-10-01T11:20:00+02:00") },
+      { tenderId: tenderAwarded.id, officerId: florent.id, lock: "B", success: true, createdAt: new Date("2026-10-01T11:20:00+02:00") },
     ],
   });
 
@@ -619,7 +632,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       terms: "Free delivery to Lille warehouse. Payment 30 days from invoice date. 48h reserve on receipt.",
       status: "partially_received",
       issuedAt: new Date("2026-08-06T09:00:00+02:00"),
-      issuedById: anna.id,
+      issuedById: paule.id,
       lines: {
         create: [
           { description: "Size 5 ball — competition pack", qty: 120, unit: "u", unitPrice: 18.5 },
@@ -732,7 +745,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       terms: "24-month contract from 01/09/2026. Monthly billing in arrears. 3-month notice.",
       status: "issued",
       issuedAt: new Date("2026-07-25T10:00:00+02:00"),
-      issuedById: anna.id,
+      issuedById: paule.id,
       lines: {
         create: [
           {
@@ -799,7 +812,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       terms: "Night install, 21:00–05:00. 5-year warranty. Payment 45 days.",
       status: "received",
       issuedAt: new Date("2026-08-02T09:30:00+02:00"),
-      issuedById: anna.id,
+      issuedById: paule.id,
       lines: {
         create: [
           { description: "LED pendant 4000 K checkout aisle", qty: 48, unit: "u", unitPrice: 145 },
@@ -935,7 +948,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       terms: "Lump-sum price per round. Photo POD mandatory.",
       status: "received",
       issuedAt: new Date("2026-08-04T14:00:00+02:00"),
-      issuedById: anna.id,
+      issuedById: paule.id,
       lines: {
         create: [{ description: "7.5 t round Lille → HDF stores", qty: 6, unit: "round", unitPrice: 900 }],
       },
@@ -947,7 +960,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       number: "BR-2026-0003",
       poId: poFreight.id,
       type: "SERVICE",
-      receivedById: anna.id,
+      receivedById: paule.id,
       receivedAt: new Date("2026-08-11T18:00:00+02:00"),
       notes: "6 PODs received, no variance.",
       status: "confirmed",
@@ -1018,7 +1031,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       {
         userId: camille.id,
         title: "BC-2026-0001 émis à Sportline",
-        body: "Anna Martin a émis le bon de commande Ballons et accessoires — saison d'été.",
+        body: "Paule T. a émis le bon de commande Ballons et accessoires — saison d'été.",
         href: "/commandes",
         createdAt: new Date("2026-08-06T09:01:00+02:00"),
         read: true,
@@ -1040,19 +1053,19 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       {
         userId: hugo.id,
         title: "Plis à ouvrir — AO-2026-0001",
-        body: "L'échéance du 31 oct. 10 h 00 est passée. 3 plis scellés. Inès Benali doit être présente.",
+        body: "L'échéance du 31 oct. 10 h 00 est passée. 3 plis scellés. Florent G. doit être présente.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-20T17:01:00+02:00"),
       },
       {
-        userId: ines.id,
+        userId: florent.id,
         title: "Ouverture à deux clés — AO-2026-0001",
-        body: "3 plis scellés (Sportline, NordLog, Atelier Lumen). Ouverture avec Hugo Santos.",
+        body: "3 plis scellés (Sportline, NordLog, Atelier Lumen). Ouverture avec Hugo S..",
         href: "/appels-offres",
         createdAt: new Date("2026-08-20T17:01:00+02:00"),
       },
       {
-        userId: anna.id,
+        userId: paule.id,
         title: "Addendum notifié aux soumissionnaires",
         body: "AO-2026-0001 : brief modifié le 14 oct. Sportline, NordLog et Atelier Lumen notifiés.",
         href: "/appels-offres",
@@ -1083,7 +1096,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       {
         userId: uSportline.id,
         title: "Bon de commande BC-2026-0001",
-        body: "Helios Distribution a émis un BC de 4 200,00 € HT — Ballons et accessoires — saison d'été.",
+        body: "Decathlon a émis un BC de 4 200,00 € HT — Ballons et accessoires — saison d'été.",
         href: "/commandes",
         createdAt: new Date("2026-08-06T09:01:00+02:00"),
       },
@@ -1111,7 +1124,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         entityType: "Tender",
         entityId: tenderClosed.id,
         action: "create",
-        actorId: anna.id,
+        actorId: paule.id,
         details: JSON.stringify({ number: "AO-2026-0001" }),
         createdAt: new Date("2026-10-03T14:10:00+02:00"),
       },
@@ -1119,7 +1132,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         entityType: "Tender",
         entityId: tenderClosed.id,
         action: "publish",
-        actorId: anna.id,
+        actorId: paule.id,
         details: JSON.stringify({ deadline: "2026-10-28T17:00:00+01:00", invites: 3 }),
         createdAt: new Date("2026-10-06T09:30:00+02:00"),
       },
@@ -1127,7 +1140,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         entityType: "Tender",
         entityId: tenderClosed.id,
         action: "briefing_edit",
-        actorId: anna.id,
+        actorId: paule.id,
         details: JSON.stringify({ summary: "46 meubles de caisse" }),
         createdAt: new Date("2026-10-14T11:05:00+02:00"),
       },
@@ -1159,7 +1172,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         entityType: "Tender",
         entityId: tenderClosed.id,
         action: "deadline_passed",
-        actorId: anna.id,
+        actorId: paule.id,
         details: JSON.stringify({ bids: 3 }),
         createdAt: new Date("2026-10-28T17:00:01+01:00"),
       },
@@ -1167,7 +1180,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         entityType: "Tender",
         entityId: tenderOpened.id,
         action: "publish",
-        actorId: anna.id,
+        actorId: paule.id,
         details: JSON.stringify({ number: "AO-2026-0005" }),
         createdAt: new Date("2026-09-20T09:00:00+02:00"),
       },
@@ -1183,7 +1196,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         entityType: "Tender",
         entityId: tenderOpened.id,
         action: "unlock_ok",
-        actorId: ines.id,
+        actorId: florent.id,
         details: JSON.stringify({ lock: "B" }),
         createdAt: new Date("2026-10-16T10:05:00+02:00"),
       },
@@ -1191,7 +1204,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         entityType: "Tender",
         entityId: tenderOpened.id,
         action: "opened",
-        actorId: ines.id,
+        actorId: florent.id,
         details: JSON.stringify({ bids: 2 }),
         createdAt: new Date("2026-10-16T10:05:01+02:00"),
       },
@@ -1199,7 +1212,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         entityType: "Tender",
         entityId: tenderAwarded.id,
         action: "publish",
-        actorId: anna.id,
+        actorId: paule.id,
         details: JSON.stringify({ number: "AO-2026-0006" }),
         createdAt: new Date("2026-09-05T09:00:00+02:00"),
       },
@@ -1207,7 +1220,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         entityType: "Tender",
         entityId: tenderAwarded.id,
         action: "opened",
-        actorId: ines.id,
+        actorId: florent.id,
         details: JSON.stringify({ bids: 2 }),
         createdAt: new Date("2026-10-01T11:20:00+02:00"),
       },
@@ -1215,7 +1228,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         entityType: "Tender",
         entityId: tenderAwarded.id,
         action: "award",
-        actorId: anna.id,
+        actorId: paule.id,
         details: JSON.stringify({ vendor: "Atelier Lumen", price: 38400 }),
         createdAt: new Date("2026-10-02T09:15:00+02:00"),
       },
@@ -1246,7 +1259,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
     ],
   });
 
-  console.log("Helios Distribution seed OK");
+  console.log("Decathlon seed OK");
 }
 
 const isDirect = process.argv.some((a) => /(?:^|[\\/])seed\.(ts|js)$/.test(a));

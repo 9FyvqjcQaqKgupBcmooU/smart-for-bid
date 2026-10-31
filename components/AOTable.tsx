@@ -29,7 +29,7 @@ export type KpiStats = {
   savingsPct: number | null;
 };
 
-type ViewId = "all" | "draft" | "published" | "sealed" | "opened" | "awarded";
+type ViewId = "all" | "draft" | "pending_validation" | "published" | "sealed" | "opened" | "awarded";
 
 function effectiveStatus(row: AORow, now: number) {
   if (row.status === "published" && row.deadline.getTime() <= now) return "closed";
@@ -40,6 +40,7 @@ function matchesView(row: AORow, view: ViewId, now: number) {
   const st = effectiveStatus(row, now);
   if (view === "all") return true;
   if (view === "draft") return st === "draft";
+  if (view === "pending_validation") return st === "pending_validation";
   if (view === "published") return st === "published";
   if (view === "sealed") return st === "closed" || (st === "published" && row.bidCount > 0);
   if (view === "opened") return st === "opened";

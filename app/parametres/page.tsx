@@ -5,9 +5,14 @@ import { getLocale } from "@/lib/i18n/server";
 import { t } from "@/lib/i18n";
 import { isDemo } from "@/lib/demo";
 import { ResetDemoButton } from "@/components/ResetDemoButton";
+import { ConditionsEditor } from "@/components/ConditionsEditor";
+import { updateOrgNonNegotiables } from "@/app/actions/tenders";
+import { parseConditions, DEMO_NON_NEGOTIABLES } from "@/lib/conditions";
+import { btnPrimary } from "@/components/chrome";
 
 export default async function ParametresPage() {
   const locale = await getLocale();
+  const company = await prisma.company.findFirst();
   const [thresholds, accounts, users, vendors] = await Promise.all([
     prisma.approvalThreshold.findMany({ orderBy: { minAmount: "asc" } }),
     prisma.chartOfAccount.findMany({ orderBy: { code: "asc" } }),
@@ -17,6 +22,21 @@ export default async function ParametresPage() {
   return (
     <div className="h-full overflow-y-auto px-6 py-4">
       <p className="mb-3 text-[13px] text-ink-soft">{t(locale, "settings.title")}</p>
+      
+      <section className="paper-card mb-4 max-w-5xl rounded-md p-3">
+        <h2 className="text-[14px] font-semibold">Conditions non négociables (organisation)</h2>
+        <p className="mt-1 text-[13px] text-ink-soft">
+          Liste par défaut pour tout nouvel appel d&apos;offres Decathlon. L&apos;acheteur peut l&apos;ajuster par AO.
+        </p>
+        <form action={updateOrgNonNegotiables} className="mt-3 space-y-3">
+          <ConditionsEditor
+            name="nonNegotiables"
+            defaultItems={company ? parseConditions(company.nonNegotiables) : [...DEMO_NON_NEGOTIABLES]}
+          />
+          <button className={btnPrimary() + " min-h-10"}>Enregistrer les conditions</button>
+        </form>
+      </section>
+
       {isDemo() && (
         <section className="paper-card mb-4 max-w-5xl rounded-md p-3">
           <h2 className="text-[12px] font-semibold">{t(locale, "settings.resetDemo")}</h2>

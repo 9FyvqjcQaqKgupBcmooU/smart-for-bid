@@ -3,6 +3,7 @@ import { t, type Locale } from "@/lib/i18n";
 
 const TONE: Record<string, string> = {
   draft: "bg-paper-2 text-ink-soft",
+  pending_validation: "bg-slate-soft text-slate",
   published: "bg-cobalt text-paper",
   closed: "bg-paper-2 text-ink-soft",
   opened: "bg-cobalt text-paper",
