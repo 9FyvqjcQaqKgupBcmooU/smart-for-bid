@@ -110,7 +110,7 @@ describe("criterion 4 — brief change notifies all invited suppliers", () => {
       });
     }
 
-    const lea = await prisma.user.findFirst({ where: { email: "lea.hoffmann@helios-distribution.fr" } });
+    const anna = await prisma.user.findFirst({ where: { email: "anna.martin@helios-distribution.fr" } });
     const vendorUsers = await prisma.user.findMany({
       where: { vendorId: { in: tender!.invites.map((i) => i.vendorId) }, role: "VENDOR" },
     });
@@ -135,7 +135,7 @@ describe("criterion 4 — brief change notifies all invited suppliers", () => {
       where: { userId: { in: vendorUsers.map((u) => u.id) }, title: { startsWith: "Addendum" } },
     });
     expect(after - before).toBe(vendorUsers.length);
-    expect(lea).toBeTruthy();
+    expect(anna).toBeTruthy();
   });
 });
 

@@ -126,11 +126,11 @@ export async function seedDemo(prisma: PrismaClient) {
       title: "Group CFO",
     },
   });
-  const lea = await prisma.user.create({
+  const anna = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Léa Hoffmann",
-      email: "lea.hoffmann@helios-distribution.fr",
+      name: "Anna Martin",
+      email: "anna.martin@helios-distribution.fr",
       role: "BUYER",
       title: "Buyer — equipment & services",
     },
@@ -255,7 +255,7 @@ Following a pilot-store visit, the **checkout display** lot is raised from 38 to
       status: "published",
       deadline: new Date("2026-08-20T17:00:00+02:00"),
       currency: "EUR",
-      createdById: lea.id,
+      createdById: anna.id,
       keyAUserId: hugo.id,
       keyBUserId: ines.id,
       keyAHash: hashA,
@@ -278,7 +278,7 @@ Following a pilot-store visit, the **checkout display** lot is raised from 38 to
   await prisma.tenderVersion.create({
     data: {
       tenderId: tenderClosed.id,
-      changedById: lea.id,
+      changedById: anna.id,
       summary: "Addendum: 46 checkout displays instead of 38. Price criterion unchanged.",
       briefing: briefingV2,
       createdAt: new Date("2026-08-12T11:05:00+02:00"),
@@ -342,7 +342,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       status: "published",
       deadline: new Date("2026-08-23T12:00:00+02:00"),
       currency: "EUR",
-      createdById: lea.id,
+      createdById: anna.id,
       keyAUserId: hugo.id,
       keyBUserId: ines.id,
       keyAHash: hashA,
@@ -463,7 +463,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       terms: "Free delivery to Lille warehouse. Payment 30 days from invoice date. 48h reserve on receipt.",
       status: "partially_received",
       issuedAt: new Date("2026-08-06T09:00:00+02:00"),
-      issuedById: lea.id,
+      issuedById: anna.id,
       lines: {
         create: [
           { description: "Size 5 ball — competition pack", qty: 120, unit: "u", unitPrice: 18.5 },
@@ -576,7 +576,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       terms: "24-month contract from 01/09/2026. Monthly billing in arrears. 3-month notice.",
       status: "issued",
       issuedAt: new Date("2026-07-25T10:00:00+02:00"),
-      issuedById: lea.id,
+      issuedById: anna.id,
       lines: {
         create: [
           {
@@ -643,7 +643,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       terms: "Night install, 21:00–05:00. 5-year warranty. Payment 45 days.",
       status: "received",
       issuedAt: new Date("2026-08-02T09:30:00+02:00"),
-      issuedById: lea.id,
+      issuedById: anna.id,
       lines: {
         create: [
           { description: "LED pendant 4000 K checkout aisle", qty: 48, unit: "u", unitPrice: 145 },
@@ -779,7 +779,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       terms: "Lump-sum price per round. Photo POD mandatory.",
       status: "received",
       issuedAt: new Date("2026-08-04T14:00:00+02:00"),
-      issuedById: lea.id,
+      issuedById: anna.id,
       lines: {
         create: [{ description: "7.5 t round Lille → HDF stores", qty: 6, unit: "round", unitPrice: 900 }],
       },
@@ -791,7 +791,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       number: "BR-2026-0003",
       poId: poFreight.id,
       type: "SERVICE",
-      receivedById: lea.id,
+      receivedById: anna.id,
       receivedAt: new Date("2026-08-11T18:00:00+02:00"),
       notes: "6 PODs received, no variance.",
       status: "confirmed",
@@ -862,7 +862,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       {
         userId: camille.id,
         title: "BC-2026-0001 issued to Sportline",
-        body: "Léa Hoffmann issued the purchase order Balls and accessories — summer season.",
+        body: "Anna Martin issued the purchase order Balls and accessories — summer season.",
         href: "/commandes",
         createdAt: new Date("2026-08-06T09:01:00+02:00"),
         read: true,
@@ -896,7 +896,7 @@ Submit bids before **23 August 2026, 12:00**.`,
         createdAt: new Date("2026-08-20T17:01:00+02:00"),
       },
       {
-        userId: lea.id,
+        userId: anna.id,
         title: "Addendum notified to bidders",
         body: "AO-2026-0001: briefing changed on 12 August. Sportline, NordLog and Atelier Lumen notified.",
         href: "/appels-offres",
@@ -955,7 +955,7 @@ Submit bids before **23 August 2026, 12:00**.`,
         entityType: "Tender",
         entityId: tenderClosed.id,
         action: "publish",
-        actorId: lea.id,
+        actorId: anna.id,
         details: JSON.stringify({ deadline: "2026-08-20T17:00:00+02:00", invites: 3 }),
         createdAt: new Date("2026-08-04T09:30:00+02:00"),
       },
@@ -963,7 +963,7 @@ Submit bids before **23 August 2026, 12:00**.`,
         entityType: "Tender",
         entityId: tenderClosed.id,
         action: "briefing_edit",
-        actorId: lea.id,
+        actorId: anna.id,
         details: JSON.stringify({ summary: "Addendum 46 checkout displays" }),
         createdAt: new Date("2026-08-12T11:05:00+02:00"),
       },
@@ -1029,7 +1029,7 @@ Submit bids before **23 August 2026, 12:00**.`,
   });
 
   const buyerMembers: Array<{ userId: string; orgRole: string }> = [
-    { userId: lea.id, orgRole: "owner" },
+    { userId: anna.id, orgRole: "owner" },
     { userId: hugo.id, orgRole: "admin" },
     { userId: ines.id, orgRole: "admin" },
     { userId: camille.id, orgRole: "member" },
@@ -1046,7 +1046,7 @@ Submit bids before **23 August 2026, 12:00**.`,
   await prisma.membership.create({ data: { userId: uSportline.id, orgId: sportOrg.id, orgRole: "owner" } });
   await prisma.membership.create({ data: { userId: uLumen.id, orgId: lumenOrg.id, orgRole: "owner" } });
 
-  for (const u of [lea, hugo, ines, camille, thomas, nadia, julien, claire, antoine, uSportline, uNordlog, uLumen]) {
+  for (const u of [anna, hugo, ines, camille, thomas, nadia, julien, claire, antoine, uSportline, uNordlog, uLumen]) {
     await attachCredential(u);
   }
 
@@ -1055,7 +1055,7 @@ Submit bids before **23 August 2026, 12:00**.`,
   if (featured) {
     await prisma.tenderAssignment.createMany({
       data: [
-        { tenderId: featured.id, userId: lea.id, aoRole: "owner" },
+        { tenderId: featured.id, userId: anna.id, aoRole: "owner" },
         { tenderId: featured.id, userId: hugo.id, aoRole: "keyholder", keySlot: "A" },
         { tenderId: featured.id, userId: ines.id, aoRole: "keyholder", keySlot: "B" },
         { tenderId: featured.id, userId: uNordlog.id, aoRole: "bidder" },

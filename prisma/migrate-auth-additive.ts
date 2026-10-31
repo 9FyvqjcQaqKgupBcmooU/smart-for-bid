@@ -56,23 +56,23 @@ async function main() {
       }
     }
 
-    const lea = await prisma.user.findFirst({ where: { email: "lea.hoffmann@helios-distribution.fr" } });
-    if (lea && buyer) {
+    const anna = await prisma.user.findFirst({ where: { email: "anna.martin@helios-distribution.fr" } });
+    if (anna && buyer) {
       await prisma.membership.upsert({
-        where: { userId_orgId: { userId: lea.id, orgId: buyer.id } },
+        where: { userId_orgId: { userId: anna.id, orgId: buyer.id } },
         update: { orgRole: "owner" },
-        create: { userId: lea.id, orgId: buyer.id, orgRole: "owner" },
+        create: { userId: anna.id, orgId: buyer.id, orgRole: "owner" },
       });
     }
 
     const featured = await prisma.tender.findFirst({ where: { number: "AO-2026-0001" } });
-    if (featured && lea) {
+    if (featured && anna) {
       await prisma.tenderAssignment.upsert({
         where: {
-          tenderId_userId_aoRole: { tenderId: featured.id, userId: lea.id, aoRole: "owner" },
+          tenderId_userId_aoRole: { tenderId: featured.id, userId: anna.id, aoRole: "owner" },
         },
         update: {},
-        create: { tenderId: featured.id, userId: lea.id, aoRole: "owner" },
+        create: { tenderId: featured.id, userId: anna.id, aoRole: "owner" },
       });
       for (const slot of [
         { email: "hugo.santos@helios-distribution.fr", keySlot: "A" },

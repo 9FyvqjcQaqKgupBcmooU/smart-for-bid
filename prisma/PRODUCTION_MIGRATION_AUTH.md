@@ -20,8 +20,8 @@
 Script: `prisma/migrate-auth-additive.ts`
 - Creates org **Demo Acheteur** (buyer) if missing
 - Creates supplier orgs for existing Vendor rows (NordLog, Sportline, Atelier Lumen, …)
-- Memberships for known demo emails (Léa = owner)
-- TenderAssignment for AO-2026-0001 keyholders Hugo/Inès + owner Léa
+- Memberships for known demo emails (Anna = owner)
+- TenderAssignment for AO-2026-0001 keyholders Hugo/Inès + owner Anna
 - Existing AOs remain readable; unclaimed until memberships/assignments exist
 
 ## SQL sketch (SQLite / LibSQL — illustrative)

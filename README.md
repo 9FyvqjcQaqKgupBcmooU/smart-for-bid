@@ -24,11 +24,11 @@ SQLite database: `prisma/dev.db`. No real accounts: the header has a **role swit
 
 ## Demo (sealed RFQ)
 
-**AO-2026-0001** — Store furniture framework agreement 2026-2028. Published, deadline passed, 3 sealed bids, addendum 12 Aug (Léa, 46 checkout displays). Not yet unlocked.
+**AO-2026-0001** — Store furniture framework agreement 2026-2028. Published, deadline passed, 3 sealed bids, addendum 12 Aug (Anna, 46 checkout displays). Not yet unlocked.
 
 1. **Hugo** — home queue shows **Unlock bids**. Enter `alpha-ouvre`.
 2. **Inès** — switch to **Inès — Bid officer**, enter `bravo-ouvre`. The three bids appear.
-3. **Léa awards** — switch to **Léa — Buyer**. Award a vendor. Status becomes awarded; you stay on the RFQ.
+3. **Anna awards** — switch to **Anna — Buyer**. Award a vendor. Status becomes awarded; you stay on the RFQ.
 
 After a run, **Prefs → Reset demo**. Reloads AO-2026-0001 sealed.
 
@@ -36,7 +36,7 @@ After a run, **Prefs → Reset demo**. Reloads AO-2026-0001 sealed.
 
 **Helios Distribution SAS**, Lille, SIREN 891 245 667.
 
-Users: Camille Leroy, Thomas Bernard, Nadia El Amrani, Julien Moreau, Claire Petit, Léa Hoffmann, Hugo Santos, Inès Benali, Antoine Girard, portals Sportline SAS, NordLog, Atelier Lumen.
+Users: Camille Leroy, Thomas Bernard, Nadia El Amrani, Julien Moreau, Claire Petit, Anna Martin, Hugo Santos, Inès Benali, Antoine Girard, portals Sportline SAS, NordLog, Atelier Lumen.
 
 ## Stack
 
