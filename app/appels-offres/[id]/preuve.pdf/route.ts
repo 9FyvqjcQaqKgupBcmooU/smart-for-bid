@@ -96,37 +96,37 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     y -= (opts?.size ?? 10) + 6;
   }
 
-  line("Smart For Bid - Preuve d'ouverture", { bold: true, size: 16, color: cobalt });
-  line("Document de preuve anti-corruption (journal chaine)", { size: 10, color: soft });
+  line("Smart For Bid — Opening proof", { bold: true, size: 16, color: cobalt });
+  line("Anti-corruption proof document (hash chain log)", { size: 10, color: soft });
   y -= 6;
   line("AO " + tender.number + " - " + tender.title, { bold: true, size: 12 });
-  line("Statut : " + tender.status);
-  line("Echeance : " + formatParisStamp(tender.deadline, "fr"));
+  line("Status: " + tender.status);
+  line("Echeance : " + formatParisStamp(tender.deadline, "en"));
   const budget = extractBudget(tender.briefing);
-  if (budget != null) line("Budget : " + budget.toLocaleString("fr-FR") + " EUR");
-  line("Acheteur : " + tender.createdBy.name + " / " + tender.createdBy.company.name);
-  line("Officiers : " + tender.keyAUser.name + " (cle A) / " + tender.keyBUser.name + " (cle B)");
-  if (tender.openedAt) line("Ouverture : " + formatParisStamp(tender.openedAt, "fr"));
+  if (budget != null) line("Budget : " + budget.toLocaleString("en-GB") + " EUR");
+  line("Buyer: " + tender.createdBy.name + " / " + tender.createdBy.company.name);
+  line("Key holders: " + tender.keyAUser.name + " (key A) / " + tender.keyBUser.name + " (key B)");
+  if (tender.openedAt) line("Opened: " + formatParisStamp(tender.openedAt, "en"));
   y -= 8;
-  line("Empreinte du pli scelle (SHA-256)", { bold: true, size: 11 });
+  line("Sealed envelope fingerprint (SHA-256)", { bold: true, size: 11 });
   line(seal, { size: 8 });
   y -= 6;
-  line("Integrite : " + (verify.ok ? "Chaine intacte" : "Chaine rompue"), {
+  line("Integrity: " + (verify.ok ? "Chain intact" : "Chain broken"), {
     bold: true,
     color: verify.ok ? rgb(0.06, 0.46, 0.43) : rgb(0.72, 0.11, 0.11),
   });
-  line("Hash de pointe : " + verify.tipHash, { size: 8 });
+  line("Tip hash: " + verify.tipHash, { size: 8 });
   y -= 8;
-  line("Ceremonie d'ouverture a deux cles", { bold: true, size: 11 });
+  line("Two-key opening ceremony", { bold: true, size: 11 });
   for (const o of tender.openings) {
-    line(o.lock + " / " + o.officer.name + " / " + (o.success ? "ok" : "fail") + " / " + formatParisStamp(o.createdAt, "fr"), { size: 9 });
+    line(o.lock + " / " + o.officer.name + " / " + (o.success ? "ok" : "fail") + " / " + formatParisStamp(o.createdAt, "en"), { size: 9 });
   }
   y -= 8;
   
-  // Conditions non négociables + acceptations fournisseurs
+  // Non-negotiable conditions + acceptations fournisseurs
   const conditions = parseConditions(tender.nonNegotiables);
   if (conditions.length) {
-    line("Conditions non negociables", { size: 11, bold: true });
+    line("Non-negotiable conditions", { size: 11, bold: true });
     for (const c of conditions) line("- " + c, { size: 9 });
     y -= 4;
   }
@@ -136,41 +136,41 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       const acc = JSON.parse(b.acceptedConditions) as { acceptedAt?: string; items?: string[] };
       const when = acc.acceptedAt ? new Date(acc.acceptedAt) : b.submittedAt;
       line(
-        "Acceptation conditions — " + b.vendor.name + " — " + formatParisStamp(when, "fr"),
+        "Conditions accepted — " + b.vendor.name + " — " + formatParisStamp(when, "en"),
         { size: 9 }
       );
     } catch { /* ignore */ }
   }
   y -= 6;
 
-line("Journal d'audit (ordre chronologique)", { bold: true, size: 11 });
+line("Audit log (chronological)", { bold: true, size: 11 });
   for (const ev of chain) {
-    line(formatParisStamp(ev.createdAt, "fr") + " - " + auditActionLabel(ev.action), { bold: true, size: 9 });
+    line(formatParisStamp(ev.createdAt, "en") + " - " + auditActionLabel(ev.action), { bold: true, size: 9 });
     line(ev.actorName + " / " + ev.orgName, { size: 8, color: soft });
     line("hash " + ev.hash, { size: 7, color: soft });
     y -= 2;
   }
   y -= 8;
-  line("Offres (si revelees)", { bold: true, size: 11 });
+  line("Offers (if revealed)", { bold: true, size: 11 });
   if (tender.status === "opened" || tender.status === "awarded") {
     for (const b of tender.bids) {
       let price = "?";
       try { price = String((JSON.parse(b.payload) as { price: number }).price); } catch {}
-      line(b.vendor.name + " - " + price + " EUR / " + formatParisStamp(b.submittedAt, "fr"), { size: 9 });
+      line(b.vendor.name + " - " + price + " EUR / " + formatParisStamp(b.submittedAt, "en"), { size: 9 });
     }
   } else {
-    line("Plis encore scelles.", { size: 9, color: soft });
+    line("Envelopes still sealed.", { size: 9, color: soft });
   }
   y -= 16;
-  line("Donnees de demonstration fictives - Decathlon - Smart For Bid", { size: 8, color: soft });
-  line("Genere le " + formatParisStamp(new Date(), "fr") + " (Europe/Paris)", { size: 8, color: soft });
+  line("Fictional demonstration data — Decathlon — Smart For Bid", { size: 8, color: soft });
+  line("Generated " + formatParisStamp(new Date(), "en") + " (Europe/Paris)", { size: 8, color: soft });
 
   const bytes = await pdf.save();
   return new NextResponse(Buffer.from(bytes), {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": 'attachment; filename="preuve-' + tender.number + '.pdf"',
+      "Content-Disposition": 'attachment; filename="proof-' + tender.number + '.pdf"',
       "Cache-Control": "no-store",
     },
   });

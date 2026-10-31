@@ -43,14 +43,14 @@ export function OpeningHero({
         <div className="mx-auto mb-2 grid h-14 w-14 place-items-center rounded-2xl bg-cobalt text-[22px] text-paper">⬡</div>
         <h2 className="text-[15px] font-semibold text-ink">{t(locale, "shell.openingDone")}</h2>
         <p className="mt-1 text-[12px] font-medium text-ink/65">
-          Deux officiers authentifiés · horodatage serveur · empreinte du pli confirmée
+          Two authenticated officers · server timestamp · envelope fingerprint confirmed
         </p>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {[
-          { lock: "Clé A", o: officerA, at: unlockAAt, ok: "Clé A acceptée" },
-          { lock: "Clé B", o: officerB, at: unlockBAt, ok: "Clé B acceptée → ouverture" },
+          { lock: "Key A", o: officerA, at: unlockAAt, ok: "Key A accepted" },
+          { lock: "Key B", o: officerB, at: unlockBAt, ok: "Key B accepted → opened" },
         ].map((k) => (
           <div key={k.lock} className="rounded-xl border border-line bg-cobalt-soft/60 p-4">
             <div className="flex items-start justify-between gap-2">
@@ -60,12 +60,12 @@ export function OpeningHero({
                 <div className="text-[12px] font-medium text-ink/65">{k.o.title ?? "Officier d'ouverture"}</div>
               </div>
               <span className="inline-flex h-5 items-center rounded-full bg-[#ECFDF5] px-2 text-[10px] font-semibold text-[#0F766E]">
-                ● Authentifié
+                ● Authenticated
               </span>
             </div>
             <div className="mt-3 space-y-1.5 text-[13px]">
               <div className="flex justify-between border-b border-line/60 py-1">
-                <span className="text-ink/65">Déverrouillage</span>
+                <span className="text-ink/65">Unlock</span>
                 <span className="num font-semibold text-ink">{k.at ? formatParisStamp(k.at, locale) : "—"}</span>
               </div>
               <div className="flex justify-between py-1">
@@ -81,15 +81,15 @@ export function OpeningHero({
         <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink/60">{t(locale, "shell.sealFp")}</div>
         <p className="num mt-1 break-all text-[12px] font-medium text-ink">sha256: {sealAfter}</p>
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] font-medium text-ink/80">
-          <span>{match ? "✓" : "✗"} Empreinte avant = après</span>
-          <span>✓ Aucune lecture acheteur avant échéance</span>
+          <span>{match ? "✓" : "✗"} Fingerprint before = after</span>
+          <span>✓ No buyer read before deadline</span>
           <span>✓ Deux personnes physiques distinctes</span>
         </div>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
         <div className="rounded-xl border border-line bg-paper p-4">
-          <h3 className="text-[13px] font-semibold text-ink">Offres révélées</h3>
+          <h3 className="text-[13px] font-semibold text-ink">Revealed bids</h3>
           <ul className="mt-2">
             {offers.map((o) => (
               <li key={o.vendor} className="flex justify-between border-b border-line/60 py-2 text-[13px] last:border-0">
@@ -103,11 +103,11 @@ export function OpeningHero({
           <h3 className="text-[13px] font-semibold text-ink">{t(locale, "shell.proofReceipt")}</h3>
           <dl className="mt-2 space-y-1.5 text-[13px]">
             <div className="flex justify-between gap-2 border-b border-line/60 py-1.5">
-              <dt className="text-ink/65">Réf. preuve</dt>
+              <dt className="text-ink/65">Proof ref.</dt>
               <dd className="num font-semibold text-ink">{proofRef}</dd>
             </div>
             <div className="flex justify-between gap-2 border-b border-line/60 py-1.5">
-              <dt className="text-ink/65">Ouverture</dt>
+              <dt className="text-ink/65">Opening</dt>
               <dd className="num font-semibold text-ink">{formatParisStamp(openedAt, locale)}</dd>
             </div>
             <div className="flex justify-between gap-2 border-b border-line/60 py-1.5">
@@ -115,7 +115,7 @@ export function OpeningHero({
               <dd className="font-semibold text-ink">{number}</dd>
             </div>
             <div className="flex justify-between gap-2 py-1.5">
-              <dt className="text-ink/65">Résultat</dt>
+              <dt className="text-ink/65">Result</dt>
               <dd className="font-semibold text-[#0F766E]">Sceau intact · offres ouvertes</dd>
             </div>
           </dl>
@@ -124,7 +124,7 @@ export function OpeningHero({
               {t(locale, "shell.exportProof")}
             </Link>
             <Link href={`/appels-offres/${tenderId}?tab=historique`} className="inline-flex min-h-9 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold text-ink">
-              Voir le journal
+              View journal
             </Link>
           </div>
           {budget != null ? (

@@ -89,12 +89,20 @@ async function asUser(page, base, userId, next = "/") {
 async function createValidatePublish(page, base, label, USERS) {
   await asUser(page, base, USERS.paule, "/appels-offres/nouveau");
   await page.waitForSelector('input[name="title"]', { timeout: 20000 });
-  await page.fill('input[name="title"]', `E2E ${label} fournitures`);
+  await page.fill('input[name="title"]', `E2E ${label} supplies`);
   const brief = page.locator('textarea[name="briefing"]');
   if (await brief.count()) {
-    await brief.fill("# Brief E2E\n\nConditions de démo Decathlon.");
+    await brief.fill("# Brief E2E\n\nDecathlon demo conditions.");
   }
-  await page.fill('input[name="deadline"]', "2026-11-05T17:00");
+  // DeadlineField: visible date + time (24h), hidden name=deadline
+  const dateInput = page.locator('input[type="date"]').first();
+  const timeInput = page.locator('input[type="time"]').first();
+  if (await dateInput.count()) {
+    await dateInput.fill("2026-11-05");
+    await timeInput.fill("17:00");
+  } else {
+    await page.locator('input[name="deadline"]').evaluate((el, v) => { el.value = v; el.dispatchEvent(new Event("input", { bubbles: true })); }, "2026-11-05T17:00");
+  }
   const boxes = page.locator('input[name="vendorId"]');
   const n = await boxes.count();
   for (let i = 0; i < n; i++) {
@@ -104,7 +112,7 @@ async function createValidatePublish(page, base, label, USERS) {
   const fileInput = page.locator('input[type="file"][name="briefFile"], input[type="file"][accept*="md"], input[type="file"]').first();
   if (await fileInput.count()) {
     const tmp = `/tmp/e2e-brief-${label}.md`;
-    fs.writeFileSync(tmp, "# Import E2E\n\nTexte importé pour la démo Decathlon.\n");
+    fs.writeFileSync(tmp, "# Import E2E\n\nImported text for the Decathlon demo.\n");
     try {
       await fileInput.setInputFiles(tmp);
       await page.waitForTimeout(800);
@@ -116,7 +124,7 @@ async function createValidatePublish(page, base, label, USERS) {
     ok(`[${label}] import brief file`, true, "no file input (skipped)");
   }
 
-  await page.getByRole("button", { name: /Enregistrer|Brouillon|Créer/i }).click();
+  await page.getByRole("button", { name: /Save draft|Save|Create|Enregistrer|Brouillon|Créer/i }).click();
   await page.waitForTimeout(2500);
   let tenderId = (page.url().match(/\/appels-offres\/(cm[\w]+)/) || [])[1];
   if (!tenderId) {
@@ -135,28 +143,28 @@ async function createValidatePublish(page, base, label, USERS) {
   if (await page.locator('input[name="passA"]').count()) {
     await page.fill('input[name="passA"]', "alpha-ouvre");
     await page.fill('input[name="passB"]', "bravo-ouvre");
-    await page.getByRole("button", { name: /Soumettre à validation|validation/i }).click();
+    await page.getByRole("button", { name: /Submit for approval|Submit for validation|Soumettre|validation/i }).click();
     await page.waitForTimeout(2000);
   }
   ok(
     `[${label}] soumission validation`,
-    /En attente de validation|pending_validation|Valider et publier/i.test(await page.content()) ||
+    /Pending approval|pending_validation|Approve and publish|En attente|Valider et publier/i.test(await page.content()) ||
       !(await page.locator('input[name="passA"]').count()),
     "pending"
   );
 
   await asUser(page, base, USERS.florent, `/appels-offres/${tenderId}`);
-  const validateBtn = page.getByRole("button", { name: /Valider et publier/i });
+  const validateBtn = page.getByRole("button", { name: /Approve and publish|Valider et publier/i });
   if (await validateBtn.count()) {
     await validateBtn.first().click();
     await page.waitForTimeout(2200);
     ok(`[${label}] validation Florent`, true, "clicked");
   } else {
-    ok(`[${label}] validation Florent`, /Publié|published|Envoyer|Offre/i.test(await page.content()), "already published?");
+    ok(`[${label}] validation Florent`, /Published|Publié|Submit bid|Envoyer|Offre|Bids/i.test(await page.content()), "already published?");
   }
 
   await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}`);
-  ok(`[${label}] publication`, /Publié|published|Offres|Échéance/i.test(await page.content()), "published UI");
+  ok(`[${label}] publication`, /Published|Publié|Bids|Deadline|Offres|Échéance/i.test(await page.content()), "published UI");
   return tenderId;
 }
 
@@ -173,7 +181,7 @@ async function depositBids(page, base, label, tenderId, USERS) {
         if (!(await c.isChecked())) await c.check();
       }
     }
-    const acceptBtn = page.getByRole("button", { name: /Accepter les conditions|J'accepte/i });
+    const acceptBtn = page.getByRole("button", { name: /Accept|Accepter les conditions|J'accepte/i });
     if (await acceptBtn.count()) {
       await acceptBtn.first().click();
       await page.waitForTimeout(800);
@@ -184,10 +192,10 @@ async function depositBids(page, base, label, tenderId, USERS) {
       if (await page.locator('input[name="leadTimeDays"]').count()) {
         await page.fill('input[name="leadTimeDays"]', "10");
       }
-      await page.getByRole("button", { name: /Envoyer|Remplacer/i }).click();
+      await page.getByRole("button", { name: /Submit bid|Replace bid|Envoyer|Remplacer/i }).click();
       await page.waitForTimeout(1500);
       const html = await page.content();
-      ok(`[${label}] dépôt ${name}`, /Offre reçue|scell|reçu|horodat/i.test(html), price);
+      ok(`[${label}] dépôt ${name}`, /Bid received|sealed|scell|received|horodat|Paris time/i.test(html), price);
     } else {
       const body = (await page.locator("main").innerText().catch(() => "")).slice(0, 200);
       ok(`[${label}] dépôt ${name}`, false, "no form: " + body.replace(/\s+/g, " "));
@@ -203,7 +211,7 @@ async function openAwardPdf(page, base, label, tenderId, note, USERS) {
     await page.waitForTimeout(1800);
     ok(`[${label}] clé A UI (${note})`, true, "clicked");
   } else {
-    ok(`[${label}] clé A UI (${note})`, /1\/2|Ouverture à deux clés terminée|déverrouill/i.test(await page.content()), "state");
+    ok(`[${label}] clé A UI (${note})`, /1\/2|Two-key opening complete|Opening complete|Ouverture à deux clés terminée|déverrouill|Key A accepted|Unlock/i.test(await page.content()), "state");
   }
 
   await asUser(page, base, USERS.florent, `/appels-offres/${tenderId}?tab=cles`);
@@ -213,20 +221,20 @@ async function openAwardPdf(page, base, label, tenderId, note, USERS) {
     await page.waitForTimeout(2500);
     ok(`[${label}] clé B UI (${note})`, true, "clicked");
   } else {
-    ok(`[${label}] clé B UI (${note})`, /Ouverture à deux clés terminée/i.test(await page.content()), "state");
+    ok(`[${label}] clé B UI (${note})`, /Two-key opening complete|Opening complete|Ouverture à deux clés terminée|Fingerprint before/i.test(await page.content()), "state");
   }
 
   await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}?tab=cles`);
-  ok(`[${label}] cérémonie/empreinte (${note})`, /Ouverture à deux clés terminée/i.test(await page.content()), "hero");
+  ok(`[${label}] cérémonie/empreinte (${note})`, /Two-key opening complete|Opening complete|Ouverture à deux clés terminée|Fingerprint before/i.test(await page.content()), "hero");
 
   await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}`);
-  const awardBtn = page.getByRole("button", { name: /Attribuer/i });
+  const awardBtn = page.getByRole("button", { name: /Award|Attribuer/i });
   if (await awardBtn.count()) {
     await awardBtn.first().click();
     await page.waitForTimeout(1800);
-    ok(`[${label}] attribution (${note})`, /Attribué|Retenu/i.test(await page.content()), "UI click");
+    ok(`[${label}] attribution (${note})`, /Awarded|Attribué|Retenu/i.test(await page.content()), "UI click");
   } else {
-    ok(`[${label}] attribution (${note})`, /Attribué/i.test(await page.content()), "status");
+    ok(`[${label}] attribution (${note})`, /Awarded|Attribué/i.test(await page.content()), "status");
   }
 
   const pdfRes = await page.request.get(`${base}/appels-offres/${tenderId}/preuve.pdf`);
@@ -241,7 +249,7 @@ async function openAwardPdf(page, base, label, tenderId, note, USERS) {
       fs.writeFileSync(`${PROOF}/preuve-${label}-${note}.txt`, txt);
       ok(
         `[${label}] PDF pdftotext (${note})`,
-        /Decathlon|AO-2026|hash|Journal|empreinte|Chaine|Conditions/i.test(txt),
+        /Decathlon|AO-2026|hash|Journal|fingerprint|chain|Conditions|Non-negotiable|Proof/i.test(txt),
         txt.split("\n").filter(Boolean)[0]
       );
       if (label === "local") {
@@ -254,7 +262,7 @@ async function openAwardPdf(page, base, label, tenderId, note, USERS) {
   }
 }
 
-async function assertNoEnglish(page, base, label, ids) {
+async function assertEnglishUI(page, base, label, ids) {
   const { users: USERS, AO_SEALED, AO_PENDING } = ids;
   const screens = [
     ["dashboard", "/"],
@@ -267,7 +275,8 @@ async function assertNoEnglish(page, base, label, ids) {
     ["create", "/appels-offres/nouveau"],
     ["supplier-home", "/"],
   ];
-  const bannedWords = /\b(Settings|Prefs|Buyer|Client|Offers|Log|Closed|Open|Draft|Published|Awarded|Sealed|RFQ|overdue|dual-key|equipment|Submit|Search|Status|Dashboard|New RFQ)\b/i;
+  // Ban leftover French UI words (roles, statuses, gendered labels)
+  const bannedWords = /\b(Acheteuse|Acheteur|Valideur|Fournisseur|Brouillon|Publié|Scellé|Attribué|Échéance|Ouverture|Économies|Enregistrer|Soumettre|Renvoyer|Créer un AO|Appels d.offres|Travail|Compte)\b/i;
   const rawKey = /\b[a-z]+\.[a-z][A-Za-z]+\b/;
   for (const [name, pathName] of screens) {
     const uid = name === "supplier-home" ? USERS.sport : name === "ao-pending" ? USERS.florent : USERS.paule;
@@ -276,7 +285,7 @@ async function assertNoEnglish(page, base, label, ids) {
     const hitWord = text.match(bannedWords);
     const cleaned = text.replace(/https?:\/\S+/g, "").replace(/\S+@\S+/g, "");
     const hitKey2 = cleaned.match(rawKey);
-    ok(`[${label}] no-EN ${name}`, !hitWord, hitWord ? hitWord[0] : "ok");
+    ok(`[${label}] no-FR ${name}`, !hitWord, hitWord ? hitWord[0] : "ok");
     ok(`[${label}] no-raw-key ${name}`, !hitKey2, hitKey2 ? hitKey2[0] : "ok");
     const zHit = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(cleaned) || /\bZ\b/.test(cleaned);
     ok(`[${label}] no-Z ${name}`, !zHit, zHit ? "Z/ISO found" : "ok");
@@ -357,20 +366,20 @@ async function runOn(base, label, ids) {
 
   await asUser(page, base, USERS.paule, "/");
   const home = await page.content();
-  ok(`[${label}] Decathlon demo data`, /Decathlon|Mobilier de magasin|Paule T/i.test(home));
+  ok(`[${label}] Decathlon demo data`, /Decathlon|Store fixtures|Mobilier de magasin|Paule T/i.test(home));
   ok(`[${label}] logo Decathlon`, /decathlon\.svg|alt=["']Decathlon/i.test(home));
   ok(`[${label}] pas de Léa`, !/Léa|Lea Martin|Anna Martin|Helios/i.test(home));
-  ok(`[${label}] pas d'AO E2E pollué`, !/E2E local fournitures/i.test(home));
-  ok(`[${label}] badge Acheteuse`, /Acheteuse/i.test(await page.locator("body").innerText()));
-  ok(`[${label}] économies positives`, !/Économies vs budget\s*−/i.test(await page.locator("body").innerText()));
+  ok(`[${label}] pas d'AO E2E pollué`, !/E2E local (fournitures|supplies)/i.test(home));
+  ok(`[${label}] badge Buyer`, /\bBuyer\b/i.test(await page.locator("body").innerText()));
+  ok(`[${label}] savings positive`, !/Savings vs budget\s*[−-]/i.test(await page.locator("body").innerText()) && !/Économies vs budget\s*−/i.test(await page.locator("body").innerText()));
   ok(`[${label}] pas de marqueur bid-budget visible`, !/<!--\s*bid-budget/i.test(home));
 
   await asUser(page, base, USERS.florent, `/appels-offres/${AO_PENDING}`);
   ok(
     `[${label}] AO pending validation`,
-    /En attente de validation|Valider et publier|Renvoyer/i.test(await page.content())
+    /Pending approval|Approve and publish|Return|En attente|Valider et publier|Renvoyer/i.test(await page.content())
   );
-  ok(`[${label}] badge Valideur N+1`, /Valideur N\+1/i.test(await page.locator("body").innerText()));
+  ok(`[${label}] badge Approver`, /\bApprover\b/i.test(await page.locator("body").innerText()));
 
   const created = await createValidatePublish(page, base, label, USERS);
   if (label === "local" && created) {
@@ -381,7 +390,7 @@ async function runOn(base, label, ids) {
   }
 
   await openAwardPdf(page, base, label, AO_SEALED, "AO-0001", USERS);
-  await assertNoEnglish(page, base, label, ids);
+  await assertEnglishUI(page, base, label, ids);
   await checkMobileOverflow(page, base, label, ids);
 
   await browser.close();

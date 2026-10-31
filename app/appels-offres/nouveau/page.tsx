@@ -5,6 +5,7 @@ import { getLocale } from "@/lib/i18n/server";
 import { t } from "@/lib/i18n";
 import { BriefEditor } from "@/components/BriefEditor";
 import { ConditionsEditor } from "@/components/ConditionsEditor";
+import { DeadlineField } from "@/components/DeadlineField";
 import { parseConditions, DEMO_NON_NEGOTIABLES } from "@/lib/conditions";
 
 export default async function NewTender() {
@@ -28,10 +29,7 @@ export default async function NewTender() {
               {t(locale, "ao.title")}
               <input name="title" required className="mt-0.5 min-h-10 w-full rounded-md border border-line bg-paper px-3 py-2 text-[14px]" />
             </label>
-            <label className="text-[14px]">
-              {t(locale, "ao.deadlineLabel")}
-              <input name="deadline" type="datetime-local" required defaultValue={local} className="mt-0.5 min-h-10 w-full rounded-md border border-line bg-paper px-3 py-2 text-[14px]" />
-            </label>
+            <DeadlineField name="deadline" defaultValue={local} locale={locale} label={t(locale, "ao.deadlineLabel")} />
             <fieldset className="text-[14px]">
               <legend>{t(locale, "ao.invitedVendors")}</legend>
               <div className="mt-1 max-h-28 space-y-1 overflow-y-auto">

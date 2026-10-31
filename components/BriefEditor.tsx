@@ -51,7 +51,7 @@ export function BriefEditor({ name = "briefing", defaultValue = "", rows = 10, r
       return;
     }
     setValue(res.markdown);
-    setImportMsg(`Contenu importé depuis « ${res.filename} » — relisez avant d'enregistrer. Le fichier d'origine n'est pas conservé.`);
+    setImportMsg(`Content imported from “${res.filename}” — review before saving. The original file is not kept.`);
   }
 
   return (
@@ -74,7 +74,7 @@ export function BriefEditor({ name = "briefing", defaultValue = "", rows = 10, r
           className={btn}
           onClick={() => taRef.current && wrapSelection(taRef.current, "1. ", "", setValue)}
         >
-          Numérotée
+          Numbered
         </button>
         <button
           type="button"

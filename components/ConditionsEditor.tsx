@@ -31,9 +31,9 @@ export function ConditionsEditor({ name = "nonNegotiables", defaultItems = [] }:
               type="button"
               className="min-h-10 shrink-0 self-end rounded-md border border-line px-3 text-[13px] sm:self-start"
               onClick={() => setItems(items.filter((_, j) => j !== i))}
-              aria-label="Retirer"
+              aria-label="Remove"
             >
-              Retirer
+              Remove
             </button>
           </li>
         ))}
@@ -43,7 +43,7 @@ export function ConditionsEditor({ name = "nonNegotiables", defaultItems = [] }:
         className="min-h-10 rounded-md border border-line bg-paper px-3 text-[13px] font-medium"
         onClick={() => setItems([...items, ""])}
       >
-        Ajouter une condition
+        Add a condition
       </button>
     </div>
   );

@@ -47,6 +47,7 @@ export function formatTime(d: Date | string | null | undefined, locale: FormatLo
     timeZone: PARIS,
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   }).format(date);
 }
 
@@ -60,6 +61,7 @@ export function formatDateTime(d: Date | string | null | undefined, locale: Form
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   }).format(date);
 }
 
@@ -90,8 +92,8 @@ export function cn(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(" ");
 }
 
-/** Stamp style: 28 oct. 2026 · 09:17 (Europe/Paris, never Z). */
-export function formatParisStamp(d: Date | string | null | undefined, locale: FormatLocale = "fr"): string {
+/** Stamp: 31 Oct 2026 · 10:00 Paris time (Europe/Paris, never Z). */
+export function formatParisStamp(d: Date | string | null | undefined, locale: FormatLocale = "en"): string {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
   const day = new Intl.DateTimeFormat(tag(locale), {
@@ -104,6 +106,8 @@ export function formatParisStamp(d: Date | string | null | undefined, locale: Fo
     timeZone: PARIS,
     hour: "2-digit",
     minute: "2-digit",
+    hour12: false,
   }).format(date);
-  return `${day} · ${time}`;
+  const zone = locale === "fr" ? "heure de Paris" : "Paris time";
+  return `${day} · ${time} ${zone}`;
 }

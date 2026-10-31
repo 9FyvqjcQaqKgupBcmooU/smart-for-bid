@@ -52,32 +52,32 @@ export function AuditJournal({
               </div>
             </li>
           ))}
-          {display.length === 0 ? <p className="text-[13px] text-ink/65">Aucun événement.</p> : null}
+          {display.length === 0 ? <p className="text-[13px] text-ink/65">No events.</p> : null}
         </ol>
         <aside className="rounded-xl border border-line bg-paper p-4">
           <h3 className="text-[13px] font-semibold text-ink">{t(locale, "shell.integrity")}</h3>
           <dl className="mt-3 space-y-2 text-[13px]">
             <div className="flex justify-between gap-3 border-b border-line/70 py-1.5">
-              <dt className="font-medium text-ink/65">Événements liés</dt>
+              <dt className="font-medium text-ink/65">Linked events</dt>
               <dd className="num font-semibold text-ink">{chain.length}</dd>
             </div>
             <div className="flex justify-between gap-3 border-b border-line/70 py-1.5">
-              <dt className="font-medium text-ink/65">Racine / pointe</dt>
+              <dt className="font-medium text-ink/65">Root / tip</dt>
               <dd className="num font-semibold text-ink">{shortHash(tipHash)}</dd>
             </div>
             <div className="flex justify-between gap-3 border-b border-line/70 py-1.5">
-              <dt className="font-medium text-ink/65">Vérification</dt>
+              <dt className="font-medium text-ink/65">Verification</dt>
               <dd className={`font-semibold ${intact ? "text-[#0F766E]" : "text-[#B91C1C]"}`}>
                 {intact ? t(locale, "shell.chainIntact") : t(locale, "shell.chainBroken")}
               </dd>
             </div>
             <div className="flex justify-between gap-3 py-1.5">
-              <dt className="font-medium text-ink/65">Officiers d&apos;ouverture</dt>
+              <dt className="font-medium text-ink/65">Opening officers</dt>
               <dd className="text-right font-semibold text-ink">{officers}</dd>
             </div>
           </dl>
           <p className="mt-3 text-[12px] leading-[18px] text-ink/65">
-            Chaque événement porte le hash du précédent. Toute altération casse la chaîne — exportable en preuve PDF.
+            Each event carries the previous hash. Any tampering breaks the chain — exportable as a proof PDF.
           </p>
         </aside>
       </div>

@@ -29,7 +29,7 @@ export type ImportBriefResult =
 export async function importBriefDocument(formData: FormData): Promise<ImportBriefResult> {
   const file = formData.get("file");
   if (!file || !(file instanceof File)) {
-    return { ok: false, error: "Aucun fichier reçu." };
+    return { ok: false, error: "No file received." };
   }
   if (file.size > MAX_BYTES) {
     return { ok: false, error: "Fichier trop volumineux (max. 10 Mo)." };
@@ -52,7 +52,7 @@ export async function importBriefDocument(formData: FormData): Promise<ImportBri
     if (lower.endsWith(".doc")) {
       return {
         ok: false,
-        error: "Le format .doc (Word 97-2003) n'est pas supporté. Enregistrez en .docx ou .pdf.",
+        error: "The .doc format (Word 97-2003) is not supported. Save as .docx or .pdf.",
       };
     }
     if (lower.endsWith(".pdf")) {
@@ -64,7 +64,7 @@ export async function importBriefDocument(formData: FormData): Promise<ImportBri
       if (!text) return { ok: false, error: "Le PDF ne contient pas de texte extractible." };
       return { ok: true, markdown: text, filename: name };
     }
-    return { ok: false, error: "Format non supporté. Utilisez PDF, DOCX, TXT ou MD." };
+    return { ok: false, error: "Unsupported format. Use PDF, DOCX, TXT or MD." };
   } catch (e) {
     console.error("importBriefDocument", e);
     return { ok: false, error: "Impossible d'extraire le contenu de ce fichier." };

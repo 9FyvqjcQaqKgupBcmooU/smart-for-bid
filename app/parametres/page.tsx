@@ -24,16 +24,16 @@ export default async function ParametresPage() {
       <p className="mb-3 text-[13px] text-ink-soft">{t(locale, "settings.title")}</p>
       
       <section className="paper-card mb-4 max-w-5xl rounded-md p-3">
-        <h2 className="text-[14px] font-semibold">Conditions non négociables (organisation)</h2>
+        <h2 className="text-[14px] font-semibold">Non-negotiable conditions (organisation)</h2>
         <p className="mt-1 text-[13px] text-ink-soft">
-          Liste par défaut pour tout nouvel appel d&apos;offres Decathlon. L&apos;acheteuse peut l&apos;ajuster par AO.
+          Default list for every new Decathlon RFQ. The buyer can adjust it per RFQ.
         </p>
         <form action={updateOrgNonNegotiables} className="mt-3 space-y-3">
           <ConditionsEditor
             name="nonNegotiables"
             defaultItems={company ? parseConditions(company.nonNegotiables) : [...DEMO_NON_NEGOTIABLES]}
           />
-          <button className={btnPrimary() + " min-h-10"}>Enregistrer les conditions</button>
+          <button className={btnPrimary() + " min-h-10"}>Save conditions</button>
         </form>
       </section>
 

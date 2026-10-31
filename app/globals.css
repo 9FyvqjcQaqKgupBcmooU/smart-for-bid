@@ -3,34 +3,39 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --paper: #FFFFFF;
-  --paper-2: #F8FAFC;
-  --ink: #0F172A;
-  --ink-soft: #64748B;
-  --line: #E2E8F0;
+  /* Warm stone neutrals + cobalt accent (no cream/amber/ochre/sage/violet) */
+  --paper: #FFFCFA;
+  --paper-2: #F5F2EF;
+  --ink: #1C1917;
+  --ink-soft: #78716C;
+  --line: #E7E5E4;
   --cobalt: #1D4ED8;
   --cobalt-soft: #EFF6FF;
   --moss: #0F766E;
-  --slate: #475569;
-  --slate-soft: #E2E8F0;
+  --slate: #57534E;
+  --slate-soft: #E7E5E4;
   --clay: #BE123C;
   --sky: #1D4ED8;
+  --success: #0F766E;
+  --success-soft: #ECFDF5;
   color-scheme: light;
 }
 
 html.dark {
-  --paper: #0F172A;
-  --paper-2: #1E293B;
-  --ink: #F8FAFC;
-  --ink-soft: #94A3B8;
-  --line: #334155;
+  --paper: #1C1917;
+  --paper-2: #292524;
+  --ink: #FAFAF9;
+  --ink-soft: #A8A29E;
+  --line: #44403C;
   --cobalt: #60A5FA;
   --cobalt-soft: #1E3A5F;
   --moss: #2DD4BF;
-  --slate: #94A3B8;
-  --slate-soft: #1E293B;
+  --slate: #A8A29E;
+  --slate-soft: #292524;
   --clay: #FB7185;
   --sky: #60A5FA;
+  --success: #2DD4BF;
+  --success-soft: #134E4A;
   color-scheme: dark;
 }
 
@@ -47,15 +52,15 @@ html.dark {
   --color-slate-soft: var(--slate-soft);
   --color-clay: var(--clay);
   --color-sky: var(--sky);
-  --color-success: var(--moss);
-  --color-success-soft: var(--cobalt-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --color-warn: var(--slate);
   --color-warn-soft: var(--slate-soft);
   --color-danger: var(--clay);
   --color-danger-soft: color-mix(in srgb, var(--clay) 18%, var(--paper));
   --color-info: var(--sky);
   --font-sans: var(--font-plex-sans), "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-plex-mono), "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono: var(--font-sans);
 }
 
 html, body {
@@ -64,8 +69,9 @@ html, body {
   font-family: var(--font-sans);
   min-height: 100%;
   overflow-x: hidden;
-  font-size: 16px;
-  line-height: 24px;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 400;
 }
 
 @media (min-width: 768px) {
@@ -75,20 +81,21 @@ html, body {
   }
 }
 
-.tabular {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.02em;
-}
+/* Type scale: ~5 sizes, 2–3 weights (400 / 500 / 600) */
+.text-xs { font-size: 12px; line-height: 16px; }
+.text-sm { font-size: 13px; line-height: 18px; }
+.text-base { font-size: 15px; line-height: 22px; }
+.text-lg { font-size: 18px; line-height: 26px; }
+.text-xl { font-size: 22px; line-height: 28px; }
 
-/* Numbers, refs, dates: IBM Plex Mono with tabular figures. */
+.tabular,
 .num {
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
-/* RFQ briefing rendered from markdown — tight, readable rhythm. */
+/* RFQ briefing — same family, no spaced mono caps */
 .brief {
   font-size: 15px;
   line-height: 22px;
@@ -102,45 +109,57 @@ html, body {
   font-size: 15px;
   line-height: 22px;
   font-weight: 600;
-  letter-spacing: -0.005em;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  font-family: var(--font-sans);
+  color: var(--ink);
 }
 .brief > h2 + *,
 .brief > h3 + * { margin-top: 4px; }
 .brief > * + h2,
 .brief > * + h3 { margin-top: 14px; }
 .brief > h2:first-child {
-  font-size: 13px;
-  line-height: 18px;
-  font-family: var(--font-mono);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--cobalt);
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  color: var(--ink);
 }
 .brief ul { list-style: none; padding-left: 0; }
-.brief li {
+.brief ul > li {
   position: relative;
-  padding-left: 16px;
-  margin: 0;
+  padding-left: 14px;
 }
-.brief li + li { margin-top: 4px; }
-.brief li::before {
+.brief ul > li::before {
   content: "";
   position: absolute;
-  left: 2px;
+  left: 0;
   top: 9px;
   width: 5px;
   height: 5px;
-  border-radius: 1px;
+  border-radius: 999px;
   background: var(--cobalt);
 }
+.brief ol { list-style: decimal; padding-left: 1.25rem; }
+.brief a { color: var(--cobalt); }
 .brief strong { font-weight: 600; }
+.brief table { font-variant-numeric: tabular-nums; }
 
 .paper-card {
   background: var(--paper);
-  border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+  border: 1px solid var(--line);
   border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+/* Content width: use space on large screens without infinite stretch */
+.page-frame {
+  width: 100%;
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.paper-card {
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 4px 12px rgba(28, 25, 23, 0.04);
 }
 
 html.dark .paper-card {
@@ -151,7 +170,7 @@ html.dark .paper-card {
   background: var(--paper);
   border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 2px rgba(28, 25, 23, 0.04);
 }
 
 html.dark .soft-card {
@@ -179,14 +198,10 @@ textarea {
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
 
-/* Mobile readability — tables as horizontal scroll / cards */
 @media (max-width: 640px) {
   .ao-table-scroll {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-  }
-  .ao-table-scroll table {
-    min-width: 640px;
   }
   .brief {
     font-size: 14px;
@@ -198,7 +213,6 @@ textarea {
   }
 }
 
-/* Touch targets */
 button, a, summary, [role="button"] {
   touch-action: manipulation;
 }

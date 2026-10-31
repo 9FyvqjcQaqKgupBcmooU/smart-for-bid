@@ -34,7 +34,7 @@ export async function seedDemo(prisma: PrismaClient) {
       address: "4 Boulevard de Mons",
       city: "Villeneuve-d'Ascq",
       zip: "59650",
-      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       country: "FR",
     },
   });
@@ -69,7 +69,7 @@ export async function seedDemo(prisma: PrismaClient) {
       iban: "FR76 1470 6000 1112 3344 5566 789",
       email: "hello@atelier-lumen.fr",
       city: "Tourcoing",
-      category: "Éclairage et aménagement",
+      category: "Lighting and fit-out",
     },
   });
 
@@ -79,7 +79,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Camille L.",
       email: "camille.l@decathlon.com",
       role: "REQUESTER",
-      title: "Demandeur — achats magasin",
+      title: "Requester — store purchasing",
     },
   });
   const thomas = await prisma.user.create({
@@ -88,7 +88,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Thomas B.",
       email: "thomas.b@decathlon.com",
       role: "N1",
-      title: "Responsable magasin — Lille Fives",
+      title: "Store manager — Lille Fives",
     },
   });
   const nadia = await prisma.user.create({
@@ -97,7 +97,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Nadia E.",
       email: "nadia.e@decathlon.com",
       role: "N2",
-      title: "Directeur régional Hauts-de-France",
+      title: "Regional director — Hauts-de-France",
     },
   });
   const julien = await prisma.user.create({
@@ -106,7 +106,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Julien M.",
       email: "julien.m@decathlon.com",
       role: "N3",
-      title: "Directeur finance pays",
+      title: "Country finance director",
     },
   });
   const claire = await prisma.user.create({
@@ -115,7 +115,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Claire P.",
       email: "claire.p@decathlon.com",
       role: "N4",
-      title: "CFO groupe",
+      title: "Group CFO",
     },
   });
   const paule = await prisma.user.create({
@@ -124,7 +124,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Paule T.",
       email: "paule.t@decathlon.com",
       role: "BUYER",
-      title: "Acheteuse — équipements magasins",
+      title: "Buyer — store equipment",
     },
   });
   const hugo = await prisma.user.create({
@@ -133,7 +133,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Hugo S.",
       email: "hugo.s@decathlon.com",
       role: "OPENING_A",
-      title: "Officier d'ouverture A",
+      title: "Key holder A",
     },
   });
   const florent = await prisma.user.create({
@@ -142,7 +142,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Florent G.",
       email: "florent.g@decathlon.com",
       role: "VALIDATOR",
-      title: "Valideur N+1 — appels d'offres",
+      title: "Approver — RFQs",
     },
   });
   const antoine = await prisma.user.create({
@@ -151,7 +151,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Antoine G.",
       email: "antoine.g@decathlon.com",
       role: "AP",
-      title: "Comptabilité fournisseur",
+      title: "Accounts payable",
     },
   });
   const uSportline = await prisma.user.create({
@@ -160,7 +160,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Sportline SAS",
       email: "portail@sportline.fr",
       role: "VENDOR",
-      title: "Portail fournisseur",
+      title: "Supplier portal",
       vendorId: sportline.id,
     },
   });
@@ -170,7 +170,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "NordLog",
       email: "portail@nordlog.fr",
       role: "VENDOR",
-      title: "Portail fournisseur",
+      title: "Supplier portal",
       vendorId: nordlog.id,
     },
   });
@@ -180,7 +180,7 @@ export async function seedDemo(prisma: PrismaClient) {
       name: "Atelier Lumen",
       email: "portail@atelier-lumen.fr",
       role: "VENDOR",
-      title: "Portail fournisseur",
+      title: "Supplier portal",
       vendorId: lumen.id,
     },
   });
@@ -195,8 +195,8 @@ export async function seedDemo(prisma: PrismaClient) {
   });
 
   const accounts = [
-    { code: "401", label: "Fournisseurs", type: "liability" },
-    { code: "408", label: "Fournisseurs — factures non parvenues", type: "liability" },
+    { code: "401", label: "Suppliers", type: "liability" },
+    { code: "408", label: "Suppliers — missing invoices", type: "liability" },
     { code: "44566", label: "TVA déductible sur biens et services", type: "tax" },
     { code: "44571", label: "TVA collectée", type: "tax" },
     { code: "442", label: "État — retenue à la source", type: "tax" },
@@ -220,62 +220,62 @@ export async function seedDemo(prisma: PrismaClient) {
 
   const budget = (n: number) => `\n\n<!--bid-budget:${n}-->`;
 
-  const briefingMobilier = `# AO — Mobilier de magasin 2026-2028
+  const briefingMobilier = `# RFQ — Store fixtures 2026-2028
 
-Decathlon consulte pour un **accord-cadre national** de fourniture et pose de mobilier de vente (gondoles, têtes de gondole, meubles de caisse).
+Decathlon is consulting for a **national framework agreement** for supply and installation of sales fixtures (gondolas, end-caps, checkout furniture).
 
-## Périmètre
-- 38 magasins en France, déploiement par vagues
-- Durée : 24 mois fermes + 12 mois reconductibles
-- Pose hors dimanche, créneau 21 h – 6 h
+## Scope
+- 38 stores in France, phased rollout
+- Term: 24 months firm + 12 months renewable
+- Installation excluding Sundays, slot 21:00 – 06:00
 
-## Attendus
-- Catalogue chiffré HT, livraison franco entrepôt Lille
-- Délai de réassort ≤ 12 jours ouvrés
-- Garantie pièces et main-d'œuvre 5 ans
+## Requirements
+- Priced catalogue excl. VAT, free delivery to Lille warehouse
+- Replenishment lead time ≤ 12 working days
+- 5-year parts and labour warranty
 
-Déposez une offre unique : montant global année 1, délai standard, capacité de pose.` + budget(210000);
+Submit a single offer: year-1 total amount, standard lead time, installation capacity.` + budget(210000);
 
-  const briefingTransport = `# AO — Charte transport régional — rentrée 2026
+  const briefingTransport = `# RFQ — Regional transport charter — back-to-school 2026
 
-Besoin d'un **transporteur unique** pour les flux entrepôt Lille → magasins Hauts-de-France (saison de rentrée).
+Need for a **single carrier** for Lille warehouse → Hauts-de-France stores (back-to-school season).
 
 ## Volumes
-- 18 tournées / semaine, 7,5 t à 12 t
-- Fenêtres magasin 6 h – 11 h
-- Palettes EUR, gerbage 1,80 m
+- 18 routes / week, 7.5 t to 12 t
+- Store windows 06:00 – 11:00
+- EUR pallets, stacking 1.80 m
 
-## Attendus
-- Prix au km chargé + minimum de tournée
-- Plan de continuité (grève, météo)
-- Reporting POD J+1` + budget(48000);
+## Requirements
+- Price per loaded km + route minimum
+- Continuity plan (strikes, weather)
+- POD reporting D+1` + budget(48000);
 
-  const briefingDraft = `# AO — Signalétique magasins (brouillon)
+  const briefingDraft = `# RFQ — Store signage (draft)
 
-Refonte de la signalétique intérieure pour 12 magasins pilotes. Brief en cours de rédaction avec le marketing.` + budget(32000);
+Redesign of indoor signage for 12 pilot stores. Brief being drafted with marketing.` + budget(32000);
 
-  const briefingEclairage = `# AO — Éclairage LED entrepôt Lomme
+  const briefingEclairage = `# RFQ — LED lighting — Lomme warehouse
 
-Remplacement de 84 luminaires LED (4000 K) dans l'entrepôt de Lomme, pose de nuit.` + budget(56000);
+Replacement of 84 LED luminaires (4000 K) in the Lomme warehouse, night installation.` + budget(56000);
 
-  const briefingNettoyage = `# AO — Prestations de nettoyage sites
+  const briefingNettoyage = `# RFQ — Site cleaning services
 
-Nettoyage multi-sites (entrepôt + 6 magasins) — contrat 12 mois.` + budget(78000);
+Multi-site cleaning (warehouse + 6 stores) — 12-month contract.` + budget(78000);
 
-  const briefingIT = `# AO — Postes de travail acheteurs
+  const briefingIT = `# RFQ — Buyer workstations
 
-Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget(42000);
+Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
 
   // Clos / scellé — échéance récente, prêt à ouvrir (pas d'étiquette « en retard » dans l'UI)
   const tenderClosed = await prisma.tender.create({
     data: {
       number: "AO-2026-0001",
-      title: "Mobilier de magasin — accord-cadre 2026-2028",
+      title: "Store fixtures — framework agreement 2026-2028",
       briefing: briefingMobilier,
       status: "published",
       deadline: new Date("2026-10-31T10:00:00+01:00"),
       currency: "EUR",
-      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
       keyAUserId: hugo.id,
@@ -301,7 +301,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
     data: {
       tenderId: tenderClosed.id,
       changedById: paule.id,
-      summary: "Précision périmètre : 46 meubles de caisse au lieu de 38.",
+      summary: "Scope clarification: 46 checkout units instead of 38.",
       briefing: briefingMobilier,
       createdAt: new Date("2026-10-14T11:05:00+02:00"),
     },
@@ -315,7 +315,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         payload: JSON.stringify({
           price: 186400,
           leadTimeDays: 14,
-          comments: "Pose par équipes internes formées. Maintenance annuelle optionnelle +2,4 %.",
+          comments: "Installation by trained in-house crews. Optional annual maintenance +2.4%.",
         }),
         submittedAt: new Date("2026-10-24T16:42:00+02:00"),
       },
@@ -325,7 +325,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         payload: JSON.stringify({
           price: 174900,
           leadTimeDays: 18,
-          comments: "Sous-traitance de pose certifiée. Capacité 6 magasins / mois.",
+          comments: "Certified installation subcontracting. Capacity 6 stores / month.",
         }),
         submittedAt: new Date("2026-10-26T10:15:00+02:00"),
       },
@@ -335,7 +335,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
         payload: JSON.stringify({
           price: 191250,
           leadTimeDays: 10,
-          comments: "Fabrication Tourcoing, bois PEFC. Délai court sur le lot caisse.",
+          comments: "Manufactured in Tourcoing, PEFC wood. Short lead time on the checkout lot.",
         }),
         submittedAt: new Date("2026-10-27T21:03:00+02:00"),
       },
@@ -346,12 +346,12 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const tenderOpen = await prisma.tender.create({
     data: {
       number: "AO-2026-0002",
-      title: "Charte transport régional — rentrée 2026",
+      title: "Regional transport charter — back-to-school 2026",
       briefing: briefingTransport,
       status: "published",
       deadline: new Date("2026-11-18T12:00:00+01:00"),
       currency: "EUR",
-      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
       keyAUserId: hugo.id,
@@ -377,7 +377,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       payload: JSON.stringify({
         price: 42800,
         leadTimeDays: 2,
-        comments: "Flotte dédiée de 4 camions. Astreinte samedi matin.",
+        comments: "Dedicated fleet of 4 trucks. Saturday morning on-call.",
       }),
       submittedAt: new Date("2026-10-27T09:12:00+02:00"),
     },
@@ -387,12 +387,12 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const tenderDraft = await prisma.tender.create({
     data: {
       number: "AO-2026-0003",
-      title: "Signalétique magasins — pilote 12 sites",
+      title: "Store signage — 12-site pilot",
       briefing: briefingDraft,
       status: "pending_validation",
       deadline: new Date("2026-12-05T17:00:00+01:00"),
       currency: "EUR",
-      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
       keyAUserId: hugo.id,
@@ -405,12 +405,12 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const tenderPub2 = await prisma.tender.create({
     data: {
       number: "AO-2026-0004",
-      title: "Éclairage LED entrepôt Lomme",
+      title: "LED lighting — Lomme warehouse",
       briefing: briefingEclairage,
       status: "published",
       deadline: new Date("2026-11-28T17:00:00+01:00"),
       currency: "EUR",
-      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
       keyAUserId: hugo.id,
@@ -432,12 +432,12 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const tenderOpened = await prisma.tender.create({
     data: {
       number: "AO-2026-0005",
-      title: "Nettoyage multi-sites — contrat annuel",
+      title: "Multi-site cleaning — annual contract",
       briefing: briefingNettoyage,
       status: "opened",
       deadline: new Date("2026-10-15T17:00:00+02:00"),
       currency: "EUR",
-      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
       keyAUserId: hugo.id,
@@ -461,7 +461,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
     data: {
       tenderId: tenderOpened.id,
       vendorId: nordlog.id,
-      payload: JSON.stringify({ price: 71200, leadTimeDays: 5, comments: "Équipes dédiées sites Nord." }),
+      payload: JSON.stringify({ price: 71200, leadTimeDays: 5, comments: "Dedicated teams for Northern sites." }),
       submittedAt: new Date("2026-10-12T11:00:00+02:00"),
     },
   });
@@ -469,7 +469,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
     data: {
       tenderId: tenderOpened.id,
       vendorId: sportline.id,
-      payload: JSON.stringify({ price: 74500, leadTimeDays: 7, comments: "Option produits écolabel." }),
+      payload: JSON.stringify({ price: 74500, leadTimeDays: 7, comments: "Ecolabel products option." }),
       submittedAt: new Date("2026-10-14T16:20:00+02:00"),
     },
   });
@@ -484,12 +484,12 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const tenderAwarded = await prisma.tender.create({
     data: {
       number: "AO-2026-0006",
-      title: "Postes de travail équipe achats",
+      title: "Buyer team workstations",
       briefing: briefingIT,
       status: "awarded",
       deadline: new Date("2026-09-30T17:00:00+02:00"),
       currency: "EUR",
-      nonNegotiables: '["Facture envoyée exclusivement au format PDF", "Numéro de bon de commande obligatoire sur chaque facture", "Délai de paiement : 45 jours", "Acceptation préalable de la charte de compliance et anticorruption", "Attestation d\'assurance RC pro en cours de validité", "Respect des normes sociales et environnementales Decathlon", "Livraison conforme aux entrepôts et créneaux indiqués au brief"]',
+      nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
       keyAUserId: hugo.id,
@@ -513,7 +513,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
     data: {
       tenderId: tenderAwarded.id,
       vendorId: lumen.id,
-      payload: JSON.stringify({ price: 38400, leadTimeDays: 12, comments: "Garantie constructeur 3 ans." }),
+      payload: JSON.stringify({ price: 38400, leadTimeDays: 12, comments: "Manufacturer warranty 3 years." }),
       submittedAt: new Date("2026-09-22T14:00:00+02:00"),
     },
   });
@@ -521,7 +521,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
     data: {
       tenderId: tenderAwarded.id,
       vendorId: sportline.id,
-      payload: JSON.stringify({ price: 40100, leadTimeDays: 10, comments: "Livraison Lille incluse." }),
+      payload: JSON.stringify({ price: 40100, leadTimeDays: 10, comments: "Lille delivery included." }),
       submittedAt: new Date("2026-09-28T09:30:00+02:00"),
     },
   });
@@ -544,7 +544,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const daRayonnage = await prisma.requisition.create({
     data: {
       number: "DA-2026-0003",
-      title: "Rayonnage entrepôt Lille",
+      title: "Warehouse racking — Lille",
       description:
         "Replacement of 12 pallet-racking bays (900 kg loads) in aisle E of the Lille-Lomme warehouse, following the 2 August safety audit. Supply + assembly, civil works excluded. Indicative quote from Atelier Lumen €18,400 excl. VAT.",
       type: "ONE_OFF",
@@ -589,7 +589,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const daBallons = await prisma.requisition.create({
     data: {
       number: "DA-2026-0001",
-      title: "Ballons et accessoires — saison d'été",
+      title: "Balls and accessories — summer season",
       description:
         "Replenishment for Lille Fives store and club corner: size 5 balls, bibs, cones. Combined Sportline order, free delivery to warehouse.",
       type: "ONE_OFF",
@@ -693,7 +693,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const daClean = await prisma.requisition.create({
     data: {
       number: "DA-2026-0002",
-      title: "Contrat de nettoyage — sites Lille / Roubaix",
+      title: "Cleaning contract — Lille / Roubaix sites",
       description:
         "24-month framework: industrial cleaning of Lille-Lomme warehouse (3,200 m²) and Roubaix stockroom (900 m²), 5 visits / week, ecolabel products. Vendor NordLog Services.",
       type: "RECURRING",
@@ -769,7 +769,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const daLumen = await prisma.requisition.create({
     data: {
       number: "DA-2026-0004",
-      title: "Relamping LED — caisses, magasin Lille Fives",
+      title: "LED relamping — checkouts, Lille Fives store",
       description:
         "Replacement of 48 checkout-aisle pendants with 4000 K LED luminaires, night installation, take-back of existing fittings.",
       type: "ONE_OFF",
@@ -906,7 +906,7 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
   const daFreight = await prisma.requisition.create({
     data: {
       number: "DA-2026-0005",
-      title: "Navettes entrepôt-magasin — semaine 32",
+      title: "Warehouse–store shuttles — week 32",
       description: "Exceptional charter of 6 rounds after a back-to-school volume spike, outside the framework contract.",
       type: "ONE_OFF",
       amountHT: 5400,
@@ -1015,59 +1015,59 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
     data: [
       {
         userId: nadia.id,
-        title: "DA-2026-0003 en attente de votre validation",
-        body: "Rayonnage entrepôt Lille — 18 400,00 € HT. Validé par Thomas Bernard le 18 août.",
+        title: "DA-2026-0003 awaiting your approval",
+        body: "Warehouse racking — Lille — €18,400.00 excl. VAT. Approved by Thomas Bernard on 18 Aug.",
         href: "/demandes",
         createdAt: new Date("2026-08-18T14:06:00+02:00"),
       },
       {
         userId: camille.id,
-        title: "Réception partielle BR-2026-0001",
-        body: "Sportline : 40 cônes manquants. Compte 408 ouvert pour 4 000,00 € HT reçus.",
+        title: "Partial receipt BR-2026-0001",
+        body: "Sportline: 40 cones missing. Account 408 opened for €4,000.00 excl. VAT received.",
         href: "/receptions",
         createdAt: new Date("2026-08-14T15:21:00+02:00"),
         read: true,
       },
       {
         userId: camille.id,
-        title: "BC-2026-0001 émis à Sportline",
-        body: "Paule T. a émis le bon de commande Ballons et accessoires — saison d'été.",
+        title: "PO-2026-0001 issued to Sportline",
+        body: "Paule T. issued the purchase order Balls and accessories — summer season.",
         href: "/commandes",
         createdAt: new Date("2026-08-06T09:01:00+02:00"),
         read: true,
       },
       {
         userId: julien.id,
-        title: "Écart de facture AL-2026-114",
+        title: "Invoice variance AL-2026-114",
         body: "Atelier Lumen billed €9,600 excl. VAT vs €8,640 on PO/GR (+€960). N+1 AP approval required.",
         href: "/factures",
         createdAt: new Date("2026-08-15T11:12:00+02:00"),
       },
       {
         userId: antoine.id,
-        title: "Facture NL-2026-0772 approuvée",
-        body: "NordLog 5 400 € HT — rapprochement OK, prêt pour le prochain lot de paiement.",
+        title: "Invoice NL-2026-0772 approved",
+        body: "NordLog €5,400 excl. VAT — matching OK, ready for the next payment batch.",
         href: "/paiements",
         createdAt: new Date("2026-08-16T09:41:00+02:00"),
       },
       {
         userId: hugo.id,
-        title: "Plis à ouvrir — AO-2026-0001",
-        body: "L'échéance du 31 oct. 10 h 00 est passée. 3 plis scellés. Florent G. doit être présente.",
+        title: "Envelopes ready to open — AO-2026-0001",
+        body: "The 31 Oct 10:00 Paris time deadline has passed. 3 sealed envelopes. Florent G. must be present.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-20T17:01:00+02:00"),
       },
       {
         userId: florent.id,
-        title: "Ouverture à deux clés — AO-2026-0001",
-        body: "3 plis scellés (Sportline, NordLog, Atelier Lumen). Ouverture avec Hugo S..",
+        title: "Two-key opening — AO-2026-0001",
+        body: "3 sealed envelopes (Sportline, NordLog, Atelier Lumen). Opening with Hugo S.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-20T17:01:00+02:00"),
       },
       {
         userId: paule.id,
-        title: "Addendum notifié aux soumissionnaires",
-        body: "AO-2026-0001 : brief modifié le 14 oct. Sportline, NordLog et Atelier Lumen notifiés.",
+        title: "Addendum notified to bidders",
+        body: "AO-2026-0001: brief updated on 14 Oct. Sportline, NordLog and Atelier Lumen notified.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
         read: true,
@@ -1075,42 +1075,42 @@ Renouvellement de 24 postes portables + docking pour l'équipe achats.` + budget
       {
         userId: uSportline.id,
         title: "Addendum AO-2026-0001",
-        body: "Le brief a changé : 46 présentoirs de caisse au lieu de 38. Votre offre déjà déposée reste valable.",
+        body: "The brief has changed: 46 checkout displays instead of 38. Your submitted bid remains valid.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
       },
       {
         userId: uNordlog.id,
         title: "Addendum AO-2026-0001",
-        body: "Le brief a changé : 46 présentoirs de caisse au lieu de 38.",
+        body: "The brief has changed: 46 checkout displays instead of 38.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
       },
       {
         userId: uLumen.id,
         title: "Addendum AO-2026-0001",
-        body: "Le brief a changé : 46 présentoirs de caisse au lieu de 38.",
+        body: "The brief has changed: 46 checkout displays instead of 38.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-12T11:06:00+02:00"),
       },
       {
         userId: uSportline.id,
         title: "Bon de commande BC-2026-0001",
-        body: "Decathlon a émis un BC de 4 200,00 € HT — Ballons et accessoires — saison d'été.",
+        body: "Decathlon issued a PO for €4,200.00 excl. VAT — Balls and accessories — summer season.",
         href: "/commandes",
         createdAt: new Date("2026-08-06T09:01:00+02:00"),
       },
       {
         userId: uSportline.id,
-        title: "Réception partielle BR-2026-0001",
-        body: "Écart de réception : 160 cônes reçus sur 200 commandés.",
+        title: "Partial receipt BR-2026-0001",
+        body: "Receipt variance: 160 cones received of 200 ordered.",
         href: "/receptions",
         createdAt: new Date("2026-08-14T15:21:00+02:00"),
       },
       {
         userId: uNordlog.id,
-        title: "Nouveau BC — contrat de nettoyage BC-2026-0003",
-        body: "Contrat 24 mois, 28 800 € HT. Début d'exécution le 1er septembre 2026.",
+        title: "New PO — cleaning contract BC-2026-0003",
+        body: "24-month contract, €28,800 excl. VAT. Execution starts 1 September 2026.",
         href: "/commandes",
         createdAt: new Date("2026-07-25T10:01:00+02:00"),
       },

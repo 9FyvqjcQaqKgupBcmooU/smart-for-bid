@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/AppShell";
 import { getLocale } from "@/lib/i18n/server";
@@ -7,20 +7,14 @@ import { getTheme, THEME_BOOT_SCRIPT } from "@/lib/theme";
 
 const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  variable: "--font-plex-sans",
-  display: "swap",
-});
-
-const plexMono = IBM_Plex_Mono({
-  subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-plex-mono",
+  variable: "--font-plex-sans",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Smart For Bid",
-  description: "Appels d'offres scellés — Decathlon",
+  description: "Sealed RFQs — Decathlon",
 };
 
 export const viewport: Viewport = {
@@ -35,8 +29,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const theme = await getTheme();
   return (
     <html
-      lang={locale}
-      className={`${plexSans.variable} ${plexMono.variable} ${plexSans.className} min-h-full overflow-x-hidden md:h-full md:overflow-hidden${theme === "dark" ? " dark" : ""}`}
+      lang={locale === "fr" ? "fr" : "en-GB"}
+      className={`${plexSans.variable} ${plexSans.className} min-h-full overflow-x-hidden md:h-full md:overflow-hidden${theme === "dark" ? " dark" : ""}`}
       style={{ colorScheme: theme }}
       suppressHydrationWarning
     >

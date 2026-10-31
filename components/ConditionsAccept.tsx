@@ -12,9 +12,9 @@ export function ConditionsAccept({ items }: Props) {
 
   return (
     <div className="rounded-xl border-2 border-cobalt/40 bg-cobalt-soft/40 p-4">
-      <h3 className="text-[15px] font-semibold text-ink">Conditions non négociables</h3>
+      <h3 className="text-[15px] font-semibold text-ink">Non-negotiable conditions</h3>
       <p className="mt-1 text-[13px] leading-5 text-ink-soft">
-        Vous devez accepter chaque condition pour déposer une offre scellée.
+        You must accept every condition to submit a sealed bid.
       </p>
       <ul className="mt-3 space-y-2">
         {items.map((it, i) => (
@@ -39,7 +39,7 @@ export function ConditionsAccept({ items }: Props) {
       <input type="hidden" name="acceptedConditionsJson" value={JSON.stringify(items)} />
       {!all && (
         <p className="mt-3 text-[13px] font-medium text-danger">
-          Cochez toutes les conditions non négociables pour activer le dépôt.
+          Tick every non-negotiable condition to enable submission.
         </p>
       )}
     </div>

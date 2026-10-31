@@ -1,11 +1,11 @@
 export const DEMO_NON_NEGOTIABLES = [
-  "Facture envoyée exclusivement au format PDF",
-  "Numéro de bon de commande obligatoire sur chaque facture",
-  "Délai de paiement : 45 jours",
-  "Acceptation préalable de la charte de compliance et anticorruption",
-  "Attestation d'assurance RC pro en cours de validité",
-  "Respect des normes sociales et environnementales Decathlon",
-  "Livraison conforme aux entrepôts et créneaux indiqués au brief",
+  "Invoice must be sent exclusively as PDF",
+  "Purchase order number mandatory on every invoice",
+  "Payment terms: 45 days",
+  "Prior acceptance of the compliance and anti-corruption charter",
+  "Valid professional liability insurance certificate",
+  "Compliance with Decathlon social and environmental standards",
+  "Delivery to the warehouses and time slots stated in the brief",
 ] as const;
 
 export function parseConditions(raw: string | null | undefined): string[] {

@@ -174,7 +174,7 @@ function MobileCard({
             </span>
             <span className="inline-flex items-center gap-1 font-medium text-ink/70">
               <SealMark state={seal} size={14} />
-              {seal === "opened" ? "Ouvert" : seal === "one" ? "1/2" : "Scellé"}
+              {seal === "opened" ? t(locale, "shell.viewsOpened") : seal === "one" ? "1/2" : t(locale, "shell.viewsSealed")}
             </span>
             <span className="num ml-auto font-semibold text-ink">
               {row.budget != null ? formatEUR(row.budget, locale) : "—"}
@@ -254,7 +254,7 @@ export function AOTable({
   const sav = kpis ? savingsDisplay(locale, kpis.savingsPct) : null;
 
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-x-hidden bg-paper">
+    <div className="page-frame flex h-full min-h-0 flex-col overflow-x-hidden bg-paper">
       <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line px-4 py-3 md:px-6">
         <h1 className="text-[17px] font-semibold tracking-tight text-ink">
           {isSupplier ? t(locale, "shell.dashboardSupplier") : t(locale, "shell.dashboard")}
@@ -275,7 +275,7 @@ export function AOTable({
             { label: t(locale, "shell.kpiOpen"), value: String(kpis.openCount), hint: t(locale, "shell.kpiOpenHint") },
             { label: t(locale, "shell.kpiAmount"), value: formatEUR(kpis.amountUnder, locale).replace(/\s/g, "\u00a0"), hint: t(locale, "shell.kpiAmountHint") },
             { label: t(locale, "shell.kpiOffers"), value: String(kpis.offersMonth), hint: t(locale, "shell.kpiOffersHint") },
-            { label: t(locale, "shell.kpiCycle"), value: kpis.avgAwardDays != null ? `${kpis.avgAwardDays} j` : "—", hint: t(locale, "shell.kpiCycleHint") },
+            { label: t(locale, "shell.kpiCycle"), value: kpis.avgAwardDays != null ? `${kpis.avgAwardDays} d` : "—", hint: t(locale, "shell.kpiCycleHint") },
             { label: sav.label, value: sav.value, hint: sav.hint, accent: sav.accent, over: sav.over },
           ].map((k) => (
             <div key={k.label} className="rounded-xl border border-line bg-paper px-3 py-2.5">
@@ -389,7 +389,7 @@ export function AOTable({
                           <td className="px-2.5 py-2.5">
                             <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-ink/70">
                               <SealMark state={seal} size={16} />
-                              {seal === "opened" ? "Ouvert" : seal === "one" ? "1/2" : "Scellé"}
+                              {seal === "opened" ? t(locale, "shell.viewsOpened") : seal === "one" ? "1/2" : t(locale, "shell.viewsSealed")}
                             </span>
                           </td>
                           <td className="num whitespace-nowrap px-2.5 py-2.5 font-medium text-ink md:pr-6">

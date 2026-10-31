@@ -66,8 +66,8 @@ function NavContents({
       </div>
 
       <nav className="flex-1 space-y-1 px-2.5 py-3" aria-label={t(locale, "shell.nav")}>
-        <p className="px-3 pb-2 pt-1 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink/65">
-          Travail
+        <p className="px-3 pb-2 pt-1 text-[11px] font-semibold text-ink/65">
+          Work
         </p>
 
         <Link
@@ -116,8 +116,8 @@ function NavContents({
           </Link>
         ) : null}
 
-        <p className="px-3 pb-2 pt-4 text-[11px] font-semibold uppercase tracking-[0.1em] text-ink/65">
-          Compte
+        <p className="px-3 pb-2 pt-4 text-[11px] font-semibold text-ink/65">
+          Account
         </p>
 
         <Link

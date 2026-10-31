@@ -175,7 +175,7 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
           <form action={returnTender} className="flex flex-wrap items-end gap-2">
             <input type="hidden" name="id" value={t.id} />
             <input name="comment" required placeholder="Commentaire de renvoi" className="min-h-11 rounded-full border border-line bg-paper px-4 text-[16px]" />
-            <button className="inline-flex min-h-11 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold">Renvoyer</button>
+            <button className="inline-flex min-h-11 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold">Return</button>
           </form>
         </>
       )}

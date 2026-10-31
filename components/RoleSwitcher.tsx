@@ -23,7 +23,7 @@ function byDemoOrder(a: SwitchUser, b: SwitchUser) {
 export function RoleSwitcher({
   users,
   currentId,
-  locale = "fr",
+  locale = "en",
 }: {
   users: SwitchUser[];
   currentId: string;
@@ -76,7 +76,7 @@ export function RoleSwitcher({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex min-h-11 max-w-[min(100%,14rem)] items-center gap-2 truncate rounded-full bg-paper-2 px-3 text-[14px] font-medium text-ink hover:bg-paper-2 md:max-w-none"
+        className="inline-flex min-h-10 max-w-[min(100%,11.5rem)] items-center gap-1.5 truncate rounded-full bg-paper-2 px-2.5 text-[13px] font-medium text-ink hover:bg-paper-2 sm:max-w-[14rem] sm:gap-2 sm:px-3 sm:text-[14px] md:min-h-11 md:max-w-none"
         aria-label={t(locale, "chrome.identity")}
         aria-expanded={open}
         aria-haspopup="true"
@@ -84,7 +84,7 @@ export function RoleSwitcher({
         {current ? (
           <>
             <span className="min-w-0 truncate">{firstName(current.name)}</span>
-            <span className="inline-flex shrink-0 items-center rounded-full bg-paper px-2 py-0.5 text-[12px] font-medium text-ink-soft">
+            <span className="inline-flex shrink-0 items-center rounded-full bg-paper px-1.5 py-0.5 text-[11px] font-medium text-ink-soft sm:px-2 sm:text-[12px]">
               {roleShort(locale, current.role)}
             </span>
           </>
