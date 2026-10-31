@@ -248,13 +248,14 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
       accent
       kicker={
         <>
-          <SealMark
-            state={seal}
-            size={18}
-            title={i18n(locale, seal === "opened" ? "seal.opened" : seal === "one" ? "seal.oneKey" : "seal.sealed")}
-          />
           <span className="num text-[13px] font-medium tracking-[0.02em] text-cobalt">{t.number}</span>
           <StatusPill status={t.status === "published" && pastDeadline ? "closed" : t.status} locale={locale} />
+          {seal === "one" ? (
+            <span className="inline-flex items-center gap-1 rounded-full bg-cobalt-soft px-2 py-0.5 text-[11px] font-semibold text-cobalt">
+              <SealMark state={seal} size={12} />
+              1/2 key
+            </span>
+          ) : null}
         </>
       }
       meta={t.status === "draft" ? undefined : <Countdown deadline={t.deadline.toISOString()} locale={locale} now={now} />}
