@@ -1,25 +1,82 @@
 import { chromium } from "playwright";
 import fs from "fs";
+import path from "path";
 import { execSync } from "child_process";
+import { createRequire } from "module";
 
+const require = createRequire(import.meta.url);
 const PREVIEW = process.env.PREVIEW;
 const LOCAL = process.env.LOCAL || "http://127.0.0.1:3017";
 const PROOF = process.env.PROOF || "/workspace/bid-proof-2026-10-31-mobile-editor";
-const USERS = {
-  paule: "cmvwqdc72000f9k2vhmrn3cxe",
-  hugo: "cmvwqdc73000h9k2v2wpkumld",
-  florent: "cmvwqdc74000j9k2vq4cpqkkq",
-  sport: "cmvwqdc76000n9k2vx785vie2",
-  nord: "cmvwqdc77000p9k2v6bo7hnud",
-};
-const AO_SEALED = "cmvwqdcbp001b9k2vsomnqw9f"; // AO-0001 past deadline
-const AO_PENDING = "cmvwqdcc7001r9k2vibytqj5g"; // AO-0003 pending_validation
-const AO_PUB_EMPTY = "cmvwqdccb001t9k2vh73a7a0e"; // AO-0004 published future
+const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
+const CLEAN_DEMO = path.join(ROOT, "prisma", "demo.db");
+const E2E_DB = process.env.BID_DEMO_DB_PATH || "/tmp/bid-e2e-direction.db";
 
 const results = [];
 function ok(step, pass, detail = "") {
   results.push({ step, pass, detail: String(detail) });
   console.log(`${pass ? "PASS" : "FAIL"} ${step}${detail ? " — " + detail : ""}`);
+}
+
+function loadIdsFromDb(dbPath) {
+  process.env.DATABASE_URL = `file:${dbPath}`;
+  delete process.env.TURSO_DATABASE_URL;
+  delete process.env.TURSO_AUTH_TOKEN;
+  const { PrismaClient } = require("@prisma/client");
+  const prisma = new PrismaClient();
+  return prisma;
+}
+
+async function resolveDemoIds(dbPath) {
+  const prisma = loadIdsFromDb(dbPath);
+  try {
+    const byEmail = async (email) => {
+      const u = await prisma.user.findUnique({ where: { email } });
+      if (!u) throw new Error("missing user " + email);
+      return u.id;
+    };
+    const users = {
+      paule: await byEmail("paule.t@decathlon.com"),
+      hugo: await byEmail("hugo.s@decathlon.com"),
+      florent: await byEmail("florent.g@decathlon.com"),
+      sport: await byEmail("portail@sportline.fr"),
+      nord: await byEmail("portail@nordlog.fr"),
+    };
+    const sealed = await prisma.tender.findFirst({ where: { number: "AO-2026-0001" } });
+    const pending = await prisma.tender.findFirst({ where: { status: "pending_validation" } });
+    const pubEmpty = await prisma.tender.findFirst({
+      where: { number: "AO-2026-0004" },
+    });
+    if (!sealed || !pending || !pubEmpty) throw new Error("missing seed tenders");
+    return {
+      users,
+      AO_SEALED: sealed.id,
+      AO_PENDING: pending.id,
+      AO_PUB_EMPTY: pubEmpty.id,
+    };
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+/** Prepare a disposable copy of the clean seed DB for local e2e mutations. */
+function prepareE2eDbCopy() {
+  if (!fs.existsSync(CLEAN_DEMO)) throw new Error("clean demo.db missing: " + CLEAN_DEMO);
+  fs.copyFileSync(CLEAN_DEMO, E2E_DB);
+  // Ensure clean demo.db was not already polluted
+  const { PrismaClient } = require("@prisma/client");
+  process.env.DATABASE_URL = `file:${CLEAN_DEMO}`;
+  delete process.env.TURSO_DATABASE_URL;
+  const check = new PrismaClient();
+  return check.tender
+    .findMany({ select: { title: true, number: true } })
+    .then(async (rows) => {
+      await check.$disconnect();
+      const dirty = rows.some((r) => /E2E/i.test(r.title));
+      if (dirty) throw new Error("prisma/demo.db contains E2E rows — reseed before e2e");
+      console.log("e2e DB copy ready", E2E_DB, "clean tenders", rows.length);
+      return rows;
+    });
 }
 
 async function asUser(page, base, userId, next = "/") {
@@ -29,15 +86,13 @@ async function asUser(page, base, userId, next = "/") {
   await page.waitForTimeout(500);
 }
 
-async function createValidatePublish(page, base, label) {
-  // Paule creates draft
+async function createValidatePublish(page, base, label, USERS) {
   await asUser(page, base, USERS.paule, "/appels-offres/nouveau");
   await page.waitForSelector('input[name="title"]', { timeout: 20000 });
   await page.fill('input[name="title"]', `E2E ${label} fournitures`);
-  // Prefer BriefEditor textarea / contenteditable if present
   const brief = page.locator('textarea[name="briefing"]');
   if (await brief.count()) {
-    await brief.fill("# Brief E2E\n\n<!--bid-budget:15000-->\n\nConditions de démo.");
+    await brief.fill("# Brief E2E\n\nConditions de démo Decathlon.");
   }
   await page.fill('input[name="deadline"]', "2026-11-05T17:00");
   const boxes = page.locator('input[name="vendorId"]');
@@ -46,7 +101,6 @@ async function createValidatePublish(page, base, label) {
     const b = boxes.nth(i);
     if (!(await b.isChecked())) await b.check();
   }
-  // Optional import smoke: drop a tiny md if file input exists
   const fileInput = page.locator('input[type="file"][name="briefFile"], input[type="file"][accept*="md"], input[type="file"]').first();
   if (await fileInput.count()) {
     const tmp = `/tmp/e2e-brief-${label}.md`;
@@ -77,7 +131,6 @@ async function createValidatePublish(page, base, label) {
   ok(`[${label}] création AO`, !!tenderId, tenderId || "missing");
   if (!tenderId) return null;
 
-  // Paule submits for validation
   await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}`);
   if (await page.locator('input[name="passA"]').count()) {
     await page.fill('input[name="passA"]', "alpha-ouvre");
@@ -85,15 +138,13 @@ async function createValidatePublish(page, base, label) {
     await page.getByRole("button", { name: /Soumettre à validation|validation/i }).click();
     await page.waitForTimeout(2000);
   }
-  const afterSubmit = await page.content();
   ok(
     `[${label}] soumission validation`,
-    /En attente de validation|pending_validation|Valider et publier/i.test(afterSubmit) ||
+    /En attente de validation|pending_validation|Valider et publier/i.test(await page.content()) ||
       !(await page.locator('input[name="passA"]').count()),
     "pending"
   );
 
-  // Florent validates
   await asUser(page, base, USERS.florent, `/appels-offres/${tenderId}`);
   const validateBtn = page.getByRole("button", { name: /Valider et publier/i });
   if (await validateBtn.count()) {
@@ -109,13 +160,12 @@ async function createValidatePublish(page, base, label) {
   return tenderId;
 }
 
-async function depositBids(page, base, label, tenderId) {
+async function depositBids(page, base, label, tenderId, USERS) {
   for (const [uid, price, name] of [
     [USERS.sport, "14200", "Sportline"],
     [USERS.nord, "13850", "NordLog"],
   ]) {
     await asUser(page, base, uid, `/appels-offres/${tenderId}?tab=brief`);
-    // Accept non-negotiables if checkbox present
     const cond = page.locator('input[name="acceptConditions"], input[type="checkbox"][name*="condition"]');
     if (await cond.count()) {
       for (let i = 0; i < (await cond.count()); i++) {
@@ -145,7 +195,7 @@ async function depositBids(page, base, label, tenderId) {
   }
 }
 
-async function openAwardPdf(page, base, label, tenderId, note) {
+async function openAwardPdf(page, base, label, tenderId, note, USERS) {
   await asUser(page, base, USERS.hugo, `/appels-offres/${tenderId}?tab=cles`);
   if (await page.locator('input[name="passwordA"]').count()) {
     await page.fill('input[name="passwordA"]', "alpha-ouvre");
@@ -167,8 +217,7 @@ async function openAwardPdf(page, base, label, tenderId, note) {
   }
 
   await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}?tab=cles`);
-  const hero = await page.content();
-  ok(`[${label}] cérémonie/empreinte (${note})`, /Ouverture à deux clés terminée/i.test(hero), "hero");
+  ok(`[${label}] cérémonie/empreinte (${note})`, /Ouverture à deux clés terminée/i.test(await page.content()), "hero");
 
   await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}`);
   const awardBtn = page.getByRole("button", { name: /Attribuer/i });
@@ -205,7 +254,8 @@ async function openAwardPdf(page, base, label, tenderId, note) {
   }
 }
 
-async function assertNoEnglish(page, base, label) {
+async function assertNoEnglish(page, base, label, ids) {
+  const { users: USERS, AO_SEALED, AO_PENDING } = ids;
   const screens = [
     ["dashboard", "/"],
     ["ao-detail", `/appels-offres/${AO_SEALED}`],
@@ -219,9 +269,9 @@ async function assertNoEnglish(page, base, label) {
   ];
   const bannedWords = /\b(Settings|Prefs|Buyer|Client|Offers|Log|Closed|Open|Draft|Published|Awarded|Sealed|RFQ|overdue|dual-key|equipment|Submit|Search|Status|Dashboard|New RFQ)\b/i;
   const rawKey = /\b[a-z]+\.[a-z][A-Za-z]+\b/;
-  for (const [name, path] of screens) {
+  for (const [name, pathName] of screens) {
     const uid = name === "supplier-home" ? USERS.sport : name === "ao-pending" ? USERS.florent : USERS.paule;
-    await asUser(page, base, uid, path);
+    await asUser(page, base, uid, pathName);
     const text = await page.locator("body").innerText();
     const hitWord = text.match(bannedWords);
     const cleaned = text.replace(/https?:\/\S+/g, "").replace(/\S+@\S+/g, "");
@@ -233,20 +283,74 @@ async function assertNoEnglish(page, base, label) {
   }
 }
 
-async function checkMobileOverflow(page, base, label) {
-  await asUser(page, base, USERS.paule, `/appels-offres/${AO_SEALED}`);
+async function checkMobileOverflow(page, base, label, ids) {
+  const { users: USERS, AO_SEALED, AO_PENDING } = ids;
+  const paths = [
+    ["dashboard", "/", USERS.paule],
+    ["ao-detail", `/appels-offres/${AO_SEALED}`, USERS.paule],
+    ["ao-offres", `/appels-offres/${AO_SEALED}?tab=offres`, USERS.paule],
+    ["ao-cles", `/appels-offres/${AO_SEALED}?tab=cles`, USERS.paule],
+    ["ao-journal", `/appels-offres/${AO_SEALED}?tab=journal`, USERS.paule],
+    ["create", "/appels-offres/nouveau", USERS.paule],
+    ["parametres", "/parametres", USERS.paule],
+    ["pending", `/appels-offres/${AO_PENDING}`, USERS.florent],
+    ["supplier", "/", USERS.sport],
+  ];
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.waitForTimeout(600);
-  const overflow = await page.evaluate(() => {
-    const doc = document.documentElement;
-    return { sw: doc.scrollWidth, cw: doc.clientWidth, body: document.body.scrollWidth };
-  });
-  ok(`[${label}] mobile 390 no-h-overflow`, overflow.sw <= overflow.cw + 2, JSON.stringify(overflow));
+  for (const [name, pathName, uid] of paths) {
+    await asUser(page, base, uid, pathName);
+    await page.waitForTimeout(400);
+    const report = await page.evaluate(() => {
+      const doc = document.documentElement;
+      const clipped = [];
+      const nodes = document.querySelectorAll("td, th, table, .brief, [class*='card'], main, header");
+      for (const el of nodes) {
+        const st = getComputedStyle(el);
+        if (st.display === "none" || st.visibility === "hidden") continue;
+        const overflowHidden = /(hidden|clip)/.test(st.overflowX) || /(hidden|clip)/.test(st.overflow);
+        if (!overflowHidden) continue;
+        if (el.scrollWidth > el.clientWidth + 2) {
+          clipped.push({
+            tag: el.tagName,
+            cls: (el.className || "").toString().slice(0, 80),
+            sw: el.scrollWidth,
+            cw: el.clientWidth,
+          });
+        }
+      }
+      // Visible table on mobile is a failure (should be cards)
+      const tables = [...document.querySelectorAll("table")].filter((t) => {
+        const r = t.getBoundingClientRect();
+        return r.width > 0 && r.height > 0 && getComputedStyle(t).display !== "none";
+      });
+      return {
+        sw: doc.scrollWidth,
+        cw: doc.clientWidth,
+        body: document.body.scrollWidth,
+        clipped: clipped.slice(0, 8),
+        visibleTables: tables.length,
+      };
+    });
+    ok(
+      `[${label}] mobile 390 no-h-overflow ${name}`,
+      report.sw <= report.cw + 2 && report.body <= report.cw + 2,
+      JSON.stringify({ sw: report.sw, cw: report.cw, body: report.body })
+    );
+    ok(
+      `[${label}] mobile 390 no-clip ${name}`,
+      report.clipped.length === 0,
+      report.clipped.length ? JSON.stringify(report.clipped[0]) : "ok"
+    );
+    if (name === "dashboard") {
+      ok(`[${label}] mobile 390 cards-not-table`, report.visibleTables === 0, `tables=${report.visibleTables}`);
+    }
+  }
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
-async function runOn(base, label) {
+async function runOn(base, label, ids) {
   console.log("\n====", label, base, "====");
+  const { users: USERS, AO_SEALED, AO_PENDING, AO_PUB_EMPTY } = ids;
   const browser = await chromium.launch({ headless: true, executablePath: "/usr/bin/google-chrome" });
   const page = await browser.newPage();
   page.setDefaultTimeout(30000);
@@ -256,37 +360,56 @@ async function runOn(base, label) {
   ok(`[${label}] Decathlon demo data`, /Decathlon|Mobilier de magasin|Paule T/i.test(home));
   ok(`[${label}] logo Decathlon`, /decathlon\.svg|alt=["']Decathlon/i.test(home));
   ok(`[${label}] pas de Léa`, !/Léa|Lea Martin|Anna Martin|Helios/i.test(home));
+  ok(`[${label}] pas d'AO E2E pollué`, !/E2E local fournitures/i.test(home));
+  ok(`[${label}] badge Acheteuse`, /Acheteuse/i.test(await page.locator("body").innerText()));
+  ok(`[${label}] économies positives`, !/Économies vs budget\s*−/i.test(await page.locator("body").innerText()));
+  ok(`[${label}] pas de marqueur bid-budget visible`, !/<!--\s*bid-budget/i.test(home));
 
-  // Seeded pending AO visible for Florent
   await asUser(page, base, USERS.florent, `/appels-offres/${AO_PENDING}`);
   ok(
     `[${label}] AO pending validation`,
     /En attente de validation|Valider et publier|Renvoyer/i.test(await page.content())
   );
+  ok(`[${label}] badge Valideur N+1`, /Valideur N\+1/i.test(await page.locator("body").innerText()));
 
-  const created = await createValidatePublish(page, base, label);
+  const created = await createValidatePublish(page, base, label, USERS);
   if (label === "local" && created) {
-    await depositBids(page, base, label, created);
+    await depositBids(page, base, label, created, USERS);
   } else if (label === "preview") {
     ok(`[${label}] dépôt via seeded AO-0004 (serverless isolation)`, true, "create may not share /tmp across lambdas");
-    await depositBids(page, base, label, AO_PUB_EMPTY);
+    await depositBids(page, base, label, AO_PUB_EMPTY, USERS);
   }
 
-  await openAwardPdf(page, base, label, AO_SEALED, "AO-0001");
-  await assertNoEnglish(page, base, label);
-  await checkMobileOverflow(page, base, label);
+  await openAwardPdf(page, base, label, AO_SEALED, "AO-0001", USERS);
+  await assertNoEnglish(page, base, label, ids);
+  await checkMobileOverflow(page, base, label, ids);
 
   await browser.close();
 }
 
 async function main() {
   fs.mkdirSync(PROOF, { recursive: true });
-  if (PREVIEW) await runOn(PREVIEW, "preview");
-  await runOn(LOCAL, "local");
+  await prepareE2eDbCopy();
+
+  // Local run expects the Next server to use BID_DEMO_DB_PATH=/tmp/bid-e2e-direction.db
+  // Preview uses bundled clean demo.db (no local mutations persisted to repo).
+  const localIds = await resolveDemoIds(E2E_DB);
+  const cleanIds = await resolveDemoIds(CLEAN_DEMO);
+
+  if (PREVIEW) await runOn(PREVIEW, "preview", cleanIds);
+  await runOn(LOCAL, "local", localIds);
+
+  // After local e2e, assert clean demo.db still has no E2E rows
+  const prismaCheck = loadIdsFromDb(CLEAN_DEMO);
+  const titles = await prismaCheck.tender.findMany({ select: { title: true } });
+  await prismaCheck.$disconnect();
+  ok("[local] demo.db remains clean", !titles.some((t) => /E2E/i.test(t.title)), titles.map((t) => t.title).join(" | "));
+
   fs.writeFileSync(`${PROOF}/e2e-results.json`, JSON.stringify(results, null, 2));
   const fails = results.filter((r) => !r.pass);
   console.log("\nTOTAL", results.length, "FAIL", fails.length);
   for (const f of fails) console.log("FAIL", f.step, f.detail);
+  if (fails.length) process.exitCode = 1;
 }
 
 main().catch((e) => {

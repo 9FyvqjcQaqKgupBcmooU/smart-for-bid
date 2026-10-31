@@ -20,13 +20,13 @@ export default async function ParametresPage() {
     prisma.vendor.findMany({ orderBy: { name: "asc" } }),
   ]);
   return (
-    <div className="h-full overflow-y-auto px-6 py-4">
+    <div className="h-full overflow-x-hidden overflow-y-auto px-3 py-4 md:px-6">
       <p className="mb-3 text-[13px] text-ink-soft">{t(locale, "settings.title")}</p>
       
       <section className="paper-card mb-4 max-w-5xl rounded-md p-3">
         <h2 className="text-[14px] font-semibold">Conditions non négociables (organisation)</h2>
         <p className="mt-1 text-[13px] text-ink-soft">
-          Liste par défaut pour tout nouvel appel d&apos;offres Decathlon. L&apos;acheteur peut l&apos;ajuster par AO.
+          Liste par défaut pour tout nouvel appel d&apos;offres Decathlon. L&apos;acheteuse peut l&apos;ajuster par AO.
         </p>
         <form action={updateOrgNonNegotiables} className="mt-3 space-y-3">
           <ConditionsEditor
@@ -46,10 +46,10 @@ export default async function ParametresPage() {
           </div>
         </section>
       )}
-      <div className="grid max-w-5xl grid-cols-2 gap-4">
+      <div className="grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2">
         <section className="paper-card rounded-md p-3">
           <h2 className="text-[12px] font-semibold">{t(locale, "settings.thresholds")}</h2>
-          <table className="mt-2 w-full text-[12px]">
+          <div className="mt-2 overflow-x-auto"><table className="w-full min-w-0 text-[12px]">
             <tbody>
               {thresholds.map((th) => (
                 <tr key={th.id} className="border-t border-line">
@@ -63,11 +63,11 @@ export default async function ParametresPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </section>
         <section className="paper-card rounded-md p-3">
           <h2 className="text-[12px] font-semibold">{t(locale, "settings.pcg")}</h2>
-          <table className="mt-2 w-full text-[12px]">
+          <div className="mt-2 overflow-x-auto"><table className="w-full min-w-0 text-[12px]">
             <tbody>
               {accounts.map((a) => (
                 <tr key={a.id} className="border-t border-line">
@@ -76,11 +76,11 @@ export default async function ParametresPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </section>
         <section className="paper-card rounded-md p-3">
           <h2 className="text-[12px] font-semibold">{t(locale, "settings.users")}</h2>
-          <table className="mt-2 w-full text-[12px]">
+          <div className="mt-2 overflow-x-auto"><table className="w-full min-w-0 text-[12px]">
             <tbody>
               {users.map((u) => (
                 <tr key={u.id} className="border-t border-line">
@@ -89,11 +89,11 @@ export default async function ParametresPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </section>
         <section className="paper-card rounded-md p-3">
           <h2 className="text-[12px] font-semibold">{t(locale, "settings.vendors")}</h2>
-          <table className="mt-2 w-full text-[12px]">
+          <div className="mt-2 overflow-x-auto"><table className="w-full min-w-0 text-[12px]">
             <tbody>
               {vendors.map((v) => (
                 <tr key={v.id} className="border-t border-line">
@@ -103,7 +103,7 @@ export default async function ParametresPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         </section>
       </div>
     </div>

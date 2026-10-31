@@ -38,7 +38,7 @@ export function StatusPill({ status, locale = "fr" }: { status: string; locale?:
   const label = translated === key ? status : translated;
   const className = TONE[status] ?? "bg-paper-2 text-ink";
   return (
-    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[12px] font-medium leading-4", className)}>
+    <span className={cn("inline-flex max-w-full items-center rounded-full px-2 py-0.5 text-[12px] font-medium leading-4 whitespace-normal text-left", className)}>
       {label}
     </span>
   );

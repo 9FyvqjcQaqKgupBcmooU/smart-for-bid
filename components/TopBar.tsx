@@ -7,7 +7,7 @@ import type { ThemePreference } from "@/lib/theme";
 import type { User, Vendor } from "@prisma/client";
 import { isDemo } from "@/lib/demo";
 
-const RFQ_ROLES = new Set(["BUYER", "OPENING_A", "OPENING_B", "VENDOR"]);
+const RFQ_ROLES = new Set(["BUYER", "VALIDATOR", "OPENING_A", "OPENING_B", "VENDOR"]);
 
 export function TopBar({
   current,

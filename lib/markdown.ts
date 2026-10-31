@@ -14,8 +14,13 @@ function inline(s: string) {
  * Tiny block-level renderer for RFQ briefings
  * (headings, bullet/numbered lists, paragraphs, **bold**, *italic*, links, simple tables).
  */
+/** Hide internal <!--bid-*--> markers from supplier/buyer brief display. */
+export function stripBidMarkers(md: string): string {
+  return md.replace(/<!--\s*bid-[\w-]+:[^>]*-->/gi, "").replace(/\n{3,}/g, "\n\n").trim();
+}
+
 export function renderBriefing(md: string): string {
-  const lines = md.replace(/\r\n?/g, "\n").split("\n");
+  const lines = stripBidMarkers(md).replace(/\r\n?/g, "\n").split("\n");
   const out: string[] = [];
   let para: string[] = [];
   let list: string[] = [];
