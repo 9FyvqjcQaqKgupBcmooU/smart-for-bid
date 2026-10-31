@@ -1,7 +1,7 @@
 export const fr = {
   product: {
     name: "Smart For Bid",
-    subtitle: "Helios",
+    subtitle: "Decathlon",
     description: "Appels d'offres scellés — Client invite, Fournisseur offre, double clé",
   },
   auth: {
@@ -483,8 +483,8 @@ export const fr = {
     users: "Personnes",
     vendors: "Fournisseurs",
     resetDemo: "Réinitialiser les données de démo",
-    resetDemoHint: "Efface la base SQLite et recharge la démo Helios d'appels d'offres scellés.",
-    resetDemoConfirm: "Recharger la démo Helios ? La progression actuelle sera perdue.",
+    resetDemoHint: "Efface la base SQLite et recharge la démo Decathlon d'appels d'offres scellés.",
+    resetDemoConfirm: "Recharger la démo Decathlon ? La progression actuelle sera perdue.",
   },
   opening: {
     dualKey: "Deux personnes pour ouvrir",

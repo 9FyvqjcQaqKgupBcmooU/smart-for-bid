@@ -50,7 +50,7 @@ export async function issuePO(formData: FormData) {
     vendorUsers.map((u) => u.id),
     {
       title: `Purchase order ${po.number}`,
-      body: `Helios Distribution issued a PO for “${r.title}”.`,
+      body: `Decathlon issued a PO for “${r.title}”.`,
       href: `/commandes/${po.id}`,
     }
   );

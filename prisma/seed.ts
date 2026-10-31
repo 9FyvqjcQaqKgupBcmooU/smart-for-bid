@@ -37,8 +37,8 @@ export async function seedDemo(prisma: PrismaClient) {
 
   const company = await prisma.company.create({
     data: {
-      name: "Helios Distribution",
-      legalName: "Helios Distribution SAS",
+      name: "Decathlon",
+      legalName: "Decathlon",
       siren: "891 245 667",
       address: "42 avenue de la Marne",
       city: "Lille",
@@ -84,8 +84,8 @@ export async function seedDemo(prisma: PrismaClient) {
   const camille = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Camille Leroy",
-      email: "camille.leroy@helios-distribution.fr",
+      name: "Camille L.",
+      email: "camille.l@decathlon.com",
       role: "REQUESTER",
       title: "Requester — store purchasing",
     },
@@ -93,8 +93,8 @@ export async function seedDemo(prisma: PrismaClient) {
   const thomas = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Thomas Bernard",
-      email: "thomas.bernard@helios-distribution.fr",
+      name: "Thomas B.",
+      email: "thomas.b@decathlon.com",
       role: "N1",
       title: "Store manager — Lille Fives",
     },
@@ -102,8 +102,8 @@ export async function seedDemo(prisma: PrismaClient) {
   const nadia = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Nadia El Amrani",
-      email: "nadia.elamrani@helios-distribution.fr",
+      name: "Nadia E.",
+      email: "nadia.e@decathlon.com",
       role: "N2",
       title: "Regional director Hauts-de-France",
     },
@@ -111,8 +111,8 @@ export async function seedDemo(prisma: PrismaClient) {
   const julien = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Julien Moreau",
-      email: "julien.moreau@helios-distribution.fr",
+      name: "Julien M.",
+      email: "julien.m@decathlon.com",
       role: "N3",
       title: "Country finance director",
     },
@@ -120,17 +120,17 @@ export async function seedDemo(prisma: PrismaClient) {
   const claire = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Claire Petit",
-      email: "claire.petit@helios-distribution.fr",
+      name: "Claire P.",
+      email: "claire.p@decathlon.com",
       role: "N4",
       title: "Group CFO",
     },
   });
-  const anna = await prisma.user.create({
+  const paule = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Anna Martin",
-      email: "anna.martin@helios-distribution.fr",
+      name: "Paule T.",
+      email: "paule.t@decathlon.com",
       role: "BUYER",
       title: "Buyer — equipment & services",
     },
@@ -138,17 +138,17 @@ export async function seedDemo(prisma: PrismaClient) {
   const hugo = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Hugo Santos",
-      email: "hugo.santos@helios-distribution.fr",
+      name: "Hugo S.",
+      email: "hugo.s@decathlon.com",
       role: "OPENING_A",
       title: "Bid officer A",
     },
   });
-  const ines = await prisma.user.create({
+  const florent = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Inès Benali",
-      email: "ines.benali@helios-distribution.fr",
+      name: "Florent G.",
+      email: "florent.g@decathlon.com",
       role: "OPENING_B",
       title: "Bid officer B",
     },
@@ -156,8 +156,8 @@ export async function seedDemo(prisma: PrismaClient) {
   const antoine = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Antoine Girard",
-      email: "antoine.girard@helios-distribution.fr",
+      name: "Antoine G.",
+      email: "antoine.g@decathlon.com",
       role: "AP",
       title: "Accounts payable",
     },
@@ -228,7 +228,7 @@ export async function seedDemo(prisma: PrismaClient) {
 
   const briefingV1 = `# RFQ — Store furniture 2026-2028
 
-Helios Distribution is consulting for a **national framework agreement** for supply and installation of sales furniture (gondolas, gondola ends, checkout displays).
+Decathlon is consulting for a **national framework agreement** for supply and installation of sales furniture (gondolas, gondola ends, checkout displays).
 
 ## Scope
 - 38 stores in France, rollout in waves
@@ -255,9 +255,9 @@ Following a pilot-store visit, the **checkout display** lot is raised from 38 to
       status: "published",
       deadline: new Date("2026-08-20T17:00:00+02:00"),
       currency: "EUR",
-      createdById: anna.id,
+      createdById: paule.id,
       keyAUserId: hugo.id,
-      keyBUserId: ines.id,
+      keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
       keyAUnlocked: false,
@@ -278,7 +278,7 @@ Following a pilot-store visit, the **checkout display** lot is raised from 38 to
   await prisma.tenderVersion.create({
     data: {
       tenderId: tenderClosed.id,
-      changedById: anna.id,
+      changedById: paule.id,
       summary: "Addendum: 46 checkout displays instead of 38. Price criterion unchanged.",
       briefing: briefingV2,
       createdAt: new Date("2026-08-12T11:05:00+02:00"),
@@ -342,9 +342,9 @@ Submit bids before **23 August 2026, 12:00**.`,
       status: "published",
       deadline: new Date("2026-08-23T12:00:00+02:00"),
       currency: "EUR",
-      createdById: anna.id,
+      createdById: paule.id,
       keyAUserId: hugo.id,
-      keyBUserId: ines.id,
+      keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
       publishedAt: new Date("2026-08-16T08:00:00+02:00"),
@@ -463,7 +463,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       terms: "Free delivery to Lille warehouse. Payment 30 days from invoice date. 48h reserve on receipt.",
       status: "partially_received",
       issuedAt: new Date("2026-08-06T09:00:00+02:00"),
-      issuedById: anna.id,
+      issuedById: paule.id,
       lines: {
         create: [
           { description: "Size 5 ball — competition pack", qty: 120, unit: "u", unitPrice: 18.5 },
@@ -576,7 +576,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       terms: "24-month contract from 01/09/2026. Monthly billing in arrears. 3-month notice.",
       status: "issued",
       issuedAt: new Date("2026-07-25T10:00:00+02:00"),
-      issuedById: anna.id,
+      issuedById: paule.id,
       lines: {
         create: [
           {
@@ -643,7 +643,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       terms: "Night install, 21:00–05:00. 5-year warranty. Payment 45 days.",
       status: "received",
       issuedAt: new Date("2026-08-02T09:30:00+02:00"),
-      issuedById: anna.id,
+      issuedById: paule.id,
       lines: {
         create: [
           { description: "LED pendant 4000 K checkout aisle", qty: 48, unit: "u", unitPrice: 145 },
@@ -779,7 +779,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       terms: "Lump-sum price per round. Photo POD mandatory.",
       status: "received",
       issuedAt: new Date("2026-08-04T14:00:00+02:00"),
-      issuedById: anna.id,
+      issuedById: paule.id,
       lines: {
         create: [{ description: "7.5 t round Lille → HDF stores", qty: 6, unit: "round", unitPrice: 900 }],
       },
@@ -791,7 +791,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       number: "BR-2026-0003",
       poId: poFreight.id,
       type: "SERVICE",
-      receivedById: anna.id,
+      receivedById: paule.id,
       receivedAt: new Date("2026-08-11T18:00:00+02:00"),
       notes: "6 PODs received, no variance.",
       status: "confirmed",
@@ -847,7 +847,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       {
         userId: nadia.id,
         title: "DA-2026-0003 awaiting your approval",
-        body: "Lille warehouse racking — €18,400.00 excl. VAT. Thomas Bernard approved on 18 August.",
+        body: "Lille warehouse racking — €18,400.00 excl. VAT. Thomas B. approved on 18 August.",
         href: "/demandes",
         createdAt: new Date("2026-08-18T14:06:00+02:00"),
       },
@@ -862,7 +862,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       {
         userId: camille.id,
         title: "BC-2026-0001 issued to Sportline",
-        body: "Anna Martin issued the purchase order Balls and accessories — summer season.",
+        body: "Paule T. issued the purchase order Balls and accessories — summer season.",
         href: "/commandes",
         createdAt: new Date("2026-08-06T09:01:00+02:00"),
         read: true,
@@ -884,19 +884,19 @@ Submit bids before **23 August 2026, 12:00**.`,
       {
         userId: hugo.id,
         title: "Bids to open — AO-2026-0001",
-        body: "The 20 August 17:00 deadline has passed. 3 sealed bids. Inès Benali must be present.",
+        body: "The 20 August 17:00 deadline has passed. 3 sealed bids. Florent G. must be present.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-20T17:01:00+02:00"),
       },
       {
-        userId: ines.id,
+        userId: florent.id,
         title: "Opening ceremony — AO-2026-0001",
-        body: "3 sealed bids (Sportline, NordLog, Atelier Lumen). Dual key with Hugo Santos.",
+        body: "3 sealed bids (Sportline, NordLog, Atelier Lumen). Dual key with Hugo S..",
         href: "/appels-offres",
         createdAt: new Date("2026-08-20T17:01:00+02:00"),
       },
       {
-        userId: anna.id,
+        userId: paule.id,
         title: "Addendum notified to bidders",
         body: "AO-2026-0001: briefing changed on 12 August. Sportline, NordLog and Atelier Lumen notified.",
         href: "/appels-offres",
@@ -927,7 +927,7 @@ Submit bids before **23 August 2026, 12:00**.`,
       {
         userId: uSportline.id,
         title: "Purchase order BC-2026-0001",
-        body: "Helios Distribution issued a PO of €4,200.00 excl. VAT — Balls and accessories — summer season.",
+        body: "Decathlon issued a PO of €4,200.00 excl. VAT — Balls and accessories — summer season.",
         href: "/commandes",
         createdAt: new Date("2026-08-06T09:01:00+02:00"),
       },
@@ -955,7 +955,7 @@ Submit bids before **23 August 2026, 12:00**.`,
         entityType: "Tender",
         entityId: tenderClosed.id,
         action: "publish",
-        actorId: anna.id,
+        actorId: paule.id,
         details: JSON.stringify({ deadline: "2026-08-20T17:00:00+02:00", invites: 3 }),
         createdAt: new Date("2026-08-04T09:30:00+02:00"),
       },
@@ -963,7 +963,7 @@ Submit bids before **23 August 2026, 12:00**.`,
         entityType: "Tender",
         entityId: tenderClosed.id,
         action: "briefing_edit",
-        actorId: anna.id,
+        actorId: paule.id,
         details: JSON.stringify({ summary: "Addendum 46 checkout displays" }),
         createdAt: new Date("2026-08-12T11:05:00+02:00"),
       },
@@ -1029,9 +1029,9 @@ Submit bids before **23 August 2026, 12:00**.`,
   });
 
   const buyerMembers: Array<{ userId: string; orgRole: string }> = [
-    { userId: anna.id, orgRole: "owner" },
+    { userId: paule.id, orgRole: "owner" },
     { userId: hugo.id, orgRole: "admin" },
-    { userId: ines.id, orgRole: "admin" },
+    { userId: florent.id, orgRole: "admin" },
     { userId: camille.id, orgRole: "member" },
     { userId: thomas.id, orgRole: "member" },
     { userId: nadia.id, orgRole: "member" },
@@ -1046,7 +1046,7 @@ Submit bids before **23 August 2026, 12:00**.`,
   await prisma.membership.create({ data: { userId: uSportline.id, orgId: sportOrg.id, orgRole: "owner" } });
   await prisma.membership.create({ data: { userId: uLumen.id, orgId: lumenOrg.id, orgRole: "owner" } });
 
-  for (const u of [anna, hugo, ines, camille, thomas, nadia, julien, claire, antoine, uSportline, uNordlog, uLumen]) {
+  for (const u of [paule, hugo, florent, camille, thomas, nadia, julien, claire, antoine, uSportline, uNordlog, uLumen]) {
     await attachCredential(u);
   }
 
@@ -1055,9 +1055,9 @@ Submit bids before **23 August 2026, 12:00**.`,
   if (featured) {
     await prisma.tenderAssignment.createMany({
       data: [
-        { tenderId: featured.id, userId: anna.id, aoRole: "owner" },
+        { tenderId: featured.id, userId: paule.id, aoRole: "owner" },
         { tenderId: featured.id, userId: hugo.id, aoRole: "keyholder", keySlot: "A" },
-        { tenderId: featured.id, userId: ines.id, aoRole: "keyholder", keySlot: "B" },
+        { tenderId: featured.id, userId: florent.id, aoRole: "keyholder", keySlot: "B" },
         { tenderId: featured.id, userId: uNordlog.id, aoRole: "bidder" },
         { tenderId: featured.id, userId: uSportline.id, aoRole: "bidder" },
         { tenderId: featured.id, userId: uLumen.id, aoRole: "bidder" },
@@ -1067,7 +1067,7 @@ Submit bids before **23 August 2026, 12:00**.`,
 
   console.log("Auth/org seed OK — demo password for all users:", DEMO_PASSWORD);
 
-  console.log("Helios Distribution seed OK");
+  console.log("Decathlon seed OK");
 }
 
 const isDirect = process.argv.some((a) => /(?:^|[\\/])seed\.(ts|js)$/.test(a));

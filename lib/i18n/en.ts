@@ -1,7 +1,7 @@
 export const en = {
   product: {
     name: "Smart For Bid",
-    subtitle: "Helios",
+    subtitle: "Decathlon",
     description: "Sealed RFQs — Client invites, Supplier offers, dual-key opening",
   },
   auth: {
@@ -485,8 +485,8 @@ export const en = {
     resetDemo: "Reset demo data",
     inbox: "Inbox",
     hideInbox: "Hide",
-    resetDemoHint: "Wipes the SQLite files and reloads the Helios sealed-RFQ demo.",
-    resetDemoConfirm: "Reload the Helios demo? Current click-through progress will be wiped.",
+    resetDemoHint: "Wipes the SQLite files and reloads the Decathlon sealed-RFQ demo.",
+    resetDemoConfirm: "Reload the Decathlon demo? Current click-through progress will be wiped.",
   },
   opening: {
     dualKey: "Two people to open",

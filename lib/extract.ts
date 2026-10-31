@@ -40,7 +40,7 @@ Invoice FA-2026-0881
 Date: 18/08/2026
 Due: 17/09/2026
 Purchase order: BC-2026-0002
-Helios Distribution — Lille warehouse
+Decathlon — Lille warehouse
 
 Description                         Qty    Unit net   Amount
 Size 5 ball — competition pack      120    18.50 €    2,220.00 €

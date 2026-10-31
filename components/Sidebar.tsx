@@ -120,7 +120,7 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-line px-5 py-4 text-[11px] leading-relaxed text-ink-soft">
-        Helios Distribution SAS
+        Decathlon
         <br />
         SIREN 891 245 667 · Lille
       </div>

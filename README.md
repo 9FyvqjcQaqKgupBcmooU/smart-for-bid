@@ -1,6 +1,6 @@
 # Smart For Bid — sealed-bid RFQs
 
-Sealed-bid RFQs (appels d’offres) for **Helios Distribution**. Dual-key bid opening: two officers must be present. Requisitions, approvals, goods receipt, invoice, and payment are parked.
+Sealed-bid RFQs (appels d’offres) for **Decathlon**. Dual-key bid opening: two officers must be present. Requisitions, approvals, goods receipt, invoice, and payment are parked.
 
 Default locale is **English**. Language and theme live under **Prefs** (cookie `pli-lang`). Primary actions use the cobalt pill (`#1D4ED8`).
 
@@ -19,8 +19,8 @@ SQLite database: `prisma/dev.db`. No real accounts: the header has a **role swit
 
 ## Bid-opening passwords
 
-- Officer A — Hugo Santos: `alpha-ouvre`
-- Officer B — Inès Benali: `bravo-ouvre`
+- Officer A — Hugo S.: `alpha-ouvre`
+- Officer B — Florent G.: `bravo-ouvre`
 
 ## Demo (sealed RFQ)
 
@@ -34,9 +34,9 @@ After a run, **Prefs → Reset demo**. Reloads AO-2026-0001 sealed.
 
 ## Data
 
-**Helios Distribution SAS**, Lille, SIREN 891 245 667.
+**Decathlon**, Lille, SIREN 891 245 667.
 
-Users: Camille Leroy, Thomas Bernard, Nadia El Amrani, Julien Moreau, Claire Petit, Anna Martin, Hugo Santos, Inès Benali, Antoine Girard, portals Sportline SAS, NordLog, Atelier Lumen.
+Users: Camille L., Thomas B., Nadia E., Julien M., Claire P., Paule T., Hugo S., Florent G., Antoine G., portals Sportline SAS, NordLog, Atelier Lumen.
 
 ## Stack
 

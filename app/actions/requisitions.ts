@@ -118,10 +118,10 @@ export async function decideStep(formData: FormData) {
         });
       } else {
         await prisma.requisition.update({ where: { id: r.id }, data: { status: "approved" } });
-        const anna = await prisma.user.findFirst({ where: { role: "BUYER" } });
-        if (anna) {
+        const paule = await prisma.user.findFirst({ where: { role: "BUYER" } });
+        if (paule) {
           await notify({
-            userId: anna.id,
+            userId: paule.id,
             title: `${r.number} approved — to order`,
             body: r.title,
             href: `/demandes/${r.id}`,

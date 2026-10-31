@@ -47,14 +47,14 @@ describe("criterion 1 — no production path without sign-in", () => {
 describe("criterion 2 — key open requires MFA + fresh step-up", () => {
   it("requireFreshStepUp fails when no step-up recorded", async () => {
     const { requireFreshStepUp } = await import("../lib/authz");
-    const user = await prisma.user.findFirst({ where: { email: "hugo.santos@helios-distribution.fr" } });
+    const user = await prisma.user.findFirst({ where: { email: "hugo.s@decathlon.com" } });
     expect(user).toBeTruthy();
     await expect(requireFreshStepUp(user!.id, "key_open")).rejects.toThrow(/MFA_STEP_UP_REQUIRED/);
   });
 
   it("fresh step-up within 10 minutes passes; stale fails", async () => {
     const { recordStepUp, hasFreshStepUp, STEP_UP_WINDOW_MS } = await import("../lib/authz");
-    const user = await prisma.user.findFirst({ where: { email: "hugo.santos@helios-distribution.fr" } });
+    const user = await prisma.user.findFirst({ where: { email: "hugo.s@decathlon.com" } });
     const sessionId = "test-session-" + randomBytes(4).toString("hex");
     await recordStepUp({ userId: user!.id, sessionId, purpose: "key_open" });
     expect(await hasFreshStepUp(user!.id, "key_open", sessionId)).toBe(true);
@@ -110,7 +110,7 @@ describe("criterion 4 — brief change notifies all invited suppliers", () => {
       });
     }
 
-    const anna = await prisma.user.findFirst({ where: { email: "anna.martin@helios-distribution.fr" } });
+    const paule = await prisma.user.findFirst({ where: { email: "paule.t@decathlon.com" } });
     const vendorUsers = await prisma.user.findMany({
       where: { vendorId: { in: tender!.invites.map((i) => i.vendorId) }, role: "VENDOR" },
     });
@@ -135,7 +135,7 @@ describe("criterion 4 — brief change notifies all invited suppliers", () => {
       where: { userId: { in: vendorUsers.map((u) => u.id) }, title: { startsWith: "Addendum" } },
     });
     expect(after - before).toBe(vendorUsers.length);
-    expect(anna).toBeTruthy();
+    expect(paule).toBeTruthy();
   });
 });
 
@@ -143,7 +143,7 @@ describe("full flow units — org roles, distinct keyholders, TOTP helpers", () 
   it("rejects same user for both keyholder slots", async () => {
     const { assertDistinctKeyholders } = await import("../lib/authz");
     const tender = await prisma.tender.findFirst({ where: { number: "AO-2026-0001" } });
-    const hugo = await prisma.user.findFirst({ where: { email: "hugo.santos@helios-distribution.fr" } });
+    const hugo = await prisma.user.findFirst({ where: { email: "hugo.s@decathlon.com" } });
     // Hugo already holds A — assigning B to Hugo must fail
     await expect(assertDistinctKeyholders(tender!.id, hugo!.id, "B")).rejects.toThrow(/both keyholder/i);
   });
