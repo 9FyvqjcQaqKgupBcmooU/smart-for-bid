@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { Money } from "./Money";
 import { Explain } from "./Explain";
-import { cn, formatEUR } from "@/lib/format";
+import { cn, firstName, formatEUR } from "@/lib/format";
 import type { CostTrail } from "@/lib/costs";
 import { formatCostLine } from "@/lib/costs";
 import { t, type Locale } from "@/lib/i18n";
@@ -142,7 +142,7 @@ export function PeopleChips({ people }: { people: PersonChip[] }) {
           >
             {initials(p.name)}
           </span>
-          <span className={p.active ? "font-medium text-ink" : "text-ink"}>{p.name.split(/\s+/)[0]}</span>
+          <span className={p.active ? "font-medium text-ink" : "text-ink"}>{firstName(p.name)}</span>
         </span>
       ))}
     </div>

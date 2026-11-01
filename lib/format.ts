@@ -6,9 +6,16 @@ function tag(locale: FormatLocale = "en") {
   return locale === "fr" ? "fr-FR" : "en-GB";
 }
 
+/** Short person label for chips/ceremony. Keeps demo form "Given I." — never bare given name. */
 export function firstName(name: string): string {
-  const part = name.trim().split(/\s+/)[0];
-  return part || name;
+  const trimmed = name.trim();
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return name;
+  if (parts.length >= 2 && /^[A-Za-zÀ-ÿ]\.?$/.test(parts[1])) {
+    return `${parts[0]} ${parts[1].replace(/\.$/, "")}.`;
+  }
+  // Companies / full names: leave intact (do not invent an initial).
+  return trimmed;
 }
 
 export function formatEUR(amount: number | null | undefined, locale: FormatLocale = "en"): string {

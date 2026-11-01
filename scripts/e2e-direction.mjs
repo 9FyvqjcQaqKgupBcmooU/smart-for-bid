@@ -205,6 +205,11 @@ async function depositBids(page, base, label, tenderId, USERS) {
 
 async function openAwardPdf(page, base, label, tenderId, note, USERS) {
   await asUser(page, base, USERS.hugo, `/appels-offres/${tenderId}?tab=cles`);
+  {
+    const keysText = await page.locator("body").innerText();
+    ok(`[${label}] keys show Hugo S.`, /Hugo S\./.test(keysText));
+    ok(`[${label}] Continue as Florent G.`, /Continue as Florent G\./i.test(keysText));
+  }
   if (await page.locator('input[name="passwordA"]').count()) {
     await page.fill('input[name="passwordA"]', "alpha-open");
     await page.locator("form").filter({ has: page.locator('input[name="passwordA"]') }).locator("button").first().click();
@@ -432,6 +437,7 @@ async function runOn(base, label, ids) {
   ok(`[${label}] no banned demo names`, !new RegExp(bannedDemo, "i").test(home));
   ok(`[${label}] pas d'AO E2E pollué`, !/E2E local (fournitures|supplies)/i.test(home));
   ok(`[${label}] badge Buyer`, /\bBuyer\b/i.test(await page.locator("body").innerText()));
+  ok(`[${label}] display Paule T.`, /Paule T\./.test(await page.locator("body").innerText()));
   ok(`[${label}] savings positive`, !/Savings vs budget\s*[−-]/i.test(await page.locator("body").innerText()) && !/Économies vs budget\s*−/i.test(await page.locator("body").innerText()));
   ok(`[${label}] pas de marqueur bid-budget visible`, !/<!--\s*bid-budget/i.test(home));
 
@@ -441,6 +447,7 @@ async function runOn(base, label, ids) {
     /Pending approval|Approve and publish|Return|En attente|Valider et publier|Renvoyer/i.test(await page.content())
   );
   ok(`[${label}] badge Approver`, /\bApprover\b/i.test(await page.locator("body").innerText()));
+  ok(`[${label}] display Florent G.`, /Florent G\./.test(await page.locator("body").innerText()));
 
   const created = await createValidatePublish(page, base, label, USERS);
   if (label === "local" && created) {
