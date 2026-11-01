@@ -148,8 +148,8 @@ export async function requestValidation(formData: FormData) {
   });
   await notify({
     userId: validatorId,
-    title: `Validation requise — ${t.number}`,
-    body: `${current.name} soumet « ${t.title} » pour validation avant publication.`,
+    title: `Approval required — ${t.number}`,
+    body: `${current.name} submitted "${t.title}" for N+1 approval before publication.`,
     href: `/appels-offres/${id}`,
   });
   await audit({
@@ -177,7 +177,7 @@ export async function validateTender(formData: FormData) {
   });
   const uids = await vendorUserIds(t.invites.map((i) => i.vendorId));
   await notifyMany(uids, {
-    title: `Nouvel AO ${t.number}`,
+    title: `New RFQ ${t.number}`,
     body: `${t.title} — submit your bid before the deadline.`,
     href: `/appels-offres/${id}`,
   });

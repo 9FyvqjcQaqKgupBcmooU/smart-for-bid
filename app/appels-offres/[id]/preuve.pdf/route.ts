@@ -145,7 +145,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 
 line("Audit log (chronological)", { bold: true, size: 11 });
   for (const ev of chain) {
-    line(formatParisStamp(ev.createdAt, "en") + " - " + auditActionLabel(ev.action), { bold: true, size: 9 });
+    const actionTitle =
+      ev.action === "validation_ok"
+        ? "Approved by " + ev.actorName + " (Approver, N+1)"
+        : auditActionLabel(ev.action);
+    line(formatParisStamp(ev.createdAt, "en") + " - " + actionTitle, { bold: true, size: 9 });
     line(ev.actorName + " / " + ev.orgName, { size: 8, color: soft });
     line("hash " + ev.hash, { size: 7, color: soft });
     y -= 2;

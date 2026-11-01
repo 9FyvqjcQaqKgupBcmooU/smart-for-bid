@@ -38,11 +38,16 @@ export function AuditJournal({
       </div>
       <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <ol className="space-y-0">
-          {display.map((ev) => (
+          {display.map((ev) => {
+              const actionTitle =
+                ev.action === "validation_ok"
+                  ? `Approved by ${ev.actorName} (Approver, N+1)`
+                  : auditActionLabel(ev.action);
+              return (
             <li key={ev.id} className="grid grid-cols-[14px_1fr] gap-3 border-b border-line/70 py-3 last:border-0">
               <span className={`mt-1.5 h-2.5 w-2.5 rounded-full ${intact || ev.id !== brokenAt ? "bg-cobalt" : "bg-[#B91C1C]"}`} />
               <div>
-                <p className="text-[13px] font-semibold text-ink">{auditActionLabel(ev.action)}</p>
+                <p className="text-[13px] font-semibold text-ink">{actionTitle}</p>
                 <p className="mt-0.5 text-[12px] font-medium text-ink/70">
                   {formatParisStamp(ev.createdAt, locale)} · {ev.actorName} · {ev.orgName}
                 </p>
@@ -51,7 +56,8 @@ export function AuditJournal({
                 </p>
               </div>
             </li>
-          ))}
+              );
+          })}
           {display.length === 0 ? <p className="text-[13px] text-ink/65">No events.</p> : null}
         </ol>
         <aside className="rounded-xl border border-line bg-paper p-4">

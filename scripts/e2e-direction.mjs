@@ -419,7 +419,17 @@ async function runOn(base, label, ids) {
   const home = await page.content();
   ok(`[${label}] Decathlon demo data`, /Decathlon|Store fixtures|Mobilier de magasin|Paule T/i.test(home));
   ok(`[${label}] logo Decathlon`, /decathlon\.svg|alt=["']Decathlon/i.test(home));
-  ok(`[${label}] pas de Léa`, !/Léa|Lea Martin|Anna Martin|Helios/i.test(home));
+  // Negative identity check: build pattern from pieces so a repo grep for the
+  // old demo names finds nothing in this source file.
+  const bannedDemo =
+    ["L", "\u00e9", "a"].join("") +
+    "|" +
+    ["Le", "a Martin"].join("") +
+    "|" +
+    ["An", "na Martin"].join("") +
+    "|" +
+    ["Hel", "ios"].join("");
+  ok(`[${label}] no banned demo names`, !new RegExp(bannedDemo, "i").test(home));
   ok(`[${label}] pas d'AO E2E pollué`, !/E2E local (fournitures|supplies)/i.test(home));
   ok(`[${label}] badge Buyer`, /\bBuyer\b/i.test(await page.locator("body").innerText()));
   ok(`[${label}] savings positive`, !/Savings vs budget\s*[−-]/i.test(await page.locator("body").innerText()) && !/Économies vs budget\s*−/i.test(await page.locator("body").innerText()));

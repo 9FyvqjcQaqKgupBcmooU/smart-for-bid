@@ -45,5 +45,5 @@ next-env.d.ts
 *.db-journal
 prisma/dev.db
 
-# Bundled preview demo DB (Helios)
+# Bundled preview demo DB (Decathlon)
 !prisma/demo.db
