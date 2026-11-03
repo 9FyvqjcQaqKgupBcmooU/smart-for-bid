@@ -27,7 +27,7 @@
 - Organisation : Decathlon
 - Acheteuse : Paule T. (`paule.t@decathlon.com`)
 - Valideur / clé B : Florent G. (`florent.g@decathlon.com`)
-- Clé A : Hugo S.
+- Clé A : Claire A.
 
 ## Hors scope
 

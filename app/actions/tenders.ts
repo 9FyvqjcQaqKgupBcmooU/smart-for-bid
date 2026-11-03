@@ -37,9 +37,9 @@ export async function createTender(formData: FormData) {
   const requisitionId = String(formData.get("requisitionId") ?? "").trim();
   if (!title || !briefing || !deadline) throw new Error("Champs obligatoires manquants");
 
-  const hugo = await prisma.user.findFirst({ where: { role: "OPENING_A" } });
+  const claireA = await prisma.user.findFirst({ where: { role: "OPENING_A" } });
   const florent = await prisma.user.findFirst({ where: { role: "VALIDATOR" } });
-  if (!hugo || !florent) throw new Error("Officiers / valideur introuvables");
+  if (!claireA || !florent) throw new Error("Officiers / valideur introuvables");
 
   const company = await prisma.company.findFirst();
   const defaults = company ? parseConditions(company.nonNegotiables) : [...DEMO_NON_NEGOTIABLES];
@@ -56,7 +56,7 @@ export async function createTender(formData: FormData) {
       nonNegotiables,
       createdById: current.id,
       validatorId: florent.id,
-      keyAUserId: hugo.id,
+      keyAUserId: claireA.id,
       keyBUserId: florent.id,
       invites: { create: vendorIds.map((vendorId) => ({ vendorId })) },
     },

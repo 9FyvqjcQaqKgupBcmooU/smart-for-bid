@@ -127,11 +127,11 @@ export async function seedDemo(prisma: PrismaClient) {
       title: "Buyer — store equipment",
     },
   });
-  const hugo = await prisma.user.create({
+  const claireA = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Hugo S.",
-      email: "hugo.s@decathlon.com",
+      name: "Claire A.",
+      email: "claire.a@decathlon.com",
       role: "OPENING_A",
       title: "Key holder A",
     },
@@ -278,7 +278,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
       nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
-      keyAUserId: hugo.id,
+      keyAUserId: claireA.id,
       keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
@@ -354,7 +354,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
       nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
-      keyAUserId: hugo.id,
+      keyAUserId: claireA.id,
       keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
@@ -395,7 +395,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
       nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
-      keyAUserId: hugo.id,
+      keyAUserId: claireA.id,
       keyBUserId: florent.id,
       createdAt: new Date("2026-10-28T15:20:00+01:00"),
     },
@@ -413,7 +413,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
       nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
-      keyAUserId: hugo.id,
+      keyAUserId: claireA.id,
       keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
@@ -440,7 +440,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
       nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
-      keyAUserId: hugo.id,
+      keyAUserId: claireA.id,
       keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
@@ -475,7 +475,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
   });
   await prisma.tenderOpening.createMany({
     data: [
-      { tenderId: tenderOpened.id, officerId: hugo.id, lock: "A", success: true, createdAt: new Date("2026-10-16T09:58:00+02:00") },
+      { tenderId: tenderOpened.id, officerId: claireA.id, lock: "A", success: true, createdAt: new Date("2026-10-16T09:58:00+02:00") },
       { tenderId: tenderOpened.id, officerId: florent.id, lock: "B", success: true, createdAt: new Date("2026-10-16T10:05:00+02:00") },
     ],
   });
@@ -492,7 +492,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
       nonNegotiables: '["Invoice must be sent exclusively as PDF", "Purchase order number mandatory on every invoice", "Payment terms: 45 days", "Prior acceptance of the compliance and anti-corruption charter", "Valid professional liability insurance certificate", "Compliance with Decathlon social and environmental standards", "Delivery to the warehouses and time slots stated in the brief"]',
       validatorId: florent.id,
       createdById: paule.id,
-      keyAUserId: hugo.id,
+      keyAUserId: claireA.id,
       keyBUserId: florent.id,
       keyAHash: hashA,
       keyBHash: hashB,
@@ -531,7 +531,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
   });
   await prisma.tenderOpening.createMany({
     data: [
-      { tenderId: tenderAwarded.id, officerId: hugo.id, lock: "A", success: true, createdAt: new Date("2026-10-01T11:12:00+02:00") },
+      { tenderId: tenderAwarded.id, officerId: claireA.id, lock: "A", success: true, createdAt: new Date("2026-10-01T11:12:00+02:00") },
       { tenderId: tenderAwarded.id, officerId: florent.id, lock: "B", success: true, createdAt: new Date("2026-10-01T11:20:00+02:00") },
     ],
   });
@@ -1058,7 +1058,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
         createdAt: new Date("2026-10-28T15:46:00+01:00"),
       },
       {
-        userId: hugo.id,
+        userId: claireA.id,
         title: "Envelopes ready to open — AO-2026-0001",
         body: "The 31 Oct 10:00 Paris time deadline has passed. 3 sealed envelopes. Florent G. must be present.",
         href: "/appels-offres",
@@ -1067,7 +1067,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
       {
         userId: florent.id,
         title: "Two-key opening — AO-2026-0001",
-        body: "3 sealed envelopes (Sportline, NordLog, Atelier Lumen). Opening with Hugo S.",
+        body: "3 sealed envelopes (Sportline, NordLog, Atelier Lumen). Opening with Claire A.",
         href: "/appels-offres",
         createdAt: new Date("2026-08-20T17:01:00+02:00"),
       },
@@ -1235,7 +1235,7 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
         entityType: "Tender",
         entityId: tenderOpened.id,
         action: "unlock_ok",
-        actorId: hugo.id,
+        actorId: claireA.id,
         details: JSON.stringify({ lock: "A" }),
         createdAt: new Date("2026-10-16T09:58:00+02:00"),
       },

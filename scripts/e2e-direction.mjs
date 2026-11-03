@@ -37,7 +37,7 @@ async function resolveDemoIds(dbPath) {
     };
     const users = {
       paule: await byEmail("paule.t@decathlon.com"),
-      hugo: await byEmail("hugo.s@decathlon.com"),
+      claireA: await byEmail("claire.a@decathlon.com"),
       florent: await byEmail("florent.g@decathlon.com"),
       sport: await byEmail("portail@sportline.fr"),
       nord: await byEmail("portail@nordlog.fr"),
@@ -212,12 +212,15 @@ async function depositBids(page, base, label, tenderId, USERS) {
 }
 
 async function openAwardPdf(page, base, label, tenderId, note, USERS) {
-  await asUser(page, base, USERS.hugo, `/appels-offres/${tenderId}?tab=cles`);
+  // Buyer sees both Continue-as links; officers see their own unlock form.
+  await asUser(page, base, USERS.paule, `/appels-offres/${tenderId}?tab=cles`);
   {
     const keysText = await page.locator("body").innerText();
-    ok(`[${label}] keys show Hugo S.`, /Hugo S\./.test(keysText));
+    ok(`[${label}] keys show Claire A.`, /Claire A\./.test(keysText));
+    ok(`[${label}] Continue as Claire A.`, /Continue as Claire A\./i.test(keysText));
     ok(`[${label}] Continue as Florent G.`, /Continue as Florent G\./i.test(keysText));
   }
+  await asUser(page, base, USERS.claireA, `/appels-offres/${tenderId}?tab=cles`);
   if (await page.locator('input[name="passwordA"]').count()) {
     await page.fill('input[name="passwordA"]', "alpha-open");
     await page.locator("form").filter({ has: page.locator('input[name="passwordA"]') }).locator("button").first().click();
@@ -290,7 +293,7 @@ async function assertEnglishUI(page, base, label, ids) {
     ["settings", "/parametres", USERS.paule],
     ["supplier-home", "/", USERS.sport],
     ["supplier-sealed", `/appels-offres/${AO_SEALED}`, USERS.sport],
-    ["opening-officer-a", `/appels-offres/${AO_SEALED}?tab=cles`, USERS.hugo],
+    ["opening-officer-a", `/appels-offres/${AO_SEALED}?tab=cles`, USERS.claireA],
     ["opening-officer-b", `/appels-offres/${AO_SEALED}?tab=cles`, USERS.florent],
   ];
   // Common French UI stems — catch leftover labels on buttons/aria/titles/placeholders/body

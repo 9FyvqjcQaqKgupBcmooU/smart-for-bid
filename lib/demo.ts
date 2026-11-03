@@ -1,7 +1,7 @@
 /** Featured demo AO — furniture framework. */
 export const FEATURED_RFQ_NUMBER = "AO-2026-0001";
 
-/** Demo dual-key passwords (Hugo / Florent). Shown in README and e2e only — never in the UI. */
+/** Demo dual-key passwords (Claire A. / Florent). Shown in README and e2e only — never in the UI. */
 export const DEMO_KEY_A = "alpha-open";
 export const DEMO_KEY_B = "bravo-open";
 

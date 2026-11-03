@@ -15,11 +15,11 @@ Requires Node 20+. In the project folder:
 
 Open http://localhost:3000
 
-SQLite database: `prisma/demo.db` (or `dev.db`). No real accounts: the header has a **role switcher** that impersonates demo users (Paule T. buyer, Florent G. Approver / key B, Hugo S. key A, supplier portals).
+SQLite database: `prisma/demo.db` (or `dev.db`). No real accounts: the header has a **role switcher** that impersonates demo users (Paule T. buyer, Florent G. Approver / key B, Claire A. key A, supplier portals).
 
 ## Bid-opening passwords
 
-- Officer A — Hugo S.: `alpha-open`
+- Officer A — Claire A.: `alpha-open`
 - Officer B — Florent G.: `bravo-open`
 
 ## Demo (sealed RFQ + validation N+1)
@@ -32,7 +32,7 @@ Workflow AO :
 
 1. **Paule T.** crée un brouillon, saisit les clés, soumet à validation → statut *En attente de validation*.
 2. **Florent G.** (valideur N+1) valide et publie auprès des fournisseurs, ou renvoie avec commentaire.
-3. **Hugo S.** / **Florent G.** ouvrent les plis à deux clés après échéance.
+3. **Claire A.** / **Florent G.** ouvrent les plis à deux clés après échéance.
 4. **Paule T.** attribue.
 
 After a run, **Préférences → Reset demo**. Reloads the seed including AO-0003 pending validation.
@@ -41,7 +41,7 @@ After a run, **Préférences → Reset demo**. Reloads the seed including AO-000
 
 **Decathlon**, Lille (démo fictive). Emails `@decathlon.com`.
 
-Users: Camille L., Thomas B., Nadia E., Julien M., Claire P., **Paule T.** (acheteur), **Hugo S.** (ouverture A), **Florent G.** (valideur N+1 / ouverture B), Antoine G., portails Sportline SAS, NordLog, Atelier Lumen.
+Users: Camille L., Thomas B., Nadia E., Julien M., Claire P., **Paule T.** (acheteur), **Claire A.** (ouverture A), **Florent G.** (valideur N+1 / ouverture B), Antoine G., portails Sportline SAS, NordLog, Atelier Lumen.
 
 Conditions non négociables de démo Decathlon (facture PDF, n° de commande, 45 jours, charte compliance / anticorruption, assurance RC pro…).
 
