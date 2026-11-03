@@ -21,7 +21,12 @@ function ensureDemoDb(): string {
     const bundled = path.join(process.cwd(), "prisma", "demo.db");
     try {
       if (fs.existsSync(bundled)) {
-        fs.copyFileSync(bundled, target);
+        // Explicit BID_DEMO_DB_PATH (e2e): never clobber an existing copy — HMR
+        // overwrite corrupted open SQLite handles. Preview default path refreshes.
+        const pinned = Boolean(process.env.BID_DEMO_DB_PATH);
+        if (!pinned || !fs.existsSync(target) || process.env.BID_DEMO_DB_FORCE_COPY === "1") {
+          fs.copyFileSync(bundled, target);
+        }
       }
     } catch {
       // cold-start race: ignore if already copied

@@ -261,8 +261,13 @@ export async function submitBid(formData: FormData) {
   if (new Date() > t.deadline) throw new Error("Deadline passed");
   if (t.status !== "published") throw new Error("AO non ouvert aux offres");
 
-  const accepted = String(formData.get("conditionsAccepted") ?? "") === "1";
   const items = parseConditions(t.nonNegotiables);
+  const ticked = formData.getAll("conditionAccept").map(String);
+  const flagged = String(formData.get("conditionsAccepted") ?? "") === "1";
+  const accepted =
+    items.length === 0 ||
+    flagged ||
+    (ticked.length === items.length && items.every((it) => ticked.includes(it)));
   if (items.length && !accepted) {
     throw new Error("You must accept all non-negotiable conditions to submit a bid.");
   }

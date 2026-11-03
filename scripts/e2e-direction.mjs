@@ -62,6 +62,11 @@ async function resolveDemoIds(dbPath) {
 /** Prepare a disposable copy of the clean seed DB for local e2e mutations. */
 function prepareE2eDbCopy() {
   if (!fs.existsSync(CLEAN_DEMO)) throw new Error("clean demo.db missing: " + CLEAN_DEMO);
+  // Avoid overwriting a DB the Next server already has open (malformed image).
+  if (process.env.BID_E2E_SKIP_COPY === "1" && fs.existsSync(E2E_DB)) {
+    console.log("e2e DB copy skipped (BID_E2E_SKIP_COPY)", E2E_DB);
+    return Promise.resolve();
+  }
   fs.copyFileSync(CLEAN_DEMO, E2E_DB);
   // Ensure clean demo.db was not already polluted
   const { PrismaClient } = require("@prisma/client");
@@ -174,12 +179,15 @@ async function depositBids(page, base, label, tenderId, USERS) {
     [USERS.nord, "13850", "NordLog"],
   ]) {
     await asUser(page, base, uid, `/appels-offres/${tenderId}?tab=brief`);
-    const cond = page.locator('input[name="acceptConditions"], input[type="checkbox"][name*="condition"]');
+    const cond = page.locator(
+      '[data-testid="non-negotiables-accept"] input[type="checkbox"], input[name="conditionAccept"], input[name="acceptConditions"], input[type="checkbox"][name*="condition"]'
+    );
     if (await cond.count()) {
       for (let i = 0; i < (await cond.count()); i++) {
         const c = cond.nth(i);
         if (!(await c.isChecked())) await c.check();
       }
+      await page.waitForTimeout(200);
     }
     const acceptBtn = page.getByRole("button", { name: /Accept|Accepter les conditions|J'accepte/i });
     if (await acceptBtn.count()) {

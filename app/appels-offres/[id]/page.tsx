@@ -226,11 +226,14 @@ export default async function TenderDetail({
         {active === "brief" ? (
           <div className="max-w-3xl space-y-4">
             {conditions.length > 0 ? (
-              <div className="rounded-xl border-2 border-cobalt/30 bg-cobalt-soft/30 p-4" data-testid="non-negotiables">
-                <h2 className="text-[15px] font-semibold text-ink">Non-negotiable conditions</h2>
-                <ul className="mt-2 list-disc space-y-1 pl-5 text-[14px] leading-5 text-ink">
+              <div className="rounded-md border border-cobalt/30 bg-cobalt-soft/30 px-2.5 py-2" data-testid="non-negotiables">
+                <h2 className="text-[13px] font-semibold text-ink">Non-negotiable conditions</h2>
+                <ul className="mt-1 space-y-0.5 text-[13px] leading-5 text-ink">
                   {conditions.map((c, i) => (
-                    <li key={i}>{c}</li>
+                    <li key={i} className="flex gap-2">
+                      <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-cobalt" aria-hidden />
+                      <span>{c}</span>
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -271,8 +274,8 @@ export default async function TenderDetail({
                 <form action={updateBriefing} className="mt-3 space-y-3">
                   <input type="hidden" name="id" value={tender.id} />
                   <BriefEditor name="briefing" defaultValue={tender.briefing} rows={8} />
-                  <div>
-                    <p className="mb-1 text-[14px] font-medium">Non-negotiable conditions</p>
+                  <div data-testid="non-negotiables-editor">
+                    <p className="mb-1 text-[13px] font-semibold">Non-negotiable conditions</p>
                     <ConditionsEditor name="nonNegotiables" defaultItems={conditions} />
                   </div>
                   <input name="summary" placeholder="Change note" className="min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />

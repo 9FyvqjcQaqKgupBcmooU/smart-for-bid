@@ -23,17 +23,17 @@ export default async function ParametresPage() {
     <div className="h-full overflow-x-hidden overflow-y-auto px-3 py-4 md:px-6">
       <p className="mb-3 text-[13px] text-ink-soft">{t(locale, "settings.title")}</p>
       
-      <section className="paper-card mb-4 max-w-5xl rounded-md p-3">
-        <h2 className="text-[14px] font-semibold">Non-negotiable conditions (organisation)</h2>
-        <p className="mt-1 text-[13px] text-ink-soft">
-          Default list for every new Decathlon RFQ. The buyer can adjust it per RFQ.
+      <section className="paper-card mb-4 max-w-5xl rounded-md p-3" data-testid="non-negotiables-settings">
+        <h2 className="text-[13px] font-semibold">Non-negotiable conditions (organisation)</h2>
+        <p className="mt-0.5 text-[12px] leading-4 text-ink-soft">
+          Default list for every new Decathlon RFQ. Untick to drop from defaults; buyer can still adjust per RFQ.
         </p>
-        <form action={updateOrgNonNegotiables} className="mt-3 space-y-3">
+        <form action={updateOrgNonNegotiables} className="mt-2 space-y-2">
           <ConditionsEditor
             name="nonNegotiables"
             defaultItems={company ? parseConditions(company.nonNegotiables) : [...DEMO_NON_NEGOTIABLES]}
           />
-          <button className={btnPrimary() + " min-h-10"}>Save conditions</button>
+          <button className={btnPrimary() + " min-h-9 text-[13px]"}>Save conditions</button>
         </form>
       </section>
 

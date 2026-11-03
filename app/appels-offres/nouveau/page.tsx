@@ -45,9 +45,9 @@ export default async function NewTender() {
               <p className="mb-1 font-medium">{t(locale, "ao.briefingLabel")}</p>
               <BriefEditor name="briefing" defaultValue={briefing} required rows={8} />
             </div>
-            <div className="col-span-full text-[14px]">
-              <p className="mb-1 font-medium">{t(locale, "ao.nonNegotiables")}</p>
-              <p className="mb-2 text-[13px] text-ink-soft">{t(locale, "ao.nonNegotiablesHint")}</p>
+            <div className="col-span-full text-[14px]" data-testid="non-negotiables-editor">
+              <p className="mb-0.5 text-[13px] font-semibold">{t(locale, "ao.nonNegotiables")}</p>
+              <p className="mb-1.5 text-[12px] leading-4 text-ink-soft">{t(locale, "ao.nonNegotiablesHint")}</p>
               <ConditionsEditor name="nonNegotiables" defaultItems={defaults} />
             </div>
           </div>
