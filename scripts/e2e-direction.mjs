@@ -41,6 +41,7 @@ async function resolveDemoIds(dbPath) {
       florent: await byEmail("florent.g@decathlon.com"),
       sport: await byEmail("portail@sportline.fr"),
       nord: await byEmail("portail@nordlog.fr"),
+      lumen: await byEmail("portail@atelier-lumen.fr"),
     };
     const sealed = await prisma.tender.findFirst({ where: { number: "AO-2026-0001" } });
     const pending = await prisma.tender.findFirst({ where: { status: "pending_validation" } });
@@ -424,6 +425,154 @@ async function checkMobileOverflow(page, base, label, ids) {
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
+const SEALED_PRICES = ["186400", "174900", "191250"];
+function leaksPrice(text) {
+  return SEALED_PRICES.filter((p) => {
+    const re = new RegExp(`(?<![0-9a-f])${p.slice(0, 3)}[ ,.\\u202f\\u00a0]?${p.slice(3)}(?![0-9a-f])`, "i");
+    return re.test(text);
+  });
+}
+
+async function rawGet(page, url, rsc = false) {
+  const res = await page.request.get(url, { headers: rsc ? { RSC: "1" } : {}, maxRedirects: 0 });
+  const buf = Buffer.from(await res.body());
+  return { status: res.status(), buf, text: buf.toString("utf8") };
+}
+
+/** Anti-leak: equal dossier, post-bid changes, sealed prices enforced server-side. Run BEFORE opening. */
+async function antiLeak(page, base, label, ids) {
+  const { users: U, AO_SEALED, AO_PUB_EMPTY } = ids;
+  const internal = [["buyer", U.paule], ["approver", U.florent], ["key-A", U.claireA]];
+  for (const [role, uid] of internal) {
+    await asUser(page, base, uid, "/");
+    const routes = [
+      "/",
+      "/appels-offres",
+      `/appels-offres?id=${AO_SEALED}`,
+      `/appels-offres?id=${AO_SEALED}&tab=offers`,
+      `/appels-offres/${AO_SEALED}?tab=brief`,
+      `/appels-offres/${AO_SEALED}?tab=offres`,
+      `/appels-offres/${AO_SEALED}?tab=cles`,
+      `/appels-offres/${AO_SEALED}?tab=historique`,
+    ];
+    let leaks = [];
+    for (const r of routes) {
+      for (const rsc of [false, true]) {
+        const g = await rawGet(page, base + r, rsc);
+        const l = leaksPrice(g.text);
+        if (l.length) leaks.push(`${r}${rsc ? " (RSC)" : ""}: ${l.join(",")}`);
+      }
+    }
+    ok(`[${label}] sealed: no prices in pages/RSC for ${role}`, leaks.length === 0, leaks.join(" | ") || `${routes.length * 2} responses clean`);
+    const j = await rawGet(page, `${base}/appels-offres/${AO_SEALED}/bids.json`);
+    ok(`[${label}] sealed: bids.json denied for ${role}`, j.status === 423 && leaksPrice(j.text).length === 0 && !/"price"/.test(j.text), `HTTP ${j.status}`);
+    const pdf = await rawGet(page, `${base}/appels-offres/${AO_SEALED}/preuve.pdf`);
+    let txt = "";
+    if (pdf.status === 200) {
+      const fp = `${PROOF}/preuve-${label}-sealed-${role}.pdf`;
+      fs.writeFileSync(fp, pdf.buf);
+      txt = execSync(`pdftotext -layout '${fp}' -`, { encoding: "utf8" });
+      fs.writeFileSync(fp.replace(/\.pdf$/, ".txt"), txt);
+    }
+    ok(`[${label}] sealed: PDF has no prices for ${role}`, pdf.status === 200 && leaksPrice(txt).length === 0 && /Envelopes still sealed/.test(txt), `HTTP ${pdf.status}`);
+    if (role === "buyer") {
+      ok(`[${label}] PDF lists post-bid changes`, /POST-BID CHANGE/.test(txt) && /Before: /.test(txt) && /After: /.test(txt) && /Post-bid changes: [1-9]/.test(txt));
+      ok(`[${label}] PDF dossier version + hash`, /Dossier version: v\d+/.test(txt) && /Dossier SHA-256: [0-9a-f]{64}/.test(txt));
+      ok(`[${label}] PDF bids against dossier versions`, /Bids submitted against dossier: .*v\d/.test(txt));
+    }
+  }
+  // Award attempt before opening is refused server-side (action) — covered by journal check below.
+  await asUser(page, base, U.paule, `/appels-offres/${AO_SEALED}?tab=historique`);
+  const jr = await page.locator("body").innerText();
+  ok(`[${label}] journal shows POST-BID CHANGE with before/after`, /POST-BID CHANGE/.test(jr) && /Before:/.test(jr) && /After:/.test(jr) && /post-bid change/i.test(jr));
+  ok(`[${label}] journal logs sealed access denials`, /Sealed data access denied/.test(jr));
+  ok(`[${label}] journal chain intact`, /intact/i.test(jr));
+
+  // Supplier side: identical dossier, no budget, no competitor counts/names, denied routes.
+  const hashes = {};
+  for (const [name, uid] of [["sport", U.sport], ["nord", U.nord], ["lumen", U.lumen]]) {
+    await asUser(page, base, uid, `/appels-offres/${AO_SEALED}?tab=brief`);
+    const body = await page.locator("body").innerText();
+    const html = await page.content();
+    hashes[name] = (body.match(/SHA-256 ([0-9a-f]{64})/) || [])[1];
+    const others = ["Sportline SAS", "NordLog", "Atelier Lumen"].filter((n) => !body.includes(n) || true);
+    ok(`[${label}] supplier ${name}: dossier version + hash`, /Dossier v\d+/.test(body) && Boolean(hashes[name]));
+    ok(`[${label}] supplier ${name}: Q&A anonymised`, /Questions & answers/.test(body) && /A supplier/.test(body));
+    ok(`[${label}] supplier ${name}: no budget`, !/Budget/i.test(body) && !/210[ ,.\u202f\u00a0]?000/.test(html) && !/bid-budget/.test(html));
+    ok(`[${label}] supplier ${name}: no bid count`, !/\b\d\/\d\b\s*(bids|offers)?/i.test(body.replace(/\d{1,2}\/2 key/g, "")) && !/Bids\s+\d/.test(body), (body.match(/\b\d\/\d\b/) || [""])[0]);
+    const rsc = await rawGet(page, `${base}/appels-offres/${AO_SEALED}?tab=brief`, true);
+    ok(`[${label}] supplier ${name}: no prices/budget in RSC`, leaksPrice(rsc.text).length === 0 && !/210000|bid-budget/.test(rsc.text));
+    await asUser(page, base, uid, `/appels-offres/${AO_SEALED}?tab=historique`);
+    const jb = await page.locator("body").innerText();
+    const mine = { sport: "Sportline SAS", nord: "NordLog", lumen: "Atelier Lumen" }[name];
+    const leakedNames = ["Sportline SAS", "NordLog", "Atelier Lumen"].filter((n) => n !== mine && jb.includes(n));
+    ok(`[${label}] supplier ${name}: journal hides other suppliers`, leakedNames.length === 0, leakedNames.join(","));
+    const j = await rawGet(page, `${base}/appels-offres/${AO_SEALED}/bids.json`);
+    const pdf = await rawGet(page, `${base}/appels-offres/${AO_SEALED}/preuve.pdf`);
+    ok(`[${label}] supplier ${name}: bids.json + PDF denied`, j.status === 403 && pdf.status === 403, `${j.status}/${pdf.status}`);
+    void others;
+  }
+  ok(`[${label}] same dossier hash for every supplier`, hashes.sport && hashes.sport === hashes.nord && hashes.nord === hashes.lumen, hashes.sport?.slice(0, 12));
+  await asUser(page, base, U.sport, "/");
+  const sh = await rawGet(page, `${base}/`, true);
+  ok(`[${label}] supplier home: no budgets in payload`, !/"budget":\d/.test(sh.text) && !/210[ ,.\u202f\u00a0]?000/.test(sh.text));
+
+  // Open RFQ Q&A: answered visible to all, pending question hidden from suppliers.
+  await asUser(page, base, U.lumen, `/appels-offres/${AO_PUB_EMPTY}?tab=brief`);
+  const lb = await page.locator("body").innerText();
+  ok(`[${label}] AO-0004 supplier sees broadcast answer`, /night-time installation/i.test(lb) && /Dossier v\d/.test(lb));
+  ok(`[${label}] AO-0004 pending question hidden from suppliers`, !/visit the Lomme site/i.test(lb));
+}
+
+/** Local only: post-bid change on a freshly bid RFQ → chained, bidders re-acknowledge. */
+async function postBidFlow(page, base, label, tenderId, U) {
+  await asUser(page, base, U.sport, `/appels-offres/${tenderId}?tab=brief`);
+  const v0 = Number(((await page.locator("body").innerText()).match(/Dossier v(\d+)/) || [])[1] || 0);
+  // Supplier asks, buyer broadcasts
+  await page.fill('input[name="question"]', "Is delivery to the Lomme warehouse acceptable?");
+  await page.getByRole("button", { name: "Send question" }).click();
+  await page.waitForTimeout(1200);
+  await asUser(page, base, U.paule, `/appels-offres/${tenderId}?tab=brief`);
+  const ans = page.locator('input[name="answer"]').first();
+  ok(`[${label}] buyer sees anonymised pending question`, (await ans.count()) > 0 && /A supplier/.test(await page.locator("body").innerText()));
+  if (await ans.count()) {
+    await ans.fill("Yes, Lomme is acceptable with a 48-hour booking.");
+    await page.getByRole("button", { name: "Broadcast answer" }).first().click();
+    await page.waitForTimeout(1500);
+  }
+  // Buyer edits a condition after bids
+  await asUser(page, base, U.paule, `/appels-offres/${tenderId}?tab=brief`);
+  await page.locator("summary", { hasText: "Edit brief and conditions" }).click();
+  const brief = page.locator('textarea[name="briefing"]').first();
+  await brief.fill((await brief.inputValue()) + "\n\nPallets must be returned within 30 days.");
+  await page.fill('input[name="summary"]', "Pallet return rule added");
+  await page.getByRole("button", { name: "Save" }).click();
+  await page.waitForTimeout(1800);
+  await asUser(page, base, U.paule, `/appels-offres/${tenderId}?tab=historique`);
+  const jr = await page.locator("body").innerText();
+  ok(`[${label}] post-bid brief change chained`, /POST-BID CHANGE[\s\S]{0,60}Brief/i.test(jr) && /Pallets must be returned/.test(jr), "");
+  ok(`[${label}] post-bid Q&A change chained`, /POST-BID CHANGE[\s\S]{0,60}Q&A/i.test(jr));
+  // Bidder must re-acknowledge
+  await asUser(page, base, U.sport, `/appels-offres/${tenderId}?tab=brief`);
+  const sb = await page.locator("body").innerText();
+  const v1 = Number((sb.match(/Dossier v(\d+)/) || [])[1] || 0);
+  ok(`[${label}] dossier version bumped`, v1 >= v0 + 2, `v${v0} → v${v1}`);
+  ok(`[${label}] bidder sees re-acknowledge banner`, /Conditions changed after your bid/.test(sb));
+  ok(`[${label}] Q&A broadcast to bidder`, /48-hour booking/.test(sb));
+  const re = page.getByRole("button", { name: /Re-acknowledge dossier/ });
+  if (await re.count()) {
+    await re.click();
+    await page.waitForTimeout(1200);
+  }
+  await asUser(page, base, U.sport, `/appels-offres/${tenderId}?tab=brief`);
+  ok(`[${label}] re-acknowledged`, !/Conditions changed after your bid/.test(await page.locator("body").innerText()) && /You acknowledged this version/.test(await page.locator("body").innerText()));
+  await asUser(page, base, U.paule, `/appels-offres/${tenderId}?tab=historique`);
+  ok(`[${label}] ack recorded in chain`, /Dossier acknowledged by supplier/.test(await page.locator("body").innerText()));
+  // Award before opening refused + logged
+  const denied = await rawGet(page, `${base}/appels-offres/${tenderId}/bids.json`);
+  ok(`[${label}] fresh RFQ bids.json sealed`, denied.status === 423, `HTTP ${denied.status}`);
+}
+
 async function runOn(base, label, ids) {
   console.log("\n====", label, base, "====");
   const { users: USERS, AO_SEALED, AO_PENDING, AO_PUB_EMPTY } = ids;
@@ -463,11 +612,13 @@ async function runOn(base, label, ids) {
   const created = await createValidatePublish(page, base, label, USERS);
   if (label === "local" && created) {
     await depositBids(page, base, label, created, USERS);
+    await postBidFlow(page, base, label, created, USERS);
   } else if (label === "preview") {
     ok(`[${label}] dépôt via seeded AO-0004 (serverless isolation)`, true, "create may not share /tmp across lambdas");
     await depositBids(page, base, label, AO_PUB_EMPTY, USERS);
   }
 
+  await antiLeak(page, base, label, ids);
   await openAwardPdf(page, base, label, AO_SEALED, "AO-0001", USERS);
   await assertEnglishUI(page, base, label, ids);
   await checkMobileOverflow(page, base, label, ids);

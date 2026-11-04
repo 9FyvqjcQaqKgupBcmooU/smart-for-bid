@@ -33,3 +33,21 @@
 
 - Pas de stockage de fichiers importés (préremplissage éditeur uniquement)
 - Pas de reseed Turso dans cette note
+
+## 2026-11-04 — Anti-fuite interne V1 (additif)
+
+Ajouts uniquement, aucune colonne supprimée ni renommée :
+
+- `Tender.dossierVersion INTEGER NOT NULL DEFAULT 1`, `Tender.dossierHash TEXT NULL`
+- `Bid.dossierVersion INTEGER NULL`, `Bid.dossierHash TEXT NULL` (version du dossier contre laquelle l'offre a été déposée)
+- Table `TenderQuestion` (Q&R diffusées à tous, demandeur anonymisé) : `id, tenderId → Tender (cascade), askedByVendorId, question, answer?, answeredById?, askedAt, answeredAt?`
+- Table `DossierReceipt` (consultation / accusé de réception par fournisseur et par version) : `id, tenderId, vendorId, version, hash, viewedAt, ackAt?`, unique `(tenderId, vendorId, version)`
+
+Comportement :
+
+- Hash dossier = SHA-256 du JSON canonique (n°, titre, échéance, brief sans marqueurs internes, conditions, Q&R répondues). Toute modification incrémente la version, est chaînée dans l'audit (`dossier_change`) et notifie tous les fournisseurs invités.
+- Après la première offre : un événement `post_bid_change` par champ (avant/après, auteur, horodatage, version, hash) ; les soumissionnaires doivent ré-accuser réception.
+- `Bid.payload` est chiffré au repos (AES-256-GCM, préfixe `sealed:v1:`), clé `BID_SEAL_KEY` (repli démo si absente). Les anciens payloads en clair restent lisibles. Déchiffrement uniquement via `revealBids` après ouverture à deux clés.
+- Tentatives d'accès aux données scellées journalisées (`sealed_access_denied`). Nouvelle route `GET /appels-offres/[id]/bids.json` : 403 fournisseur, 423 avant ouverture.
+
+Prod Turso : **non migrée**. À appliquer avec `prisma db push` (additif) après décision ; définir `BID_SEAL_KEY` (32 octets, base64) par environnement avant tout dépôt réel. Les payloads existants en clair ne sont pas rechiffrés automatiquement.

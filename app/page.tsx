@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/server";
 import { AOTable, type AORow, type KpiStats } from "@/components/AOTable";
 import { extractBudget } from "@/lib/budget";
+import { isRevealed, revealBids } from "@/lib/sealed";
 
 export default async function Home({
   searchParams,
@@ -28,7 +29,8 @@ export default async function Home({
 
   const rows: AORow[] = visible.map((t) => {
     const myBid = current.vendorId ? t.bids.find((b) => b.vendorId === current.vendorId) : undefined;
-    const budget = extractBudget(t.briefing);
+    // Anti-leak: suppliers never receive budget or competitor bid counts (stripped server-side).
+    const budget = isSupplier ? null : extractBudget(t.briefing);
     const cat = t.briefing.match(/<!--\s*bid-category:([^>]+)\s*-->/i)?.[1]?.trim();
     return {
       id: t.id,
@@ -37,8 +39,8 @@ export default async function Home({
       category: cat,
       status: t.status,
       deadline: t.deadline,
-      bidCount: t.bids.length,
-      inviteCount: t.invites.length,
+      bidCount: isSupplier ? 0 : t.bids.length,
+      inviteCount: isSupplier ? 0 : t.invites.length,
       keyAUnlocked: t.keyAUnlocked,
       keyBUnlocked: t.keyBUnlocked,
       budget,
@@ -75,12 +77,9 @@ export default async function Home({
         const budget = extractBudget(t.briefing);
         const bid = t.bids.find((b) => b.id === t.awardedBidId);
         if (!budget || !bid) return null;
-        try {
-          const price = (JSON.parse(bid.payload) as { price: number }).price;
-          return ((budget - price) / budget) * 100;
-        } catch {
-          return null;
-        }
+        if (!isRevealed(t)) return null;
+        const price = revealBids(t, [bid])[0].data.price;
+        return ((budget - price) / budget) * 100;
       })
       .filter((x): x is number => x != null);
     if (withBudget.length) {

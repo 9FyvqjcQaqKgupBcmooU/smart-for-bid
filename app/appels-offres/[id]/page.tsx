@@ -22,6 +22,9 @@ import { BriefEditor } from "@/components/BriefEditor";
 import { ConditionsEditor } from "@/components/ConditionsEditor";
 import { ConditionsAccept } from "@/components/ConditionsAccept";
 import { parseConditions } from "@/lib/conditions";
+import { DossierPanel } from "@/components/DossierPanel";
+import { toParisLocalInput } from "@/lib/paris-time";
+import { revealBids, ensureDossier, recordDossierView, SUPPLIER_VISIBLE_INTERNAL } from "@/lib/sealed";
 
 export default async function TenderDetail({
   params,
@@ -44,16 +47,29 @@ export default async function TenderDetail({
       versions: { include: { changedBy: true }, orderBy: { createdAt: "desc" } },
       bids: { include: { vendor: true }, orderBy: { submittedAt: "asc" } },
       openings: { include: { officer: true }, orderBy: { createdAt: "asc" } },
+      questions: { orderBy: { askedAt: "asc" } },
     },
   });
   if (!tender) notFound();
+  const isVendor = current.role === "VENDOR";
+  if (isVendor && !tender.invites.some((i) => i.vendorId === current.vendorId)) notFound();
+  const dossier = await ensureDossier(tender);
+  const myReceipt =
+    isVendor && current.vendorId && tender.status !== "draft" && tender.status !== "pending_validation"
+      ? await recordDossierView(tender.id, current.vendorId, current.id, dossier.version, dossier.hash)
+      : null;
+  const answerers = await prisma.user.findMany({
+    where: { id: { in: tender.questions.map((q) => q.answeredById).filter((x): x is string => Boolean(x)) } },
+    select: { id: true, name: true },
+  });
 
   const now = Date.now();
   const pastDeadline = now >= tender.deadline.getTime();
   const status = tender.status === "published" && pastDeadline ? "closed" : tender.status;
   const revealed = tender.status === "opened" || tender.status === "awarded";
   const seal = sealStateOf(tender);
-  const budget = extractBudget(tender.briefing);
+  // Anti-leak: suppliers never receive the budget or competitor counts (server-side, not just hidden).
+  const budget = isVendor ? null : extractBudget(tender.briefing);
   const myBid = current.vendorId ? tender.bids.find((b) => b.vendorId === current.vendorId) : null;
   const conditions = parseConditions(tender.nonNegotiables);
   const invited = current.vendorId ? tender.invites.some((i) => i.vendorId === current.vendorId) : false;
@@ -84,17 +100,22 @@ export default async function TenderDetail({
   const unlockA = tender.openings.find((o) => o.lock === "A" && o.success);
   const unlockB = tender.openings.find((o) => o.lock === "B" && o.success);
 
-  const parsed = revealed
-    ? tender.bids
-        .map((b) => {
-          try {
-            return { vendor: b.vendor.name, price: (JSON.parse(b.payload) as { price: number }).price, id: b.id };
-          } catch {
-            return { vendor: b.vendor.name, price: 0, id: b.id };
-          }
-        })
+  const parsed = revealed && !isVendor
+    ? revealBids(tender, tender.bids)
+        .map((b) => ({ vendor: b.vendor.name, price: b.data.price, id: b.id }))
         .sort((a, b) => a.price - b.price)
     : [];
+  const visibleIds = isVendor
+    ? new Set(
+        events
+          .filter((e) => (e.actor.vendorId ? e.actor.vendorId === current.vendorId : SUPPLIER_VISIBLE_INTERNAL.has(e.action)))
+          .map((e) => e.id)
+      )
+    : undefined;
+  const needsReack = Boolean(
+    isVendor && myBid && (myBid.dossierVersion ?? 1) < dossier.version && !myReceipt?.ackAt
+  );
+  const lastChange = tender.versions[0]?.createdAt ?? tender.publishedAt;
 
   const tabKey = (tab ?? (revealed ? "cles" : "brief")).toLowerCase();
   const active =
@@ -108,7 +129,9 @@ export default async function TenderDetail({
 
   const tabs = [
     { id: "brief", label: t(locale, "shell.brief"), href: `?tab=brief` },
-    { id: "offres", label: t(locale, "shell.offers"), href: `?tab=offres`, count: tender.bids.length },
+    isVendor
+      ? { id: "offres", label: "My bid", href: `?tab=offres` }
+      : { id: "offres", label: t(locale, "shell.offers"), href: `?tab=offres`, count: tender.bids.length },
     { id: "cles", label: t(locale, "shell.keys"), href: `?tab=cles` },
     { id: "journal", label: t(locale, "shell.history"), href: `?tab=historique` },
   ];
@@ -151,9 +174,15 @@ export default async function TenderDetail({
                   Budget <strong className="num text-ink">{formatEUR(budget, locale)}</strong>
                 </span>
               ) : null}
-              <span>
-                Bids <strong className="num text-ink">{tender.bids.length}/{tender.invites.length}</strong>
-              </span>
+              {!isVendor ? (
+                <span>
+                  Bids <strong className="num text-ink">{tender.bids.length}/{tender.invites.length}</strong>
+                </span>
+              ) : (
+                <span>
+                  Dossier <strong className="num text-ink">v{dossier.version}</strong>
+                </span>
+              )}
               <span>
                 Buyer <strong className="text-ink">{tender.createdBy.name}</strong>
               </span>
@@ -201,9 +230,11 @@ export default async function TenderDetail({
                 <button className={btnPrimary()}>Award to {parsed[0].vendor}</button>
               </form>
             ) : null}
-            <Link href={`/appels-offres/${tender.id}/preuve.pdf`} className="inline-flex min-h-9 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold text-ink">
-              {t(locale, "shell.exportProof")}
-            </Link>
+            {!isVendor ? (
+              <Link href={`/appels-offres/${tender.id}/preuve.pdf`} className="inline-flex min-h-9 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold text-ink">
+                {t(locale, "shell.exportProof")}
+              </Link>
+            ) : null}
           </div>
         </div>
       </div>
@@ -225,6 +256,29 @@ export default async function TenderDetail({
       <div className="min-h-0 flex-1 overflow-auto px-4 py-4 md:px-6">
         {active === "brief" ? (
           <div className="max-w-3xl space-y-4">
+            {tender.status !== "draft" && tender.status !== "pending_validation" ? (
+              <DossierPanel
+                locale={locale}
+                tenderId={tender.id}
+                version={dossier.version}
+                hash={dossier.hash}
+                deadline={tender.deadline}
+                updatedAt={lastChange}
+                qa={tender.questions.map((q) => ({
+                  id: q.id,
+                  question: q.question,
+                  answer: q.answer,
+                  askedAt: q.askedAt,
+                  answeredAt: q.answeredAt,
+                  answeredByName: answerers.find((u) => u.id === q.answeredById)?.name ?? null,
+                }))}
+                role={current.role}
+                canAsk={canDeposit}
+                needsReack={needsReack}
+                bidVersion={myBid?.dossierVersion ?? null}
+                ackedAt={myReceipt?.ackAt ?? null}
+              />
+            ) : null}
             {conditions.length > 0 ? (
               <div className="rounded-md border border-cobalt/30 bg-cobalt-soft/30 px-2.5 py-2" data-testid="non-negotiables">
                 <h2 className="text-[13px] font-semibold text-ink">Non-negotiable conditions</h2>
@@ -278,6 +332,15 @@ export default async function TenderDetail({
                     <p className="mb-1 text-[13px] font-semibold">Non-negotiable conditions</p>
                     <ConditionsEditor name="nonNegotiables" defaultItems={conditions} />
                   </div>
+                  <label className="block text-[13px] font-semibold">
+                    Deadline (Paris time)
+                    <input name="deadline" type="datetime-local" defaultValue={toParisLocalInput(tender.deadline)} className="mt-1 min-h-10 w-full rounded-full border border-line px-3.5 text-[14px] font-normal" />
+                  </label>
+                  {tender.bids.length > 0 ? (
+                    <p className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-[12px] text-ink/80">
+                      {tender.bids.length} bid(s) already deposited — any change will be chained as a post-bid change and bidders must re-acknowledge.
+                    </p>
+                  ) : null}
                   <input name="summary" placeholder="Change note" className="min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
                   <button className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-[14px] font-semibold">Save</button>
                 </form>
@@ -286,7 +349,20 @@ export default async function TenderDetail({
           </div>
         ) : null}
 
-        {active === "offres" ? (
+        {active === "offres" && isVendor ? (
+          <div className="max-w-3xl space-y-3">
+            <div className="rounded-xl border border-line p-4">
+              <p className="text-[15px] font-semibold text-ink">{myBid ? "Your sealed bid" : "No bid submitted yet"}</p>
+              <p className="mt-1 text-[13px] text-ink/65">
+                {myBid
+                  ? `Received ${formatParisStamp(myBid.submittedAt, locale)} against dossier v${myBid.dossierVersion ?? 1}. Other suppliers' bids are never shown.`
+                  : "Submit your bid from the Brief tab before the deadline."}
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        {active === "offres" && !isVendor ? (
           <div className="max-w-3xl space-y-3">
             {!revealed ? (
               <div className="flex items-center gap-3 rounded-xl border border-line p-4">
@@ -413,6 +489,8 @@ export default async function TenderDetail({
             brokenAt={verify.brokenAt}
             tenderId={tender.id}
             officers={`${tender.keyAUser.name} · ${tender.keyBUser.name}`}
+            visibleIds={visibleIds}
+            showProof={!isVendor}
           />
         ) : null}
       </div>

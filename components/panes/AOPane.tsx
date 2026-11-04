@@ -19,6 +19,8 @@ import { StatusPill } from "@/components/StatusPill";
 import { ConditionsAccept } from "@/components/ConditionsAccept";
 import { parseConditions } from "@/lib/conditions";
 import { tNum } from "@/lib/i18n/nodes";
+import { revealBids, ensureDossier } from "@/lib/sealed";
+import { shortHash } from "@/lib/audit-chain";
 
 export async function AOPane({ id, tab }: { id: string; tab?: string }) {
   const locale = await getLocale();
@@ -36,6 +38,9 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
     },
   });
   if (!t) notFound();
+  const isVendor = current.role === "VENDOR";
+  if (isVendor && !t.invites.some((i) => i.vendorId === current.vendorId)) notFound();
+  const dossier = await ensureDossier(t);
   const versions = t.versions;
   const conditions = parseConditions(t.nonNegotiables);
 
@@ -54,13 +59,11 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
   const showOpening = current.role !== "VENDOR" && (t.status === "published" || t.status === "closed" || t.status === "opened");
   const canDeposit = invited && current.role === "VENDOR" && t.status === "published" && new Date() < t.deadline;
   const awarded = t.awardedBidId ? t.bids.find((b) => b.id === t.awardedBidId) : null;
+  const revealedSafe = revealed && t.keyAUnlocked && t.keyBUnlocked;
+  // Suppliers only ever learn their own award; amounts are decrypted only after the two-key opening.
   let awardedPrice: number | null = null;
-  if (awarded) {
-    try {
-      awardedPrice = (JSON.parse(awarded.payload) as { price: number }).price;
-    } catch {
-      awardedPrice = null;
-    }
+  if (awarded && revealedSafe && (!isVendor || awarded.vendorId === current.vendorId)) {
+    awardedPrice = revealBids(t, [awarded])[0].data.price;
   }
 
   const labels = [
@@ -69,21 +72,8 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
     i18n(locale, "ao.log"),
   ];
 
-  const parsedBids = revealed
-    ? t.bids.map((b) => {
-        let payload: { price: number; leadTimeDays: number; comments: string } = {} as {
-          price: number;
-          leadTimeDays: number;
-          comments: string;
-        };
-        try {
-          payload = JSON.parse(b.payload) as { price: number; leadTimeDays: number; comments: string };
-        } catch {
-          payload = {} as { price: number; leadTimeDays: number; comments: string };
-        }
-        return { b, payload };
-      })
-    : [];
+  const parsedBids =
+    revealedSafe && !isVendor ? revealBids(t, t.bids).map((b) => ({ b, payload: b.data })) : [];
   const cheapest = parsedBids.slice().sort((a, c) => a.payload.price - c.payload.price)[0];
 
   const now = new Date().getTime();
@@ -284,6 +274,12 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
     >
       <Tabs labels={labels} initial={initialTab}>
         <div>
+          {t.status !== "draft" && t.status !== "pending_validation" ? (
+            <p className="num mb-3 inline-flex flex-wrap items-center gap-2 rounded-full bg-paper-2 px-3 py-1 text-[12px] font-medium text-ink/75" data-testid="dossier-version">
+              <span className="font-semibold text-cobalt">Dossier v{dossier.version}</span>
+              <span>SHA-256 {shortHash(dossier.hash)}</span>
+            </p>
+          ) : null}
           <div
             className="brief"
             dangerouslySetInnerHTML={{ __html: renderBriefing(t.briefing) }}
@@ -331,12 +327,12 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
                 </div>
               </div>
               <ul className="space-y-1.5">
-                {t.bids.length === 0 && <p className="text-[14px] text-ink-soft">{i18n(locale, "ao.noBids")}</p>}
-                {t.bids.map((b) => (
+                {!isVendor && t.bids.length === 0 && <p className="text-[14px] text-ink-soft">{i18n(locale, "ao.noBids")}</p>}
+                {(isVendor ? t.bids.filter((b) => b.vendorId === current.vendorId) : t.bids).map((b) => (
                   <li key={b.id} className="soft-card flex min-h-11 flex-wrap items-center justify-between gap-x-3 px-3 py-2 text-[15px]">
                     <span className="inline-flex items-center gap-2">
                       <SealMark size={16} />
-                      {current.role === "VENDOR" && b.vendorId !== current.vendorId ? i18n(locale, "ao.bidder") : b.vendor.name}
+                      {b.vendor.name}
                     </span>
                     <span className="text-[13px] text-ink-soft">{tNum(locale, "ao.sealed", { date: formatDateTime(b.submittedAt, locale) })}</span>
                   </li>
@@ -416,12 +412,16 @@ export async function AOPane({ id, tab }: { id: string; tab?: string }) {
               ))}
             </ol>
           )}
-          <p className="mt-4 text-[13px] text-ink-soft">{i18n(locale, "ao.invitees")}</p>
-          <ul className="mt-1 space-y-0.5">
-            {t.invites.map((i) => (
-              <li key={i.id}>{i.vendor.name}</li>
-            ))}
-          </ul>
+          {!isVendor ? (
+            <>
+              <p className="mt-4 text-[13px] text-ink-soft">{i18n(locale, "ao.invitees")}</p>
+              <ul className="mt-1 space-y-0.5">
+                {t.invites.map((i) => (
+                  <li key={i.id}>{i.vendor.name}</li>
+                ))}
+              </ul>
+            </>
+          ) : null}
           {uninvited.length > 0 && current.role === "BUYER" && t.status !== "awarded" && (
             <form action={inviteVendor} className="mt-2 flex min-w-0 flex-col gap-2 sm:flex-row">
               <input type="hidden" name="tenderId" value={t.id} />

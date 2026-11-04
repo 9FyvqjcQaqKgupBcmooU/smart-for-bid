@@ -132,6 +132,10 @@ model Tender {
   publishedAt     DateTime?
   openedAt        DateTime?
   createdAt       DateTime @default(now())
+  dossierVersion  Int      @default(1) // additive (anti-leak): bumped on every supplier-visible change
+  dossierHash     String?  // additive: SHA-256 of canonical supplier dossier
+  questions       TenderQuestion[]
+  dossierReceipts DossierReceipt[]
   invites         TenderInvite[]
   versions        TenderVersion[]
   bids            Bid[]
@@ -170,6 +174,8 @@ model Bid {
   payload             String
   acceptedConditions  String?  // JSON { items: string[], acceptedAt: ISO }
   submittedAt         DateTime @default(now())
+  dossierVersion      Int?     // additive: dossier version the bid was submitted against
+  dossierHash         String?  // additive
   @@unique([tenderId, vendorId])
 }
 
@@ -348,4 +354,30 @@ model PaymentItem {
   invoiceId String
   invoice   Invoice @relation(fields: [invoiceId], references: [id])
   amount    Float
+}
+
+/// Additive (anti-leak): Q&A broadcast to every invited supplier, asker never shown.
+model TenderQuestion {
+  id              String    @id @default(cuid())
+  tenderId        String
+  tender          Tender    @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  askedByVendorId String    // internal only, never rendered to suppliers
+  question        String
+  answer          String?
+  answeredById    String?
+  askedAt         DateTime  @default(now())
+  answeredAt      DateTime?
+}
+
+/// Additive (anti-leak): which dossier version each supplier viewed / acknowledged.
+model DossierReceipt {
+  id         String    @id @default(cuid())
+  tenderId   String
+  tender     Tender    @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  vendorId   String
+  version    Int
+  hash       String
+  viewedAt   DateTime  @default(now())
+  ackAt      DateTime?
+  @@unique([tenderId, vendorId, version])
 }

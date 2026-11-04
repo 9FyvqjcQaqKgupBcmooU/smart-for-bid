@@ -8,6 +8,10 @@ import { audit, notify, notifyMany } from "@/lib/audit";
 import { nextAO } from "@/lib/numbers";
 import { revalidateS2P } from "@/lib/revalidate";
 import { parseConditions, serializeConditions, DEMO_NON_NEGOTIABLES } from "@/lib/conditions";
+import { sealPayload, stripInternalMarkers } from "@/lib/seal-crypto";
+import { bumpDossier, ensureDossier, isRevealed, logSealedDenied } from "@/lib/sealed";
+import { formatParisStamp } from "@/lib/format";
+import { parisLocalToDate, toParisLocalInput } from "@/lib/paris-time";
 
 async function vendorUserIds(vendorIds: string[]) {
   const users = await prisma.user.findMany({
@@ -75,19 +79,91 @@ export async function createTender(formData: FormData) {
   redirect(`/appels-offres/${t.id}`);
 }
 
+/** Records a supplier-visible change: bump version, notify all invited, chain it, flag post-bid changes. */
+async function recordDossierChanges(opts: {
+  tenderId: string;
+  actor: { id: string; name: string };
+  summary: string;
+  changes: { field: string; before: string; after: string }[];
+}) {
+  const t = await prisma.tender.findUnique({ where: { id: opts.tenderId }, include: { invites: true, bids: true } });
+  if (!t || opts.changes.length === 0) return;
+  const { version, hash } = await bumpDossier(t.id);
+  const postBid = t.bids.length > 0;
+  await audit({
+    entityType: "Tender",
+    entityId: t.id,
+    action: "dossier_change",
+    actorId: opts.actor.id,
+    details: { version, hash, summary: opts.summary, fields: opts.changes.map((c) => c.field), postBid },
+  });
+  if (postBid) {
+    for (const c of opts.changes) {
+      await audit({
+        entityType: "Tender",
+        entityId: t.id,
+        action: "post_bid_change",
+        actorId: opts.actor.id,
+        details: { postBid: true, field: c.field, before: c.before, after: c.after, version, hash, bidsAtChange: t.bids.length },
+      });
+    }
+  }
+  const all = await vendorUserIds(t.invites.map((i) => i.vendorId));
+  await notifyMany(all, {
+    title: `Dossier v${version} — ${t.number}`,
+    body: `${opts.actor.name} updated the RFQ dossier: ${opts.summary}`,
+    href: `/appels-offres/${t.id}`,
+  });
+  if (postBid) {
+    const bidders = await vendorUserIds(t.bids.map((b) => b.vendorId));
+    await notifyMany(bidders, {
+      title: `Re-acknowledge required — ${t.number}`,
+      body: `Conditions changed after your bid (dossier v${version}). Please review and re-acknowledge.`,
+      href: `/appels-offres/${t.id}?tab=brief`,
+    });
+  }
+}
+
 export async function updateBriefing(formData: FormData) {
   const { current } = await requireUser();
+  if (current.role === "VENDOR") throw new Error("Not authorized");
   const id = String(formData.get("id"));
   const briefing = String(formData.get("briefing") ?? "");
-  const summary = String(formData.get("summary") ?? "Brief update").trim();
+  const summary = String(formData.get("summary") ?? "").trim() || "Brief update";
   const t = await prisma.tender.findUnique({ where: { id }, include: { invites: true } });
   if (!t) throw new Error("AO introuvable");
   if (t.status === "opened" || t.status === "awarded") throw new Error("RFQ already opened");
+  await ensureDossier(t);
 
   const nnRaw = formData.get("nonNegotiables");
-  const data: { briefing: string; nonNegotiables?: string } = { briefing };
-  if (nnRaw != null) {
-    data.nonNegotiables = serializeConditions(parseConditions(String(nnRaw)));
+  const deadlineRaw = String(formData.get("deadline") ?? "").trim();
+  const data: { briefing: string; nonNegotiables?: string; deadline?: Date } = { briefing };
+  if (nnRaw != null) data.nonNegotiables = serializeConditions(parseConditions(String(nnRaw)));
+  if (deadlineRaw) {
+    const d = parisLocalToDate(deadlineRaw);
+    if (d && toParisLocalInput(d) !== toParisLocalInput(t.deadline)) {
+      if (d.getTime() <= Date.now()) throw new Error("New deadline must be in the future");
+      data.deadline = d;
+    }
+  }
+
+  const changes: { field: string; before: string; after: string }[] = [];
+  if (stripInternalMarkers(t.briefing) !== stripInternalMarkers(briefing)) {
+    changes.push({ field: "Brief", before: stripInternalMarkers(t.briefing), after: stripInternalMarkers(briefing) });
+  }
+  if (data.nonNegotiables != null && data.nonNegotiables !== t.nonNegotiables) {
+    const b = parseConditions(t.nonNegotiables);
+    const a = parseConditions(data.nonNegotiables);
+    const removed = b.filter((x) => !a.includes(x));
+    const added = a.filter((x) => !b.includes(x));
+    changes.push({
+      field: "Non-negotiable conditions",
+      before: removed.length ? removed.join(" | ") : "(none removed)",
+      after: added.length ? added.join(" | ") : "(none added)",
+    });
+  }
+  if (data.deadline) {
+    changes.push({ field: "Deadline", before: formatParisStamp(t.deadline, "en"), after: formatParisStamp(data.deadline, "en") });
   }
 
   await prisma.tender.update({ where: { id }, data });
@@ -102,12 +178,6 @@ export async function updateBriefing(formData: FormData) {
         nonNegotiables: data.nonNegotiables ?? t.nonNegotiables,
       },
     });
-    const uids = await vendorUserIds(t.invites.map((i) => i.vendorId));
-    await notifyMany(uids, {
-      title: `Addendum — ${t.number}`,
-      body: `${current.name} updated the brief: ${summary}`,
-      href: `/appels-offres/${id}`,
-    });
     await audit({
       entityType: "Tender",
       entityId: id,
@@ -115,7 +185,77 @@ export async function updateBriefing(formData: FormData) {
       actorId: current.id,
       details: { summary, conditionsChanged: nnRaw != null },
     });
+    await recordDossierChanges({ tenderId: id, actor: current, summary, changes });
   }
+  revalidateS2P();
+}
+
+/** Supplier asks a question. Never shown with the asker's identity. */
+export async function askQuestion(formData: FormData) {
+  const { current } = await requireUser();
+  if (current.role !== "VENDOR" || !current.vendorId) throw new Error("Only an invited supplier can ask");
+  const tenderId = String(formData.get("tenderId"));
+  const question = String(formData.get("question") ?? "").trim();
+  if (question.length < 5) throw new Error("Question too short");
+  const t = await prisma.tender.findUnique({ where: { id: tenderId }, include: { invites: true } });
+  if (!t || !t.invites.some((i) => i.vendorId === current.vendorId)) throw new Error("Not invited");
+  if (t.status !== "published" || new Date() > t.deadline) throw new Error("Q&A closed");
+  const q = await prisma.tenderQuestion.create({ data: { tenderId, askedByVendorId: current.vendorId, question } });
+  await audit({ entityType: "Tender", entityId: tenderId, action: "qa_question", actorId: current.id, details: { questionId: q.id } });
+  await notify({
+    userId: t.createdById,
+    title: `New supplier question — ${t.number}`,
+    body: "A supplier asked a question. Your answer will be broadcast to every invited supplier.",
+    href: `/appels-offres/${tenderId}?tab=brief`,
+  });
+  revalidateS2P();
+}
+
+/** Buyer answers: broadcast to ALL invited suppliers, bumps the dossier version. */
+export async function answerQuestion(formData: FormData) {
+  const { current } = await requireUser();
+  if (current.role !== "BUYER") throw new Error("Only the buyer can answer");
+  const questionId = String(formData.get("questionId"));
+  const answer = String(formData.get("answer") ?? "").trim();
+  if (!answer) throw new Error("Answer required");
+  const q = await prisma.tenderQuestion.findUnique({ where: { id: questionId }, include: { tender: true } });
+  if (!q) throw new Error("Question not found");
+  if (q.tender.status === "opened" || q.tender.status === "awarded") throw new Error("RFQ already opened");
+  await ensureDossier(q.tender);
+  await prisma.tenderQuestion.update({
+    where: { id: questionId },
+    data: { answer, answeredById: current.id, answeredAt: new Date() },
+  });
+  await audit({
+    entityType: "Tender",
+    entityId: q.tenderId,
+    action: "qa_answer",
+    actorId: current.id,
+    details: { question: q.question, answer, previousAnswer: q.answer ?? null },
+  });
+  await recordDossierChanges({
+    tenderId: q.tenderId,
+    actor: current,
+    summary: q.answer ? "Q&A answer amended" : "Q&A answer published",
+    changes: [{ field: "Q&A answer", before: q.answer ?? "(unanswered) " + q.question, after: answer }],
+  });
+  revalidateS2P();
+}
+
+/** Supplier acknowledges the current dossier version. */
+export async function acknowledgeDossier(formData: FormData) {
+  const { current } = await requireUser();
+  if (current.role !== "VENDOR" || !current.vendorId) throw new Error("Only a supplier can acknowledge");
+  const tenderId = String(formData.get("tenderId"));
+  const t = await prisma.tender.findUnique({ where: { id: tenderId }, include: { invites: true } });
+  if (!t || !t.invites.some((i) => i.vendorId === current.vendorId)) throw new Error("Not invited");
+  const { version, hash } = await ensureDossier(t);
+  await prisma.dossierReceipt.upsert({
+    where: { tenderId_vendorId_version: { tenderId, vendorId: current.vendorId, version } },
+    update: { ackAt: new Date() },
+    create: { tenderId, vendorId: current.vendorId, version, hash, ackAt: new Date() },
+  });
+  await audit({ entityType: "Tender", entityId: tenderId, action: "dossier_ack", actorId: current.id, details: { version, hash } });
   revalidateS2P();
 }
 
@@ -188,7 +328,10 @@ export async function validateTender(formData: FormData) {
     href: `/appels-offres/${id}`,
   });
   await audit({ entityType: "Tender", entityId: id, action: "validation_ok", actorId: current.id });
-  await audit({ entityType: "Tender", entityId: id, action: "publish", actorId: current.id });
+  const { computeDossier } = await import("@/lib/sealed");
+  const hash = await computeDossier(id);
+  await prisma.tender.update({ where: { id }, data: { dossierVersion: 1, dossierHash: hash } });
+  await audit({ entityType: "Tender", entityId: id, action: "publish", actorId: current.id, details: { dossierVersion: 1, dossierHash: hash } });
   revalidateS2P();
 }
 
@@ -277,29 +420,39 @@ export async function submitBid(formData: FormData) {
     acceptedAt: acceptedAt.toISOString(),
   });
 
+  const { version: dossierVersion, hash: dossierHash } = await ensureDossier(t);
   const price = Number(String(formData.get("price")).replace(",", "."));
   const leadTimeDays = Number(formData.get("leadTimeDays"));
   const comments = String(formData.get("comments") ?? "");
   await prisma.bid.upsert({
     where: { tenderId_vendorId: { tenderId, vendorId: current.vendorId } },
     update: {
-      payload: JSON.stringify({ price, leadTimeDays, comments }),
+      payload: sealPayload(JSON.stringify({ price, leadTimeDays, comments })),
       submittedAt: new Date(),
       acceptedConditions,
+      dossierVersion,
+      dossierHash,
     },
     create: {
       tenderId,
       vendorId: current.vendorId,
-      payload: JSON.stringify({ price, leadTimeDays, comments }),
+      payload: sealPayload(JSON.stringify({ price, leadTimeDays, comments })),
       acceptedConditions,
+      dossierVersion,
+      dossierHash,
     },
+  });
+  await prisma.dossierReceipt.upsert({
+    where: { tenderId_vendorId_version: { tenderId, vendorId: current.vendorId, version: dossierVersion } },
+    update: { ackAt: acceptedAt },
+    create: { tenderId, vendorId: current.vendorId, version: dossierVersion, hash: dossierHash, ackAt: acceptedAt },
   });
   await audit({
     entityType: "Tender",
     entityId: tenderId,
     action: "bid_submit",
     actorId: current.id,
-    details: { conditionsAcceptedAt: acceptedAt.toISOString(), conditionsCount: items.length },
+    details: { conditionsAcceptedAt: acceptedAt.toISOString(), conditionsCount: items.length, dossierVersion, dossierHash },
   });
   await audit({
     entityType: "Tender",
@@ -367,7 +520,12 @@ export async function awardBid(formData: FormData) {
     where: { id: tenderId },
     include: { bids: true },
   });
-  if (!t || t.status !== "opened") throw new Error("AO non encore ouvert");
+  if (!t) throw new Error("AO introuvable");
+  if (current.role === "VENDOR") throw new Error("Not authorized");
+  if (t.status !== "opened" || !isRevealed(t)) {
+    await logSealedDenied(tenderId, current.id, "action:awardBid", "not_opened");
+    throw new Error("AO non encore ouvert");
+  }
   await prisma.tender.update({ where: { id: tenderId }, data: { status: "awarded", awardedBidId: bidId } });
   const bid = t.bids.find((b) => b.id === bidId);
   await audit({ entityType: "Tender", entityId: tenderId, action: "award", actorId: current.id, details: { bidId } });

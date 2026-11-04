@@ -166,7 +166,7 @@ export async function getInbox(user: { id: string; role: string; vendorId: strin
                 date: formatDate(myBid.submittedAt, locale),
                 time: formatTime(myBid.submittedAt, locale),
               })
-            : tx(locale, t.bids.length === 1 ? "inbox.sealedSupportOne" : "inbox.sealedSupport", { n: t.bids.length }),
+            : tx(locale, "ao.deadline", { date: formatDate(t.deadline, locale) }),
           question: t.title,
           cta: tx(locale, "home.verbFollowStatus"),
           tone: "ok",

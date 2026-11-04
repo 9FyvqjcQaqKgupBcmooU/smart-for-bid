@@ -73,7 +73,8 @@ export default async function TendersPage({ searchParams }: { searchParams: Prom
                       </span>
                     </span>
                     <span className="num mt-0.5 block text-[12px] text-ink-soft">
-                      {row.bids.length}/{row.invites.length} · {formatDateTime(row.deadline, locale)}
+                      {current.role === "VENDOR" ? "" : `${row.bids.length}/${row.invites.length} · `}
+                      {formatDateTime(row.deadline, locale)}
                     </span>
                   </Link>
                 </li>

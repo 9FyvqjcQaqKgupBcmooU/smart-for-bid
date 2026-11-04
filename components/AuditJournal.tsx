@@ -1,6 +1,6 @@
 import { formatParisStamp } from "@/lib/format";
 import { t, type Locale } from "@/lib/i18n";
-import { auditActionLabel } from "@/lib/audit-labels";
+import { auditActionLabel, parseDetails, clip } from "@/lib/audit-labels";
 import { shortHash, type ChainedEvent } from "@/lib/audit-chain";
 import Link from "next/link";
 
@@ -12,6 +12,8 @@ export function AuditJournal({
   brokenAt,
   tenderId,
   officers,
+  visibleIds,
+  showProof = true,
 }: {
   locale: Locale;
   chain: ChainedEvent[]; // newest first for display
@@ -20,8 +22,12 @@ export function AuditJournal({
   brokenAt?: string;
   tenderId: string;
   officers: string;
+  /** Supplier view: hide other suppliers' events (chain still verified on the full set). */
+  visibleIds?: Set<string>;
+  showProof?: boolean;
 }) {
-  const display = [...chain].reverse();
+  const display = [...chain].reverse().filter((ev) => !visibleIds || visibleIds.has(ev.id));
+  const postBid = display.filter((ev) => ev.action === "post_bid_change");
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
@@ -29,13 +35,23 @@ export function AuditJournal({
           <h2 className="text-[14px] font-semibold text-ink">{t(locale, "shell.chainTitle")}</h2>
           <p className="text-[12px] font-medium text-ink/65">{t(locale, "shell.chainHint")}</p>
         </div>
-        <Link
+        {showProof ? <Link
           href={`/appels-offres/${tenderId}/preuve.pdf`}
           className="ml-auto inline-flex min-h-9 items-center rounded-full bg-cobalt px-3.5 text-[13px] font-semibold text-paper hover:opacity-90"
         >
           {t(locale, "shell.exportProof")}
-        </Link>
+        </Link> : null}
       </div>
+      {postBid.length > 0 ? (
+        <div className="rounded-xl border border-danger/30 bg-danger-soft px-4 py-3" data-testid="post-bid-summary">
+          <p className="text-[13px] font-semibold text-danger">
+            {postBid.length} post-bid change{postBid.length > 1 ? "s" : ""} recorded
+          </p>
+          <p className="mt-0.5 text-[12px] text-ink/75">
+            Conditions were modified after at least one bid was deposited. Each change is chained below with before/after values; bidders were asked to re-acknowledge.
+          </p>
+        </div>
+      ) : null}
       <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
         <ol className="space-y-0">
           {display.map((ev) => {
@@ -43,11 +59,29 @@ export function AuditJournal({
                 ev.action === "validation_ok"
                   ? `Approved by ${ev.actorName} (Approver, N+1)`
                   : auditActionLabel(ev.action);
+              const d = parseDetails(ev.details);
+              const isPost = ev.action === "post_bid_change";
+              const isDenied = ev.action === "sealed_access_denied";
+              const ver = d.version ?? d.dossierVersion;
+              const vhash = d.hash ?? d.dossierHash;
               return (
-            <li key={ev.id} className="grid grid-cols-[14px_1fr] gap-3 border-b border-line/70 py-3 last:border-0">
+            <li key={ev.id} data-action={ev.action} className={`grid grid-cols-[14px_1fr] gap-3 border-b border-line/70 py-3 last:border-0 ${isPost ? "-mx-2 rounded-lg border-danger/30 bg-danger-soft/60 px-2" : ""}`}>
               <span className={`mt-1.5 h-2.5 w-2.5 rounded-full ${intact || ev.id !== brokenAt ? "bg-cobalt" : "bg-[#B91C1C]"}`} />
               <div>
-                <p className="text-[13px] font-semibold text-ink">{actionTitle}</p>
+                <p className={`text-[13px] font-semibold ${isPost || isDenied ? "text-danger" : "text-ink"}`}>
+                  {actionTitle}
+                  {isPost && d.field ? <span className="ml-1.5 font-semibold text-ink">· {d.field}</span> : null}
+                </p>
+                {isPost ? (
+                  <div className="mt-1 grid gap-1 text-[12px] leading-[17px]">
+                    <p><span className="font-semibold text-ink/70">Before: </span><span className="text-ink/80 line-through decoration-danger/50">{clip(d.before)}</span></p>
+                    <p><span className="font-semibold text-ink/70">After: </span><span className="text-ink">{clip(d.after)}</span></p>
+                  </div>
+                ) : null}
+                {isDenied ? <p className="mt-1 text-[12px] text-ink/75">{deniedLabel(d.route)} — {String(d.reason ?? "").replace(/_/g, " ")}</p> : null}
+                {ver != null && vhash ? (
+                  <p className="num mt-1 text-[11px] font-medium text-cobalt">Dossier v{ver} · {shortHash(vhash)}</p>
+                ) : null}
                 <p className="mt-0.5 text-[12px] font-medium text-ink/70">
                   {formatParisStamp(ev.createdAt, locale)} · {ev.actorName} · {ev.orgName}
                 </p>
@@ -89,4 +123,12 @@ export function AuditJournal({
       </div>
     </div>
   );
+}
+
+function deniedLabel(route: unknown): string {
+  const r = String(route ?? "");
+  if (r.includes("preuve.pdf")) return "Proof PDF";
+  if (r.includes("bids.json")) return "Bids JSON export";
+  if (r.includes("awardBid")) return "Award action";
+  return "Sealed data";
 }

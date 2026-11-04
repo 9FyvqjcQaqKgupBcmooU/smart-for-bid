@@ -1,5 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { sealPayload, dossierHash } from "../lib/seal-crypto";
+import { parseConditions } from "../lib/conditions";
 
 export async function seedDemo(prisma: PrismaClient) {
   await prisma.paymentItem.deleteMany();
@@ -13,6 +15,8 @@ export async function seedDemo(prisma: PrismaClient) {
   await prisma.pOLine.deleteMany();
   await prisma.purchaseOrder.deleteMany();
   await prisma.requisition.deleteMany();
+  await prisma.dossierReceipt.deleteMany();
+  await prisma.tenderQuestion.deleteMany();
   await prisma.tenderOpening.deleteMany();
   await prisma.bid.deleteMany();
   await prisma.tenderVersion.deleteMany();
@@ -1305,6 +1309,158 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
       },
     ],
   });
+
+  // ── Anti-leak: equal dossier, Q&A broadcast, post-bid changes, sealed (encrypted) bids ──
+  {
+    const at = (iso: string) => new Date(iso);
+    const ev = (entityId: string, action: string, actorId: string, details: Record<string, unknown>, iso: string) => ({
+      entityType: "Tender",
+      entityId,
+      action,
+      actorId,
+      details: JSON.stringify(details),
+      createdAt: at(iso),
+    });
+
+    // AO-2026-0001 — history v1 → v5
+    const c0 = parseConditions(tenderClosed.nonNegotiables);
+    const c1 = c0.map((c) => (c === "Payment terms: 45 days" ? "Payment terms: 45 days end of month, by bank transfer" : c));
+    const q1 = {
+      question: "Can the 46 checkout units be delivered in two batches?",
+      answer: "Yes. Two batches are accepted; the second batch must reach the Lille warehouse by 4 December 2026 (week 49).",
+      askedAt: "2026-10-24T18:20:00+02:00",
+      answeredAt: "2026-10-25T11:05:00+01:00",
+    };
+    const q2 = {
+      question: "Is FSC certification accepted for wood parts, or only PEFC?",
+      answer: "Both PEFC and FSC certifications are accepted for all wood parts.",
+      askedAt: "2026-10-26T14:00:00+01:00",
+      answeredAt: "2026-10-26T16:40:00+01:00",
+    };
+    const base = { number: tenderClosed.number, title: tenderClosed.title, deadline: tenderClosed.deadline };
+    const qa = (qs: typeof q1[]) => qs.map((q, i) => ({ id: "q" + i, question: q.question, answer: q.answer, answeredAt: at(q.answeredAt) }));
+    const h1 = dossierHash({ ...base, briefing: briefingMobilier.replace("checkout furniture)", "checkout furniture — quantities to be confirmed)"), nonNegotiables: c0, qa: [] });
+    const h2 = dossierHash({ ...base, briefing: briefingMobilier, nonNegotiables: c0, qa: [] });
+    const h3 = dossierHash({ ...base, briefing: briefingMobilier, nonNegotiables: c0, qa: qa([q1]) });
+    const h4 = dossierHash({ ...base, briefing: briefingMobilier, nonNegotiables: c1, qa: qa([q1]) });
+    const h5 = dossierHash({ ...base, briefing: briefingMobilier, nonNegotiables: c1, qa: qa([q1, q2]) });
+
+    await prisma.tender.update({
+      where: { id: tenderClosed.id },
+      data: { nonNegotiables: JSON.stringify(c1), dossierVersion: 5, dossierHash: h5 },
+    });
+    await prisma.tenderQuestion.createMany({
+      data: [
+        { tenderId: tenderClosed.id, askedByVendorId: nordlog.id, question: q1.question, answer: q1.answer, answeredById: paule.id, askedAt: at(q1.askedAt), answeredAt: at(q1.answeredAt) },
+        { tenderId: tenderClosed.id, askedByVendorId: lumen.id, question: q2.question, answer: q2.answer, answeredById: paule.id, askedAt: at(q2.askedAt), answeredAt: at(q2.answeredAt) },
+      ],
+    });
+    await prisma.tenderVersion.createMany({
+      data: [
+        { tenderId: tenderClosed.id, changedById: paule.id, summary: "Q&A answer published: delivery in two batches.", briefing: briefingMobilier, nonNegotiables: JSON.stringify(c0), createdAt: at(q1.answeredAt) },
+        { tenderId: tenderClosed.id, changedById: paule.id, summary: "Payment terms clarified: 45 days end of month.", briefing: briefingMobilier, nonNegotiables: JSON.stringify(c1), createdAt: at("2026-10-25T15:30:00+01:00") },
+        { tenderId: tenderClosed.id, changedById: paule.id, summary: "Q&A answer published: FSC accepted.", briefing: briefingMobilier, nonNegotiables: JSON.stringify(c1), createdAt: at(q2.answeredAt) },
+      ],
+    });
+    const bidV: Record<string, [number, string]> = { [sportline.id]: [2, h2], [nordlog.id]: [4, h4], [lumen.id]: [5, h5] };
+    for (const [vendorId, [v, h]] of Object.entries(bidV)) {
+      await prisma.bid.updateMany({ where: { tenderId: tenderClosed.id, vendorId }, data: { dossierVersion: v, dossierHash: h } });
+    }
+    for (const [actorId, vendor, v, h] of [
+      [uSportline.id, "Sportline SAS", 2, h2],
+      [uNordlog.id, "NordLog", 4, h4],
+      [uLumen.id, "Atelier Lumen", 5, h5],
+    ] as const) {
+      await prisma.auditEvent.updateMany({
+        where: { entityId: tenderClosed.id, action: "bid_submit", actorId },
+        data: { details: JSON.stringify({ vendor, dossierVersion: v, dossierHash: h }) },
+      });
+    }
+    await prisma.dossierReceipt.createMany({
+      data: [
+        { tenderId: tenderClosed.id, vendorId: sportline.id, version: 2, hash: h2, viewedAt: at("2026-10-14T13:02:00+02:00"), ackAt: at("2026-10-24T16:42:00+02:00") },
+        { tenderId: tenderClosed.id, vendorId: sportline.id, version: 5, hash: h5, viewedAt: at("2026-10-26T17:20:00+01:00"), ackAt: at("2026-10-26T17:24:00+01:00") },
+        { tenderId: tenderClosed.id, vendorId: nordlog.id, version: 4, hash: h4, viewedAt: at("2026-10-26T08:40:00+01:00"), ackAt: at("2026-10-26T09:15:00+01:00") },
+        { tenderId: tenderClosed.id, vendorId: nordlog.id, version: 5, hash: h5, viewedAt: at("2026-10-26T18:02:00+01:00"), ackAt: at("2026-10-26T18:05:00+01:00") },
+        { tenderId: tenderClosed.id, vendorId: lumen.id, version: 5, hash: h5, viewedAt: at("2026-10-27T19:10:00+01:00"), ackAt: at("2026-10-27T20:03:00+01:00") },
+      ],
+    });
+    const T = tenderClosed.id;
+    await prisma.auditEvent.createMany({
+      data: [
+        ev(T, "dossier_change", paule.id, { version: 2, hash: h2, summary: "Scope clarification: 46 checkout units", postBid: false }, "2026-10-14T11:05:30+02:00"),
+        ev(T, "dossier_viewed", uSportline.id, { version: 2, hash: h2 }, "2026-10-14T13:02:00+02:00"),
+        ev(T, "qa_question", uNordlog.id, { questionId: "q1" }, q1.askedAt),
+        ev(T, "qa_answer", paule.id, { question: q1.question, answer: q1.answer }, q1.answeredAt),
+        ev(T, "dossier_change", paule.id, { version: 3, hash: h3, summary: "Q&A answer published", postBid: true }, "2026-10-25T11:05:01+01:00"),
+        ev(T, "post_bid_change", paule.id, { postBid: true, field: "Q&A answer", before: "(unanswered) " + q1.question, after: q1.answer, version: 3, hash: h3, bidsAtChange: 1 }, "2026-10-25T11:05:02+01:00"),
+        ev(T, "dossier_change", paule.id, { version: 4, hash: h4, summary: "Payment terms clarified", postBid: true }, "2026-10-25T15:30:00+01:00"),
+        ev(T, "post_bid_change", paule.id, { postBid: true, field: "Non-negotiable conditions", before: "Payment terms: 45 days", after: "Payment terms: 45 days end of month, by bank transfer", version: 4, hash: h4, bidsAtChange: 1 }, "2026-10-25T15:30:01+01:00"),
+        ev(T, "dossier_viewed", uNordlog.id, { version: 4, hash: h4 }, "2026-10-26T08:40:00+01:00"),
+        ev(T, "qa_question", uLumen.id, { questionId: "q2" }, q2.askedAt),
+        ev(T, "qa_answer", paule.id, { question: q2.question, answer: q2.answer }, q2.answeredAt),
+        ev(T, "dossier_change", paule.id, { version: 5, hash: h5, summary: "Q&A answer published", postBid: true }, "2026-10-26T16:40:01+01:00"),
+        ev(T, "post_bid_change", paule.id, { postBid: true, field: "Q&A answer", before: "(unanswered) " + q2.question, after: q2.answer, version: 5, hash: h5, bidsAtChange: 2 }, "2026-10-26T16:40:02+01:00"),
+        ev(T, "dossier_viewed", uSportline.id, { version: 5, hash: h5 }, "2026-10-26T17:20:00+01:00"),
+        ev(T, "dossier_ack", uSportline.id, { version: 5, hash: h5 }, "2026-10-26T17:24:00+01:00"),
+        ev(T, "dossier_viewed", uNordlog.id, { version: 5, hash: h5 }, "2026-10-26T18:02:00+01:00"),
+        ev(T, "dossier_ack", uNordlog.id, { version: 5, hash: h5 }, "2026-10-26T18:05:00+01:00"),
+        ev(T, "dossier_viewed", uLumen.id, { version: 5, hash: h5 }, "2026-10-27T19:10:00+01:00"),
+      ],
+    });
+
+    // AO-2026-0004 — open RFQ, one broadcast answer + one pending question
+    const p2c = parseConditions(tenderPub2.nonNegotiables);
+    const qa4 = {
+      question: "Is night-time installation allowed in the Lomme warehouse?",
+      answer: "Yes, between 21:00 and 05:00, with the Decathlon site manager present.",
+      askedAt: "2026-10-29T10:12:00+01:00",
+      answeredAt: "2026-10-30T09:40:00+01:00",
+    };
+    const base4 = { number: tenderPub2.number, title: tenderPub2.title, deadline: tenderPub2.deadline, briefing: tenderPub2.briefing, nonNegotiables: p2c };
+    const g1 = dossierHash({ ...base4, qa: [] });
+    const g2 = dossierHash({ ...base4, qa: [{ id: "a", question: qa4.question, answer: qa4.answer, answeredAt: at(qa4.answeredAt) }] });
+    await prisma.tender.update({ where: { id: tenderPub2.id }, data: { dossierVersion: 2, dossierHash: g2 } });
+    await prisma.tenderQuestion.createMany({
+      data: [
+        { tenderId: tenderPub2.id, askedByVendorId: lumen.id, question: qa4.question, answer: qa4.answer, answeredById: paule.id, askedAt: at(qa4.askedAt), answeredAt: at(qa4.answeredAt) },
+        { tenderId: tenderPub2.id, askedByVendorId: nordlog.id, question: "Can suppliers visit the Lomme site before submitting?", askedAt: at("2026-11-03T16:20:00+01:00") },
+      ],
+    });
+    await prisma.tenderVersion.create({
+      data: { tenderId: tenderPub2.id, changedById: paule.id, summary: "Q&A answer published: night-time installation.", briefing: tenderPub2.briefing, nonNegotiables: tenderPub2.nonNegotiables, createdAt: at(qa4.answeredAt) },
+    });
+    await prisma.dossierReceipt.createMany({
+      data: [
+        { tenderId: tenderPub2.id, vendorId: lumen.id, version: 1, hash: g1, viewedAt: at("2026-10-25T10:02:00+02:00") },
+        { tenderId: tenderPub2.id, vendorId: nordlog.id, version: 2, hash: g2, viewedAt: at("2026-10-30T14:15:00+01:00") },
+      ],
+    });
+    const P = tenderPub2.id;
+    await prisma.auditEvent.createMany({
+      data: [
+        ev(P, "publish", florent.id, { dossierVersion: 1, dossierHash: g1 }, "2026-10-25T09:00:00+02:00"),
+        ev(P, "dossier_viewed", uLumen.id, { version: 1, hash: g1 }, "2026-10-25T10:02:00+02:00"),
+        ev(P, "qa_question", uLumen.id, { questionId: "a" }, qa4.askedAt),
+        ev(P, "qa_answer", paule.id, { question: qa4.question, answer: qa4.answer }, qa4.answeredAt),
+        ev(P, "dossier_change", paule.id, { version: 2, hash: g2, summary: "Q&A answer published", postBid: false }, "2026-10-30T09:40:01+01:00"),
+        ev(P, "dossier_viewed", uNordlog.id, { version: 2, hash: g2 }, "2026-10-30T14:15:00+01:00"),
+        ev(P, "qa_question", uNordlog.id, { questionId: "b" }, "2026-11-03T16:20:00+01:00"),
+      ],
+    });
+
+    // Every other RFQ: v1 hash
+    for (const t of await prisma.tender.findMany({ where: { dossierHash: null }, include: { questions: true } })) {
+      const h = dossierHash({ number: t.number, title: t.title, deadline: t.deadline, briefing: t.briefing, nonNegotiables: parseConditions(t.nonNegotiables), qa: [] });
+      await prisma.tender.update({ where: { id: t.id }, data: { dossierVersion: 1, dossierHash: h } });
+      await prisma.bid.updateMany({ where: { tenderId: t.id, dossierVersion: null }, data: { dossierVersion: 1, dossierHash: h } });
+    }
+
+    // Seal every bid at rest (AES-256-GCM)
+    for (const b of await prisma.bid.findMany()) {
+      await prisma.bid.update({ where: { id: b.id }, data: { payload: sealPayload(b.payload) } });
+    }
+  }
 
   console.log("Decathlon seed OK");
 }

@@ -7,6 +7,8 @@ import { auditActionLabel } from "@/lib/audit-labels";
 import { parseConditions } from "@/lib/conditions";
 import { extractBudget } from "@/lib/budget";
 import { formatParisStamp } from "@/lib/format";
+import { isRevealed, revealBids, logSealedDenied, ensureDossier } from "@/lib/sealed";
+import { parseDetails } from "@/lib/audit-labels";
 
 export const runtime = "nodejs";
 
@@ -35,7 +37,7 @@ function safeText(s: string) {
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {
   const { id } = await ctx.params;
-  await requireUser();
+  const { current } = await requireUser();
   const tender = await prisma.tender.findUnique({
     where: { id },
     include: {
@@ -47,6 +49,11 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     },
   });
   if (!tender) return new NextResponse("Introuvable", { status: 404 });
+  if (current.role === "VENDOR") {
+    await logSealedDenied(id, current.id, "GET /appels-offres/[id]/preuve.pdf", "supplier_role");
+    return new NextResponse("Forbidden", { status: 403 });
+  }
+  const dossier = await ensureDossier(tender);
 
   const events = await prisma.auditEvent.findMany({
     where: { entityType: "Tender", entityId: id },
@@ -107,6 +114,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   line("Buyer: " + tender.createdBy.name + " / " + tender.createdBy.company.name);
   line("Key holders: " + tender.keyAUser.name + " (key A) / " + tender.keyBUser.name + " (key B)");
   if (tender.openedAt) line("Opened: " + formatParisStamp(tender.openedAt, "en"));
+  line("Dossier version: v" + dossier.version + " (identical for every invited supplier)");
+  line("Dossier SHA-256: " + dossier.hash, { size: 8 });
   y -= 8;
   line("Sealed envelope fingerprint (SHA-256)", { bold: true, size: 11 });
   line(seal, { size: 8 });
@@ -143,7 +152,26 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   }
   y -= 6;
 
-line("Audit log (chronological)", { bold: true, size: 11 });
+  const postBid = chain.filter((ev) => ev.action === "post_bid_change");
+  line("Post-bid changes: " + postBid.length, { bold: true, size: 11, color: postBid.length ? rgb(0.62, 0.25, 0.12) : ink });
+  for (const ev of postBid) {
+    const d = parseDetails(ev.details);
+    line("POST-BID CHANGE - " + (d.field ?? "") + " - " + formatParisStamp(ev.createdAt, "en") + " - " + ev.actorName + " - dossier v" + (d.version ?? "?"), { bold: true, size: 9 });
+    const wrap = (label: string, v?: string) => {
+      const txt = (label + (v ?? "")).replace(/\s+/g, " ");
+      for (let i = 0; i < Math.min(txt.length, 440); i += 105) line(txt.slice(i, i + 105), { size: 8 });
+    };
+    wrap("Before: ", d.before);
+    wrap("After: ", d.after);
+    line("hash " + ev.hash, { size: 7, color: soft });
+    y -= 2;
+  }
+  y -= 6;
+  const bidVersions = tender.bids.map((b) => (b.vendor.name + " v" + (b.dossierVersion ?? 1)));
+  if (bidVersions.length) line("Bids submitted against dossier: " + bidVersions.join(", "), { size: 9 });
+  y -= 6;
+
+  line("Audit log (chronological)", { bold: true, size: 11 });
   for (const ev of chain) {
     const actionTitle =
       ev.action === "validation_ok"
@@ -156,11 +184,9 @@ line("Audit log (chronological)", { bold: true, size: 11 });
   }
   y -= 8;
   line("Offers (if revealed)", { bold: true, size: 11 });
-  if (tender.status === "opened" || tender.status === "awarded") {
-    for (const b of tender.bids) {
-      let price = "?";
-      try { price = String((JSON.parse(b.payload) as { price: number }).price); } catch {}
-      line(b.vendor.name + " - " + price + " EUR / " + formatParisStamp(b.submittedAt, "en"), { size: 9 });
+  if (isRevealed(tender)) {
+    for (const b of revealBids(tender, tender.bids)) {
+      line(b.vendor.name + " - " + String(b.data.price) + " EUR / " + formatParisStamp(b.submittedAt, "en"), { size: 9 });
     }
   } else {
     line("Envelopes still sealed.", { size: 9, color: soft });
