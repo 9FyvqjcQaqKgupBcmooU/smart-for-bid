@@ -62,8 +62,13 @@ export function RoleSwitcher({
             u.id === currentId ? "bg-cobalt-soft font-medium text-ink" : "text-ink hover:bg-paper-2"
           )}
         >
-          <span>{u.name}</span>
-          <span className="inline-flex items-center rounded-full bg-paper px-2 py-0.5 text-[12px] font-medium text-ink-soft">
+          <span className="min-w-0 flex-1">
+            <span className="block truncate">{u.name}</span>
+            {u.vendor?.name && u.vendor.name !== u.name ? (
+              <span className="block truncate text-[12px] text-ink-soft">{u.vendor.name}</span>
+            ) : null}
+          </span>
+          <span className="inline-flex shrink-0 items-center rounded-full bg-paper px-2 py-0.5 text-[12px] font-medium text-ink-soft">
             {roleLabel(locale, u.role)}
           </span>
         </button>

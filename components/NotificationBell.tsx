@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { markAllRead, markNotificationRead } from "@/app/actions/session";
-import { formatDateTime } from "@/lib/format";
+import { formatParisStamp } from "@/lib/format";
 import { t, type Locale } from "@/lib/i18n";
 
 type N = {
@@ -36,7 +36,7 @@ export function NotificationBell({ items, locale = "en" }: { items: N[]; locale?
         )}
       </button>
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[360px] overflow-hidden rounded-lg border border-line bg-paper shadow-lg">
+        <div className="absolute right-0 z-50 mt-2 w-[min(100vw-1.5rem,22rem)] overflow-hidden rounded-lg border border-line bg-paper shadow-lg">
           <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
             <span className="text-[15px] font-medium">{t(locale, "chrome.notifications")}</span>
             <form action={markAllRead}>
@@ -62,7 +62,7 @@ export function NotificationBell({ items, locale = "en" }: { items: N[]; locale?
                     {!n.read && <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-ink" />}
                   </div>
                   <p className="mt-1 text-[13px] leading-[18px] text-ink-soft">{n.body}</p>
-                  <p className="mt-1 text-[12px] text-ink-soft/80">{formatDateTime(n.createdAt, locale)}</p>
+                  <p className="mt-1 text-[12px] text-ink-soft/80">{formatParisStamp(n.createdAt, locale)}</p>
                 </Link>
               </li>
             ))}

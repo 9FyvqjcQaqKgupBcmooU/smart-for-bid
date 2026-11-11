@@ -4,6 +4,7 @@ import { ShellFrame } from "./ShellFrame";
 import { getLocale } from "@/lib/i18n/server";
 import { t } from "@/lib/i18n";
 import { getThemePreference } from "@/lib/theme";
+import { PreviewBanner } from "./PreviewBanner";
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const locale = await getLocale();
@@ -23,6 +24,14 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   const company = await prisma.company.findFirst({ where: { id: current.companyId } });
   const isSupplier = current.role === "VENDOR";
   const canCreate = current.role === "BUYER" || current.role === "N4";
+  const notifications = await prisma.notification.findMany({
+    where: {
+      userId: current.id,
+      OR: [{ href: { startsWith: "/appels-offres" } }, { title: { contains: "AO-2026" } }],
+    },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
 
   return (
     <ShellFrame
@@ -33,6 +42,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       companyName={company?.legalName ?? company?.name}
       current={current}
       users={users}
+      notifications={notifications}
+      banner={<PreviewBanner />}
     >
       {children}
     </ShellFrame>

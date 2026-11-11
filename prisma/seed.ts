@@ -51,7 +51,7 @@ export async function seedDemo(prisma: PrismaClient) {
       iban: "FR76 3000 6000 0112 3456 7890 189",
       email: "facturation@sportline.fr",
       city: "Roubaix",
-      category: "Équipement sportif",
+      category: "Sports equipment",
     },
   });
   const nordlog = await prisma.vendor.create({
@@ -62,7 +62,7 @@ export async function seedDemo(prisma: PrismaClient) {
       iban: "FR76 3000 4000 0412 0001 3344 512",
       email: "ops@nordlog.fr",
       city: "Dunkerque",
-      category: "Logistique et services sur site",
+      category: "Logistics and on-site services",
     },
   });
   const lumen = await prisma.vendor.create({
@@ -161,40 +161,40 @@ export async function seedDemo(prisma: PrismaClient) {
   const uSportline = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Sportline SAS",
+      name: "Claire P.",
       email: "portail@sportline.fr",
       role: "VENDOR",
-      title: "Supplier portal",
+      title: "Supplier contact — Sportline SAS",
       vendorId: sportline.id,
     },
   });
   const uNordlog = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "NordLog",
+      name: "Marc D.",
       email: "portail@nordlog.fr",
       role: "VENDOR",
-      title: "Supplier portal",
+      title: "Supplier contact — NordLog",
       vendorId: nordlog.id,
     },
   });
   const uLumen = await prisma.user.create({
     data: {
       companyId: company.id,
-      name: "Atelier Lumen",
+      name: "Sophie B.",
       email: "portail@atelier-lumen.fr",
       role: "VENDOR",
-      title: "Supplier portal",
+      title: "Supplier contact — Atelier Lumen",
       vendorId: lumen.id,
     },
   });
 
   await prisma.approvalThreshold.createMany({
     data: [
-      { minAmount: 0, maxAmount: 999.99, levels: JSON.stringify(["N+1"]), label: "Moins de 1 000 € HT — N+1 seul" },
-      { minAmount: 1000, maxAmount: 9999.99, levels: JSON.stringify(["N+1", "N+2"]), label: "1 000 – 9 999 € HT — N+1 puis N+2" },
-      { minAmount: 10000, maxAmount: 49999.99, levels: JSON.stringify(["N+1", "N+2", "N+3"]), label: "10 000 – 49 999 € HT — jusqu'à N+3" },
-      { minAmount: 50000, maxAmount: null, levels: JSON.stringify(["N+1", "N+2", "N+3", "N+4"]), label: "≥ 50 000 € HT — jusqu'à N+4 (CFO)" },
+      { minAmount: 0, maxAmount: 999.99, levels: JSON.stringify(["N+1"]), label: "Under €1,000 excl. VAT — N+1 only" },
+      { minAmount: 1000, maxAmount: 9999.99, levels: JSON.stringify(["N+1", "N+2"]), label: "€1,000–€9,999 excl. VAT — N+1 then N+2" },
+      { minAmount: 10000, maxAmount: 49999.99, levels: JSON.stringify(["N+1", "N+2", "N+3"]), label: "€10,000–€49,999 excl. VAT — up to N+3" },
+      { minAmount: 50000, maxAmount: null, levels: JSON.stringify(["N+1", "N+2", "N+3", "N+4"]), label: "€50,000+ excl. VAT — up to N+4 (CFO)" },
     ],
   });
 
@@ -1065,44 +1065,44 @@ Renewal of 24 laptops + docking for the purchasing team.` + budget(42000);
         userId: claireA.id,
         title: "Envelopes ready to open — AO-2026-0001",
         body: "The 31 Oct 10:00 Paris time deadline has passed. 3 sealed envelopes. Florent G. must be present.",
-        href: "/appels-offres",
-        createdAt: new Date("2026-08-20T17:01:00+02:00"),
+        href: `/appels-offres/${tenderClosed.id}?tab=cles`,
+        createdAt: new Date("2026-10-31T10:05:00+01:00"),
       },
       {
         userId: florent.id,
         title: "Two-key opening — AO-2026-0001",
         body: "3 sealed envelopes (Sportline, NordLog, Atelier Lumen). Opening with Claire A.",
-        href: "/appels-offres",
-        createdAt: new Date("2026-08-20T17:01:00+02:00"),
+        href: `/appels-offres/${tenderClosed.id}?tab=cles`,
+        createdAt: new Date("2026-10-31T10:05:00+01:00"),
       },
       {
         userId: paule.id,
         title: "Addendum notified to bidders",
         body: "AO-2026-0001: brief updated on 14 Oct. Sportline, NordLog and Atelier Lumen notified.",
-        href: "/appels-offres",
-        createdAt: new Date("2026-08-12T11:06:00+02:00"),
+        href: `/appels-offres/${tenderClosed.id}?tab=historique`,
+        createdAt: new Date("2026-10-14T11:06:00+02:00"),
         read: true,
       },
       {
         userId: uSportline.id,
         title: "Addendum AO-2026-0001",
         body: "The brief has changed: 46 checkout displays instead of 38. Your submitted bid remains valid.",
-        href: "/appels-offres",
-        createdAt: new Date("2026-08-12T11:06:00+02:00"),
+        href: `/appels-offres/${tenderClosed.id}`,
+        createdAt: new Date("2026-10-14T11:06:00+02:00"),
       },
       {
         userId: uNordlog.id,
         title: "Addendum AO-2026-0001",
         body: "The brief has changed: 46 checkout displays instead of 38.",
-        href: "/appels-offres",
-        createdAt: new Date("2026-08-12T11:06:00+02:00"),
+        href: `/appels-offres/${tenderClosed.id}`,
+        createdAt: new Date("2026-10-14T11:06:00+02:00"),
       },
       {
         userId: uLumen.id,
         title: "Addendum AO-2026-0001",
         body: "The brief has changed: 46 checkout displays instead of 38.",
-        href: "/appels-offres",
-        createdAt: new Date("2026-08-12T11:06:00+02:00"),
+        href: `/appels-offres/${tenderClosed.id}`,
+        createdAt: new Date("2026-10-14T11:06:00+02:00"),
       },
       {
         userId: uSportline.id,

@@ -305,22 +305,11 @@ export default async function TenderDetail({
               </div>
             ) : null}
             {canDeposit ? (
-              <form action={submitBid} className="grid grid-cols-1 gap-3 rounded-xl border border-line p-4 sm:grid-cols-2">
-                <input type="hidden" name="tenderId" value={tender.id} />
-                <div className="col-span-full">
-                  <ConditionsAccept items={conditions} />
-                </div>
-                <label className="text-[14px] font-medium text-ink">
-                  Price excl. VAT (€)
-                  <input name="price" required className="mt-1 min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
-                </label>
-                <label className="text-[14px] font-medium text-ink">
-                  Lead time (days)
-                  <input name="leadTimeDays" required type="number" className="mt-1 min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
-                </label>
-                <textarea name="comments" rows={2} placeholder="Comments" className="col-span-full min-h-10 rounded-2xl border border-line px-4 py-2 text-[14px]" />
-                <button className={btnPrimary("col-span-full min-h-11")}>{myBid ? "Replace bid" : "Submit bid"}</button>
-              </form>
+              <p className="text-[14px]">
+                <Link href="?tab=offres" className="font-semibold text-cobalt hover:underline">
+                  {myBid ? "Replace your bid on the My bid tab" : "Submit your bid on the My bid tab"}
+                </Link>
+              </p>
             ) : null}
             {(current.role === "BUYER" || current.id === tender.createdById) && tender.status !== "awarded" && tender.status !== "opened" ? (
               <details className="rounded-xl border border-line p-4">
@@ -356,9 +345,27 @@ export default async function TenderDetail({
               <p className="mt-1 text-[13px] text-ink/65">
                 {myBid
                   ? `Received ${formatParisStamp(myBid.submittedAt, locale)} against dossier v${myBid.dossierVersion ?? 1}. Other suppliers' bids are never shown.`
-                  : "Submit your bid from the Brief tab before the deadline."}
+                  : "Complete the form below and accept the conditions before the deadline. Other suppliers never see your amount."}
               </p>
             </div>
+            {canDeposit ? (
+              <form action={submitBid} className="grid grid-cols-1 gap-3 rounded-xl border border-line p-4 sm:grid-cols-2">
+                <input type="hidden" name="tenderId" value={tender.id} />
+                <div className="col-span-full">
+                  <ConditionsAccept items={conditions} />
+                </div>
+                <label className="text-[14px] font-medium text-ink">
+                  Price excl. VAT (€)
+                  <input name="price" required className="mt-1 min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
+                </label>
+                <label className="text-[14px] font-medium text-ink">
+                  Lead time (days)
+                  <input name="leadTimeDays" required type="number" className="mt-1 min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
+                </label>
+                <textarea name="comments" rows={2} placeholder="Comments" className="col-span-full min-h-10 rounded-2xl border border-line px-4 py-2 text-[14px]" />
+                <button className={btnPrimary("col-span-full min-h-11")}>{myBid ? "Replace bid" : "Submit bid"}</button>
+              </form>
+            ) : null}
           </div>
         ) : null}
 

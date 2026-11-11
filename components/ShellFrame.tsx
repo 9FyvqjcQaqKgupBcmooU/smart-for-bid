@@ -5,7 +5,7 @@ import { NavSidebar } from "./NavSidebar";
 import { TopBar } from "./TopBar";
 import type { Locale } from "@/lib/i18n";
 import type { ThemePreference } from "@/lib/theme";
-import type { User, Vendor } from "@prisma/client";
+import type { User, Vendor, Notification } from "@prisma/client";
 
 type U = User & { vendor: Vendor | null };
 
@@ -17,6 +17,8 @@ export function ShellFrame({
   companyName,
   current,
   users,
+  notifications = [],
+  banner,
   children,
 }: {
   locale: Locale;
@@ -26,6 +28,8 @@ export function ShellFrame({
   companyName?: string;
   current: U;
   users: U[];
+  notifications?: Notification[];
+  banner?: ReactNode;
   children: ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -37,7 +41,9 @@ export function ShellFrame({
         locale={locale}
         theme={theme}
         onMenu={() => setMobileOpen(true)}
+        notifications={notifications}
       />
+      {banner}
       <div className="relative flex min-h-0 flex-1 md:overflow-hidden">
         <NavSidebar
           locale={locale}

@@ -58,16 +58,16 @@ export function BriefEditor({ name = "briefing", defaultValue = "", rows = 10, r
     <div className="space-y-2">
       <div className="flex flex-wrap gap-1.5">
         <button type="button" className={btn} onClick={() => taRef.current && wrapSelection(taRef.current, "## ", "", setValue)}>
-          Titre
+          Heading
         </button>
         <button type="button" className={btn} onClick={() => taRef.current && wrapSelection(taRef.current, "**", "**", setValue)}>
-          Gras
+          Bold
         </button>
         <button type="button" className={btn} onClick={() => taRef.current && wrapSelection(taRef.current, "*", "*", setValue)}>
-          Italique
+          Italic
         </button>
         <button type="button" className={btn} onClick={() => taRef.current && wrapSelection(taRef.current, "- ", "", setValue)}>
-          Liste
+          List
         </button>
         <button
           type="button"
@@ -81,7 +81,7 @@ export function BriefEditor({ name = "briefing", defaultValue = "", rows = 10, r
           className={btn}
           onClick={() => taRef.current && wrapSelection(taRef.current, "[", "](https://)", setValue)}
         >
-          Lien
+          Link
         </button>
         <button
           type="button"
@@ -90,16 +90,16 @@ export function BriefEditor({ name = "briefing", defaultValue = "", rows = 10, r
             taRef.current &&
             wrapSelection(
               taRef.current,
-              "| Colonne | Colonne |\n| --- | --- |\n| ",
+              "| Column | Column |\n| --- | --- |\n| ",
               " |  |\n",
               setValue
             )
           }
         >
-          Tableau
+          Table
         </button>
         <button type="button" className={btn} disabled={busy} onClick={() => fileRef.current?.click()}>
-          {busy ? "Import…" : "Importer un document"}
+          {busy ? "Importing…" : "Import a document"}
         </button>
         <input
           ref={fileRef}
@@ -124,7 +124,7 @@ export function BriefEditor({ name = "briefing", defaultValue = "", rows = 10, r
         onChange={(e) => setValue(e.target.value)}
         className="w-full rounded-md border border-line bg-paper px-3 py-2 font-mono text-[14px] leading-5"
       />
-      <p className="text-[12px] text-ink-soft">Markdown — titres, gras, listes, liens, tableaux simples.</p>
+      <p className="text-[12px] text-ink-soft">Markdown — headings, bold, lists, links, simple tables.</p>
     </div>
   );
 }

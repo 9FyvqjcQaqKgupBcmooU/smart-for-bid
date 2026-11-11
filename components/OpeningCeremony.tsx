@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { unlockTender } from "@/app/actions/tenders";
 import { switchUser } from "@/app/actions/session";
 import { t, type Locale } from "@/lib/i18n";
@@ -34,6 +35,7 @@ export function OpeningCeremony({
   demo?: boolean;
 }) {
   const past = Date.now() >= new Date(deadline).getTime();
+  const router = useRouter();
   const [msg, setMsg] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const myLock = currentUserId === officerA.id ? "A" : currentUserId === officerB.id ? "B" : null;
@@ -55,6 +57,11 @@ export function OpeningCeremony({
     formData.set("password", pw);
     const res = await unlockTender(formData);
     setPending(false);
+    if (res && "ok" in res && res.ok) {
+      setMsg(t(locale, "opening.unlocked", { name: firstName(currentName) }));
+      router.refresh();
+      return;
+    }
     if (res && "ok" in res && !res.ok) {
       const reason =
         res.reason === "wrong_officer"

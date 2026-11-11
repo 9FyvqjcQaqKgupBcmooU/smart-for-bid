@@ -39,11 +39,11 @@ export async function createTender(formData: FormData) {
   const deadline = String(formData.get("deadline") ?? "");
   const vendorIds = formData.getAll("vendorId").map(String);
   const requisitionId = String(formData.get("requisitionId") ?? "").trim();
-  if (!title || !briefing || !deadline) throw new Error("Champs obligatoires manquants");
+  if (!title || !briefing || !deadline) throw new Error("Required fields missing");
 
   const claireA = await prisma.user.findFirst({ where: { role: "OPENING_A" } });
   const florent = await prisma.user.findFirst({ where: { role: "VALIDATOR" } });
-  if (!claireA || !florent) throw new Error("Officiers / valideur introuvables");
+  if (!claireA || !florent) throw new Error("Opening officers or approver not found");
 
   const company = await prisma.company.findFirst();
   const defaults = company ? parseConditions(company.nonNegotiables) : [...DEMO_NON_NEGOTIABLES];
@@ -131,7 +131,7 @@ export async function updateBriefing(formData: FormData) {
   const briefing = String(formData.get("briefing") ?? "");
   const summary = String(formData.get("summary") ?? "").trim() || "Brief update";
   const t = await prisma.tender.findUnique({ where: { id }, include: { invites: true } });
-  if (!t) throw new Error("AO introuvable");
+  if (!t) throw new Error("RFQ not found");
   if (t.status === "opened" || t.status === "awarded") throw new Error("RFQ already opened");
   await ensureDossier(t);
 
@@ -262,14 +262,14 @@ export async function acknowledgeDossier(formData: FormData) {
 /** Acheteur : soumet le brouillon au valideur N+1 (avec mots de passe des clés). */
 export async function requestValidation(formData: FormData) {
   const { current } = await requireUser();
-  if (current.role !== "BUYER") throw new Error("Seul l'acheteur peut demander la validation");
+  if (current.role !== "BUYER") throw new Error("Only the buyer can submit for approval");
   const id = String(formData.get("id"));
   const passA = String(formData.get("passA") ?? "");
   const passB = String(formData.get("passB") ?? "");
   if (passA.length < 6 || passB.length < 6) throw new Error("Both passwords must be at least 6 characters");
   const t = await prisma.tender.findUnique({ where: { id } });
-  if (!t) throw new Error("AO introuvable");
-  if (t.status !== "draft" && t.status !== "pending_validation") throw new Error("Statut incompatible");
+  if (!t) throw new Error("RFQ not found");
+  if (t.status !== "draft" && t.status !== "pending_validation") throw new Error("This RFQ cannot be submitted for approval");
 
   const validatorId = t.validatorId || (await prisma.user.findFirst({ where: { role: "VALIDATOR" } }))?.id;
   if (!validatorId) throw new Error("No N+1 approver");
@@ -304,11 +304,11 @@ export async function requestValidation(formData: FormData) {
 /** Valideur N+1 : publie auprès des fournisseurs. */
 export async function validateTender(formData: FormData) {
   const { current } = await requireUser();
-  if (current.role !== "VALIDATOR") throw new Error("Seul le valideur N+1 peut valider");
+  if (current.role !== "VALIDATOR") throw new Error("Only the N+1 approver can publish");
   const id = String(formData.get("id"));
   const t = await prisma.tender.findUnique({ where: { id }, include: { invites: true } });
-  if (!t) throw new Error("AO introuvable");
-  if (t.status !== "pending_validation") throw new Error("AO non en attente de validation");
+  if (!t) throw new Error("RFQ not found");
+  if (t.status !== "pending_validation") throw new Error("This RFQ is not pending approval");
   if (t.validatorId && t.validatorId !== current.id) throw new Error("You are not the approver for this RFQ");
 
   await prisma.tender.update({
@@ -338,13 +338,13 @@ export async function validateTender(formData: FormData) {
 /** Valideur N+1 : renvoie au brouillon avec commentaire. */
 export async function returnTender(formData: FormData) {
   const { current } = await requireUser();
-  if (current.role !== "VALIDATOR") throw new Error("Seul le valideur N+1 peut renvoyer");
+  if (current.role !== "VALIDATOR") throw new Error("Only the N+1 approver can return this RFQ");
   const id = String(formData.get("id"));
   const comment = String(formData.get("comment") ?? "").trim();
-  if (!comment) throw new Error("Un commentaire est obligatoire pour renvoyer");
+  if (!comment) throw new Error("A comment is required to return this RFQ");
   const t = await prisma.tender.findUnique({ where: { id } });
-  if (!t) throw new Error("AO introuvable");
-  if (t.status !== "pending_validation") throw new Error("AO non en attente de validation");
+  if (!t) throw new Error("RFQ not found");
+  if (t.status !== "pending_validation") throw new Error("This RFQ is not pending approval");
 
   await prisma.tender.update({
     where: { id },
@@ -400,9 +400,9 @@ export async function submitBid(formData: FormData) {
   if (current.role !== "VENDOR" || !current.vendorId) throw new Error("Only a supplier can submit a bid");
   const tenderId = String(formData.get("tenderId"));
   const t = await prisma.tender.findUnique({ where: { id: tenderId } });
-  if (!t) throw new Error("AO introuvable");
+  if (!t) throw new Error("RFQ not found");
   if (new Date() > t.deadline) throw new Error("Deadline passed");
-  if (t.status !== "published") throw new Error("AO non ouvert aux offres");
+  if (t.status !== "published") throw new Error("This RFQ is not open for bids");
 
   const items = parseConditions(t.nonNegotiables);
   const ticked = formData.getAll("conditionAccept").map(String);
@@ -476,7 +476,7 @@ export async function unlockTender(formData: FormData) {
   const lock = String(formData.get("lock"));
   const password = String(formData.get("password") ?? "");
   const t = await prisma.tender.findUnique({ where: { id } });
-  if (!t) throw new Error("AO introuvable");
+  if (!t) throw new Error("RFQ not found");
   if (new Date() < t.deadline) throw new Error("Opening not possible before the deadline");
 
   const expectedUser = lock === "A" ? t.keyAUserId : t.keyBUserId;
@@ -520,11 +520,11 @@ export async function awardBid(formData: FormData) {
     where: { id: tenderId },
     include: { bids: true },
   });
-  if (!t) throw new Error("AO introuvable");
+  if (!t) throw new Error("RFQ not found");
   if (current.role === "VENDOR") throw new Error("Not authorized");
   if (t.status !== "opened" || !isRevealed(t)) {
     await logSealedDenied(tenderId, current.id, "action:awardBid", "not_opened");
-    throw new Error("AO non encore ouvert");
+    throw new Error("Envelopes are still sealed");
   }
   await prisma.tender.update({ where: { id: tenderId }, data: { status: "awarded", awardedBidId: bidId } });
   const bid = t.bids.find((b) => b.id === bidId);
@@ -547,7 +547,7 @@ export async function updateOrgNonNegotiables(formData: FormData) {
     throw new Error("Not authorized");
   }
   const company = await prisma.company.findFirst();
-  if (!company) throw new Error("Organisation introuvable");
+  if (!company) throw new Error("Organisation not found");
   const items = parseConditions(String(formData.get("nonNegotiables") ?? "[]"));
   await prisma.company.update({
     where: { id: company.id },

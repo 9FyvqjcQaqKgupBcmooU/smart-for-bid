@@ -23,8 +23,10 @@ function ensureDemoDb(): string {
       if (fs.existsSync(bundled)) {
         // Explicit BID_DEMO_DB_PATH (e2e): never clobber an existing copy — HMR
         // overwrite corrupted open SQLite handles. Preview default path refreshes.
-        const pinned = Boolean(process.env.BID_DEMO_DB_PATH);
-        if (!pinned || !fs.existsSync(target) || process.env.BID_DEMO_DB_FORCE_COPY === "1") {
+        // Never clobber an existing copy: a warm preview instance must keep
+        // writes (key unlocks, bids). Fresh instances have an empty /tmp.
+        const force = process.env.BID_DEMO_DB_FORCE_COPY === "1";
+        if (force || !fs.existsSync(target)) {
           fs.copyFileSync(bundled, target);
         }
       }

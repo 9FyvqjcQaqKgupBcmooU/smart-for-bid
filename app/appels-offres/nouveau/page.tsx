@@ -7,20 +7,21 @@ import { BriefEditor } from "@/components/BriefEditor";
 import { ConditionsEditor } from "@/components/ConditionsEditor";
 import { DeadlineField } from "@/components/DeadlineField";
 import { parseConditions, DEMO_NON_NEGOTIABLES } from "@/lib/conditions";
+import { toParisLocalInput } from "@/lib/paris-time";
 
 export default async function NewTender() {
   const locale = await getLocale();
   const vendors = await prisma.vendor.findMany({ orderBy: { name: "asc" } });
   const company = await prisma.company.findFirst();
   const deadline = new Date(Date.now() + 7 * 86400000);
-  const local = new Date(deadline.getTime() - deadline.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const local = toParisLocalInput(deadline);
   const briefing = t(locale, "ao.defaultBriefing");
   const defaults = company ? parseConditions(company.nonNegotiables) : [...DEMO_NON_NEGOTIABLES];
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex min-h-11 shrink-0 items-center border-b border-line px-4 py-2">
-        <p className="text-[14px] text-ink-soft">{t(locale, "ao.newFrom", { from: "" })}</p>
+        <p className="text-[16px] font-semibold text-ink">{t(locale, "shell.newRfq")}</p>
       </div>
       <form action={createTender} className="flex min-h-0 flex-1 flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
@@ -32,7 +33,7 @@ export default async function NewTender() {
             <DeadlineField name="deadline" defaultValue={local} locale={locale} label={t(locale, "ao.deadlineLabel")} />
             <fieldset className="text-[14px]">
               <legend>{t(locale, "ao.invitedVendors")}</legend>
-              <div className="mt-1 max-h-28 space-y-1 overflow-y-auto">
+              <div className="mt-1 max-h-44 space-y-1 overflow-y-auto">
                 {vendors.map((v) => (
                   <label key={v.id} className="flex min-h-10 items-center gap-2">
                     <input type="checkbox" name="vendorId" value={v.id} defaultChecked className="h-5 w-5" />

@@ -78,7 +78,7 @@ function DeadlineCell({ locale, deadline, status }: { locale: Locale; deadline: 
   return (
     <div className="flex flex-col gap-0.5">
       {primary}
-      <span className="num text-[11px] text-ink/55">{stamp}</span>
+      <span className="num text-[11px] text-ink-soft">{stamp}</span>
     </div>
   );
 }
@@ -106,7 +106,7 @@ function SortLink({
   sp.set("sort", col);
   sp.set("dir", nextDir);
   return (
-    <Link href={`/?${sp.toString()}`} className={cn("inline-flex items-center gap-1 hover:text-ink", active ? "text-ink" : "text-ink/60")}>
+    <Link href={`/?${sp.toString()}`} className={cn("inline-flex items-center gap-1 hover:text-ink", active ? "text-ink" : "text-ink-soft")}>
       {label}
       <span className="num text-[10px]">{active ? (dir === "asc" ? "↑" : "↓") : "↕"}</span>
     </Link>
@@ -162,16 +162,16 @@ function MobileCard({
         <StatusPill status={status} locale={locale} />
       </div>
       <p className="mt-1.5 line-clamp-2 text-[14px] font-semibold leading-5 text-ink">{row.title}</p>
-      {row.category ? <p className="mt-0.5 truncate text-[11px] text-ink/55">{row.category}</p> : null}
+      {row.category ? <p className="mt-0.5 truncate text-[11px] text-ink-soft">{row.category}</p> : null}
       <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-ink/70">
         <span className="inline-flex min-w-0 items-baseline gap-1.5">
           {primary ?? <span className="num text-ink/65">{stamp}</span>}
-          {primary ? <span className="num text-[11px] text-ink/50">{stamp}</span> : null}
+          {primary ? <span className="num text-[11px] text-ink-soft">{stamp}</span> : null}
         </span>
         {!isSupplier ? (
           <>
             <span className="num font-medium text-ink">
-              {row.bidCount}/{row.inviteCount} <span className="font-normal text-ink/55">{t(locale, "shell.colOffers").toLowerCase()}</span>
+              {row.bidCount}/{row.inviteCount} <span className="font-normal text-ink-soft">{t(locale, "shell.colOffers").toLowerCase()}</span>
             </span>
             <span className="inline-flex items-center gap-1 font-medium text-ink/70">
               <SealMark state={seal} size={14} />
@@ -183,10 +183,10 @@ function MobileCard({
           </>
         ) : (
           <>
-            <span className={row.myOfferSealed ? "font-medium text-cobalt" : "text-ink/60"}>
+            <span className={row.myOfferSealed ? "font-medium text-cobalt" : "text-ink-soft"}>
               {row.myOfferSealed ? t(locale, "shell.offerSealed") : t(locale, "shell.offerNone")}
             </span>
-            <span className="num text-ink/55">
+            <span className="num text-ink-soft">
               {row.myOfferSubmittedAt ? formatParisStamp(row.myOfferSubmittedAt, locale) : "—"}
             </span>
             <span className="ml-auto">
@@ -260,7 +260,7 @@ export function AOTable({
         <h1 className="text-[17px] font-semibold tracking-tight text-ink">
           {isSupplier ? t(locale, "shell.dashboardSupplier") : t(locale, "shell.dashboard")}
         </h1>
-        <span className="num text-[12px] font-medium text-ink/60">{sorted.length}</span>
+        <span className="num text-[12px] font-medium text-ink-soft">{sorted.length}</span>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           {canCreate ? (
             <Link href="/appels-offres/nouveau" className="inline-flex min-h-9 items-center rounded-full bg-cobalt px-3.5 text-[13px] font-semibold text-paper hover:opacity-90">
@@ -289,14 +289,14 @@ export function AOTable({
               >
                 {k.value}
               </div>
-              <div className="mt-0.5 text-[11px] text-ink/55">{k.hint}</div>
+              <div className="mt-0.5 text-[11px] text-ink-soft">{k.hint}</div>
             </div>
           ))}
         </div>
       ) : null}
 
       <div
-        className="flex shrink-0 items-center gap-0 overflow-x-auto border-b border-line px-2 [-ms-overflow-style:none] [scrollbar-width:none] md:px-4 [&::-webkit-scrollbar]:hidden"
+        className="flex w-full min-w-0 flex-wrap items-center gap-0 border-b border-line px-2 md:px-4"
         role="tablist"
       >
         {views.filter((x) => !x.hide).map((tab) => {
@@ -314,7 +314,7 @@ export function AOTable({
               )}
             >
               {tab.label}
-              <span className={cn("num ml-1.5 text-[11px]", active ? "text-cobalt" : "text-ink/50")}>{count}</span>
+              <span className={cn("num ml-1.5 text-[11px]", active ? "text-cobalt" : "text-ink-soft")}>{count}</span>
               {active ? <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-cobalt" /> : null}
             </Link>
           );
@@ -345,7 +345,7 @@ export function AOTable({
 
             {/* Desktop table */}
             <table className="hidden w-full border-collapse text-left text-[13px] md:table">
-              <thead className="sticky top-0 z-10 bg-paper-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink/60">
+              <thead className="sticky top-0 z-10 bg-paper-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft">
                 <tr className="border-b border-line">
                   <th className="px-4 py-2.5 md:px-6"><SortLink sort={sort} dir={dir} view={v} q={q} col="ref" label={t(locale, "shell.colRef")} /></th>
                   <th className="px-2 py-2"><SortLink sort={sort} dir={dir} view={v} q={q} col="title" label={t(locale, "shell.colTitle")} /></th>
@@ -378,7 +378,7 @@ export function AOTable({
                       </td>
                       <td className="max-w-[280px] px-2.5 py-2.5">
                         <Link href={href} className="block truncate font-semibold text-ink hover:underline">{row.title}</Link>
-                        {row.category ? <div className="truncate text-[11px] text-ink/55">{row.category}</div> : null}
+                        {row.category ? <div className="truncate text-[11px] text-ink-soft">{row.category}</div> : null}
                       </td>
                       <td className="px-2.5 py-2.5"><StatusPill status={status} locale={locale} /></td>
                       <td className="px-2.5 py-2.5">
@@ -406,7 +406,7 @@ export function AOTable({
                                 {t(locale, "shell.offerSealed")}
                               </span>
                             ) : (
-                              <span className="text-ink/60">{t(locale, "shell.offerNone")}</span>
+                              <span className="text-ink-soft">{t(locale, "shell.offerNone")}</span>
                             )}
                           </td>
                           <td className="num px-2 py-2 text-ink/65">

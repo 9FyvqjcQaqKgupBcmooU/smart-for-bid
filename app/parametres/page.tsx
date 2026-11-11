@@ -1,6 +1,5 @@
 import { prisma } from "@/lib/prisma";
 import { roleLabel } from "@/lib/roles";
-import { formatEUR } from "@/lib/format";
 import { getLocale } from "@/lib/i18n/server";
 import { t } from "@/lib/i18n";
 import { isDemo } from "@/lib/demo";
@@ -10,100 +9,94 @@ import { updateOrgNonNegotiables } from "@/app/actions/tenders";
 import { parseConditions, DEMO_NON_NEGOTIABLES } from "@/lib/conditions";
 import { btnPrimary } from "@/components/chrome";
 
+const BID_ROLES = new Set(["BUYER", "VALIDATOR", "OPENING_A", "OPENING_B", "VENDOR"]);
+
 export default async function ParametresPage() {
   const locale = await getLocale();
   const company = await prisma.company.findFirst();
-  const [thresholds, accounts, users, vendors] = await Promise.all([
-    prisma.approvalThreshold.findMany({ orderBy: { minAmount: "asc" } }),
-    prisma.chartOfAccount.findMany({ orderBy: { code: "asc" } }),
-    prisma.user.findMany({ include: { vendor: true }, orderBy: { name: "asc" } }),
+  const [users, vendors] = await Promise.all([
+    prisma.user.findMany({
+      where: { role: { in: [...BID_ROLES] } },
+      include: { vendor: true },
+      orderBy: { name: "asc" },
+    }),
     prisma.vendor.findMany({ orderBy: { name: "asc" } }),
   ]);
   return (
-    <div className="h-full overflow-x-hidden overflow-y-auto px-3 py-4 md:px-6">
-      <p className="mb-3 text-[13px] text-ink-soft">{t(locale, "settings.title")}</p>
-      
-      <section className="paper-card mb-4 max-w-5xl rounded-md p-3" data-testid="non-negotiables-settings">
-        <h2 className="text-[13px] font-semibold">Non-negotiable conditions (organisation)</h2>
-        <p className="mt-0.5 text-[12px] leading-4 text-ink-soft">
-          Default list for every new Decathlon RFQ. Untick to drop from defaults; buyer can still adjust per RFQ.
+    <div className="h-full overflow-x-hidden overflow-y-auto px-4 py-5 md:px-6">
+      <h1 className="mb-4 text-[18px] font-semibold tracking-tight text-ink">{t(locale, "settings.title")}</h1>
+
+      <section className="paper-card mb-4 max-w-5xl rounded-2xl p-4" data-testid="non-negotiables-settings">
+        <h2 className="text-[14px] font-semibold text-ink">Non-negotiable conditions</h2>
+        <p className="mt-1 text-[13px] leading-5 text-ink-soft">
+          Default list for every new Decathlon RFQ. Untick to drop from the defaults; the buyer can still adjust per RFQ.
         </p>
-        <form action={updateOrgNonNegotiables} className="mt-2 space-y-2">
+        <form action={updateOrgNonNegotiables} className="mt-3 space-y-2">
           <ConditionsEditor
             name="nonNegotiables"
             defaultItems={company ? parseConditions(company.nonNegotiables) : [...DEMO_NON_NEGOTIABLES]}
           />
-          <button className={btnPrimary() + " min-h-9 text-[13px]"}>Save conditions</button>
+          <button className={btnPrimary() + " min-h-10 text-[13px]"}>Save conditions</button>
         </form>
       </section>
 
       {isDemo() && (
-        <section className="paper-card mb-4 max-w-5xl rounded-md p-3">
-          <h2 className="text-[12px] font-semibold">{t(locale, "settings.resetDemo")}</h2>
-          <p className="mt-1.5 text-[13px] leading-[18px] text-ink-soft">{t(locale, "settings.resetDemoHint")}</p>
+        <section className="paper-card mb-4 max-w-5xl rounded-2xl p-4">
+          <h2 className="text-[14px] font-semibold text-ink">{t(locale, "settings.resetDemo")}</h2>
+          <p className="mt-1 text-[13px] leading-5 text-ink-soft">{t(locale, "settings.resetDemoHint")}</p>
           <div className="mt-3">
             <ResetDemoButton locale={locale} />
           </div>
         </section>
       )}
-      <div className="grid max-w-5xl grid-cols-1 gap-4 sm:grid-cols-2">
-        <section className="paper-card rounded-md p-3">
-          <h2 className="text-[12px] font-semibold">{t(locale, "settings.thresholds")}</h2>
-          <div className="mt-2 overflow-x-auto"><table className="w-full min-w-0 text-[12px]">
-            <tbody>
-              {thresholds.map((th) => (
-                <tr key={th.id} className="border-t border-line">
-                  <td className="py-1">
-                    {th.label}
-                    <div className="text-[10px] text-ink-soft">
-                      {formatEUR(th.minAmount, locale)} → {th.maxAmount === null ? "∞" : formatEUR(th.maxAmount, locale)}
-                    </div>
-                  </td>
-                  <td className="tabular">{(JSON.parse(th.levels) as string[]).join(" → ")}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table></div>
+
+      <div className="grid max-w-5xl grid-cols-1 gap-4 lg:grid-cols-2">
+        <section className="paper-card rounded-2xl p-4">
+          <h2 className="text-[14px] font-semibold text-ink">People</h2>
+          <p className="mt-0.5 text-[12px] text-ink-soft">Buyer, approver, opening officers and supplier contacts.</p>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full min-w-0 text-[13px]">
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} className="border-t border-line">
+                    <td className="py-2 pr-3 font-medium text-ink">{u.name}</td>
+                    <td className="py-2 text-ink-soft">
+                      {u.role === "VENDOR" ? u.vendor?.name ?? "Supplier" : roleLabel(locale, u.role)}
+                    </td>
+                    <td className="py-2 text-ink-soft">{u.title}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
-        <section className="paper-card rounded-md p-3">
-          <h2 className="text-[12px] font-semibold">{t(locale, "settings.pcg")}</h2>
-          <div className="mt-2 overflow-x-auto"><table className="w-full min-w-0 text-[12px]">
-            <tbody>
-              {accounts.map((a) => (
-                <tr key={a.id} className="border-t border-line">
-                  <td className="w-16 py-1 tabular font-medium">{a.code}</td>
-                  <td>{a.label}</td>
+        <section className="paper-card rounded-2xl p-4">
+          <h2 className="text-[14px] font-semibold text-ink">Suppliers</h2>
+          <div className="mt-2 overflow-x-auto">
+            <table className="w-full min-w-0 text-[13px]">
+              <thead>
+                <tr className="text-left text-[12px] text-ink-soft">
+                  <th className="py-1.5 font-medium">Company</th>
+                  <th className="py-1.5 font-medium">Contact</th>
+                  <th className="py-1.5 font-medium">City</th>
+                  <th className="py-1.5 font-medium">Category</th>
                 </tr>
-              ))}
-            </tbody>
-          </table></div>
-        </section>
-        <section className="paper-card rounded-md p-3">
-          <h2 className="text-[12px] font-semibold">{t(locale, "settings.users")}</h2>
-          <div className="mt-2 overflow-x-auto"><table className="w-full min-w-0 text-[12px]">
-            <tbody>
-              {users.map((u) => (
-                <tr key={u.id} className="border-t border-line">
-                  <td className="py-1 font-medium">{u.name}</td>
-                  <td>{u.role === "VENDOR" ? u.vendor?.name : roleLabel(locale, u.role)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table></div>
-        </section>
-        <section className="paper-card rounded-md p-3">
-          <h2 className="text-[12px] font-semibold">{t(locale, "settings.vendors")}</h2>
-          <div className="mt-2 overflow-x-auto"><table className="w-full min-w-0 text-[12px]">
-            <tbody>
-              {vendors.map((v) => (
-                <tr key={v.id} className="border-t border-line">
-                  <td className="py-1 font-medium">{v.name}</td>
-                  <td>{v.city}</td>
-                  <td>{v.category}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table></div>
+              </thead>
+              <tbody>
+                {vendors.map((v) => {
+                  const contact = users.find((u) => u.vendor?.id === v.id);
+                  return (
+                    <tr key={v.id} className="border-t border-line">
+                      <td className="py-2 pr-3 font-medium text-ink">{v.name}</td>
+                      <td className="py-2 text-ink">{contact?.name ?? "—"}</td>
+                      <td className="py-2 text-ink-soft">{v.city}</td>
+                      <td className="py-2 text-ink-soft">{v.category}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </section>
       </div>
     </div>
