@@ -93,24 +93,25 @@ export function OpeningCeremony({
     const first = firstName(officer.name);
     const field = lock === "A" ? "passwordA" : "passwordB";
     return (
-      <div className="soft-card p-3">
-        <span className="block text-[13px] text-ink-soft">{first}</span>
+      <div className="soft-card px-5 py-5">
+        <span className="block text-[11px] font-medium uppercase tracking-[0.08em] text-ink-soft">Key {lock}</span>
+        <span className="mt-1 block text-[16px] font-semibold tracking-tight text-ink">{officer.name}</span>
         {unlocked ? (
-          <p className="mt-1 flex min-h-11 items-center text-[16px] font-medium text-cobalt">{t(locale, "opening.unlocked", { name: first })}</p>
+          <p className="mt-3 flex min-h-11 items-center text-[14px] font-medium text-cobalt">{t(locale, "opening.unlocked", { name: first })}</p>
         ) : mine ? (
-          <form action={onSubmit} className="mt-2">
+          <form action={onSubmit} className="mt-4">
             <input
               type="password"
               name={field}
               autoComplete="off"
               disabled={!past}
               placeholder={t(locale, "opening.password")}
-              className="min-h-11 w-full rounded-full border border-line bg-paper px-4 text-[16px] disabled:bg-paper-2 disabled:text-ink-soft"
+              className="min-h-11 w-full rounded-xl border border-line bg-paper px-4 text-[16px] disabled:bg-paper-2 disabled:text-ink-soft"
             />
             {past && !already && (
               <button
                 disabled={pending}
-                className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-cobalt px-6 text-[16px] font-medium text-paper shadow-[0_1px_2px_rgba(29,78,216,0.28)] hover:opacity-90 disabled:opacity-40 sm:w-auto"
+                className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-cobalt px-6 text-[14px] font-medium text-paper shadow-[0_1px_2px_rgba(29,78,216,0.18)] hover:bg-cobalt/90 disabled:opacity-40 sm:w-auto"
               >
                 {pending ? "…" : t(locale, "actions.unlockBids")}
               </button>
@@ -118,18 +119,13 @@ export function OpeningCeremony({
           </form>
         ) : (
           <>
-            <input
-              type="password"
-              disabled
-              placeholder={t(locale, "opening.locked")}
-              className="mt-2 min-h-11 w-full rounded-full border border-line bg-paper-2 px-4 text-[16px] text-ink-soft"
-            />
-            <form action={switchUser} className="mt-3">
+            <p className="mt-3 text-[13px] text-ink-soft">{t(locale, "opening.locked")}</p>
+            <form action={switchUser} className="mt-4">
               <input type="hidden" name="userId" value={officer.id} />
               <input type="hidden" name="next" value={next} />
               <button
                 type="submit"
-                className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-cobalt px-6 text-[16px] font-medium text-paper shadow-[0_1px_2px_rgba(29,78,216,0.28)] hover:opacity-90 sm:w-auto"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-cobalt px-6 text-[14px] font-medium text-paper shadow-[0_1px_2px_rgba(29,78,216,0.18)] hover:bg-cobalt/90 sm:w-auto"
               >
                 {t(locale, "opening.continueAs", { name: first })}
               </button>
@@ -140,13 +136,21 @@ export function OpeningCeremony({
     );
   }
 
+  const placed = (keyAUnlocked ? 1 : 0) + (keyBUnlocked ? 1 : 0);
+
   return (
     <div>
-      <div className="mt-0 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+      <div className="mb-6 text-center">
+        <p className="num text-[56px] font-medium leading-none tracking-tight text-ink">
+          {placed}<span className="text-[28px] text-ink-soft">/2</span>
+        </p>
+        <p className="mt-2 text-[13px] text-ink-soft">Keys placed</p>
+      </div>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Officer lock="A" officer={officerA} unlocked={keyAUnlocked} />
         <Officer lock="B" officer={officerB} unlocked={keyBUnlocked} />
       </div>
-      {msg && <p className="mt-2 text-[15px] text-danger">{msg}</p>}
+      {msg && <p className="mt-3 text-center text-[15px] text-danger">{msg}</p>}
     </div>
   );
 }

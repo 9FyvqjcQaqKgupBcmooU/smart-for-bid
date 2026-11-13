@@ -155,7 +155,7 @@ function MobileCard({
   return (
     <Link
       href={href}
-      className="block rounded-2xl border border-line bg-paper px-3.5 py-3 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-colors hover:bg-paper-2"
+      className="block rounded-2xl border border-line bg-paper px-4 py-3.5 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_8px_20px_rgba(28,25,23,0.05)] transition-colors hover:bg-paper-2"
     >
       <div className="flex items-start justify-between gap-2">
         <span className="num shrink-0 text-[12px] font-semibold tracking-tight text-cobalt">{row.number}</span>
@@ -256,14 +256,14 @@ export function AOTable({
 
   return (
     <div className="page-frame flex h-full min-h-0 flex-col overflow-x-hidden bg-paper">
-      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-line px-4 py-3 md:px-6">
-        <h1 className="text-[17px] font-semibold tracking-tight text-ink">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 px-5 py-5 md:px-7">
+        <h1 className="text-[22px] font-semibold tracking-tight text-ink">
           {isSupplier ? t(locale, "shell.dashboardSupplier") : t(locale, "shell.dashboard")}
         </h1>
         <span className="num text-[12px] font-medium text-ink-soft">{sorted.length}</span>
         <div className="ml-auto flex flex-wrap items-center gap-2">
           {canCreate ? (
-            <Link href="/appels-offres/nouveau" className="inline-flex min-h-9 items-center rounded-full bg-cobalt px-3.5 text-[13px] font-semibold text-paper hover:opacity-90">
+            <Link href="/appels-offres/nouveau" className="inline-flex min-h-10 items-center rounded-xl bg-cobalt px-4 text-[13px] font-semibold text-paper hover:bg-cobalt/90">
               {t(locale, "shell.newRfq")}
             </Link>
           ) : null}
@@ -271,7 +271,7 @@ export function AOTable({
       </div>
 
       {!isSupplier && kpis && sav ? (
-        <div className="grid shrink-0 grid-cols-2 gap-2 border-b border-line bg-paper px-3 py-3 sm:grid-cols-3 md:grid-cols-5 md:px-6">
+        <div className="grid shrink-0 grid-cols-2 gap-3 bg-paper px-4 pb-5 sm:grid-cols-3 md:grid-cols-5 md:px-7">
           {[
             { label: t(locale, "shell.kpiOpen"), value: String(kpis.openCount), hint: t(locale, "shell.kpiOpenHint") },
             { label: t(locale, "shell.kpiAmount"), value: formatEUR(kpis.amountUnder, locale).replace(/\s/g, "\u00a0"), hint: t(locale, "shell.kpiAmountHint") },
@@ -279,12 +279,12 @@ export function AOTable({
             { label: t(locale, "shell.kpiCycle"), value: kpis.avgAwardDays != null ? `${kpis.avgAwardDays} ${kpis.avgAwardDays === 1 ? "day" : "days"}` : "—", hint: t(locale, "shell.kpiCycleHint") },
             { label: sav.label, value: sav.value, hint: sav.hint, accent: sav.accent, over: sav.over },
           ].map((k) => (
-            <div key={k.label} className="rounded-xl border border-line bg-paper px-3 py-2.5">
+            <div key={k.label} className="rounded-2xl border border-line bg-paper px-4 py-3.5 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_8px_20px_rgba(28,25,23,0.04)]">
               <div className="text-[11px] font-semibold text-ink/65">{k.label}</div>
               <div
                 className={cn(
-                  "num mt-0.5 text-[18px] font-semibold tracking-tight",
-                  "over" in k && k.over ? "text-[#B45309]" : k.accent ? "text-[#0F766E]" : "text-ink"
+                  "num mt-1 text-[22px] font-semibold tracking-tight",
+                  "over" in k && k.over ? "text-clay" : k.accent ? "text-cobalt" : "text-ink"
                 )}
               >
                 {k.value}
@@ -345,7 +345,7 @@ export function AOTable({
 
             {/* Desktop table */}
             <table className="hidden w-full border-collapse text-left text-[13px] md:table">
-              <thead className="sticky top-0 z-10 bg-paper-2 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-soft">
+              <thead className="sticky top-0 z-10 bg-paper text-[11px] font-medium tracking-wide text-ink-soft">
                 <tr className="border-b border-line">
                   <th className="px-4 py-2.5 md:px-6"><SortLink sort={sort} dir={dir} view={v} q={q} col="ref" label={t(locale, "shell.colRef")} /></th>
                   <th className="px-2 py-2"><SortLink sort={sort} dir={dir} view={v} q={q} col="title" label={t(locale, "shell.colTitle")} /></th>

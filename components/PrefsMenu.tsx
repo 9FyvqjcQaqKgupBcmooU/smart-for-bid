@@ -40,7 +40,7 @@ export function PrefsMenu({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-full px-2.5 text-[13px] text-ink-soft hover:bg-paper-2 hover:text-ink md:min-h-11 md:px-3.5 md:text-[14px]"
+        className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-xl px-2.5 text-[13px] text-ink-soft hover:bg-paper-2 hover:text-ink md:min-h-10 md:px-3.5 md:text-[14px]"
         aria-expanded={open}
         aria-haspopup="true"
         aria-label={t(locale, "chrome.prefs")}

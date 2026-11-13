@@ -151,20 +151,20 @@ export default async function TenderDetail({
         />
       </div>
 
-      <div className="shrink-0 border-b border-line px-4 py-4 md:px-6">
+      <div className="shrink-0 border-b border-line px-5 py-5 md:px-7">
         <div className="flex flex-wrap items-start gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <span className="num text-[13px] font-semibold text-cobalt">{tender.number}</span>
               <StatusPill status={status} locale={locale} />
               {seal === "one" ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-cobalt-soft px-2 py-0.5 text-[11px] font-semibold text-cobalt">
+                <span className="inline-flex items-center gap-1 rounded-xl bg-cobalt-soft px-2 py-0.5 text-[11px] font-semibold text-cobalt">
                   <SealMark state={seal} size={12} />
                   1/2 key
                 </span>
               ) : null}
             </div>
-            <h1 className="mt-1 text-[18px] font-semibold tracking-tight text-ink">{tender.title}</h1>
+            <h1 className="mt-1.5 text-[22px] font-semibold tracking-tight text-ink">{tender.title}</h1>
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] font-medium text-ink/70">
               <span>
                 Deadline <strong className="num text-ink">{formatParisStamp(tender.deadline, locale)}</strong>
@@ -192,8 +192,8 @@ export default async function TenderDetail({
             {tender.status === "draft" && (current.role === "BUYER" || current.id === tender.createdById) ? (
               <form action={publishTender} className="flex flex-wrap items-end gap-2">
                 <input type="hidden" name="id" value={tender.id} />
-                <input name="passA" type="password" required placeholder="Key A password" className="min-h-10 rounded-full border border-line px-3 text-[14px]" />
-                <input name="passB" type="password" required placeholder="Key B password" className="min-h-10 rounded-full border border-line px-3 text-[14px]" />
+                <input name="passA" type="password" required placeholder="Key A password" className="min-h-10 rounded-xl border border-line px-3 text-[14px]" />
+                <input name="passB" type="password" required placeholder="Key B password" className="min-h-10 rounded-xl border border-line px-3 text-[14px]" />
                 <button className={btnPrimary() + " min-h-10"}>Submit for approval</button>
               </form>
             ) : null}
@@ -205,8 +205,8 @@ export default async function TenderDetail({
                 </form>
                 <form action={returnTender} className="flex flex-wrap items-end gap-2">
                   <input type="hidden" name="id" value={tender.id} />
-                  <input name="comment" required placeholder="Return comment" className="min-h-10 rounded-full border border-line px-3 text-[14px]" />
-                  <button className="inline-flex min-h-10 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold">Return</button>
+                  <input name="comment" required placeholder="Return comment" className="min-h-10 rounded-xl border border-line px-3 text-[14px]" />
+                  <button className="inline-flex min-h-10 items-center rounded-xl border border-line px-3.5 text-[13px] font-semibold">Return</button>
                 </form>
               </div>
             ) : null}
@@ -219,7 +219,7 @@ export default async function TenderDetail({
               </p>
             ) : null}
             {showOpening && !revealed && pastDeadline ? (
-              <Link href="?tab=cles" className="inline-flex min-h-9 items-center rounded-full bg-cobalt px-3.5 text-[13px] font-semibold text-paper">
+              <Link href="?tab=cles" className="inline-flex min-h-9 items-center rounded-xl bg-cobalt px-3.5 text-[13px] font-semibold text-paper">
                 Open bids
               </Link>
             ) : null}
@@ -231,7 +231,7 @@ export default async function TenderDetail({
               </form>
             ) : null}
             {!isVendor ? (
-              <Link href={`/appels-offres/${tender.id}/preuve.pdf`} className="inline-flex min-h-9 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold text-ink">
+              <Link href={`/appels-offres/${tender.id}/preuve.pdf`} className="inline-flex min-h-9 items-center rounded-xl border border-line px-3.5 text-[13px] font-semibold text-ink">
                 {t(locale, "shell.exportProof")}
               </Link>
             ) : null}
@@ -248,7 +248,7 @@ export default async function TenderDetail({
           >
             {tb.label}
             {"count" in tb && tb.count != null ? <span className="num ml-1 text-[11px]">{tb.count}</span> : null}
-            {active === tb.id ? <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-full bg-cobalt" /> : null}
+            {active === tb.id ? <span className="absolute inset-x-2 -bottom-px h-0.5 rounded-xl bg-cobalt" /> : null}
           </Link>
         ))}
       </div>
@@ -285,7 +285,7 @@ export default async function TenderDetail({
                 <ul className="mt-1 space-y-0.5 text-[13px] leading-5 text-ink">
                   {conditions.map((c, i) => (
                     <li key={i} className="flex gap-2">
-                      <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-cobalt" aria-hidden />
+                      <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-xl bg-cobalt" aria-hidden />
                       <span>{c}</span>
                     </li>
                   ))}
@@ -323,15 +323,15 @@ export default async function TenderDetail({
                   </div>
                   <label className="block text-[13px] font-semibold">
                     Deadline (Paris time)
-                    <input name="deadline" type="datetime-local" defaultValue={toParisLocalInput(tender.deadline)} className="mt-1 min-h-10 w-full rounded-full border border-line px-3.5 text-[14px] font-normal" />
+                    <input name="deadline" type="datetime-local" defaultValue={toParisLocalInput(tender.deadline)} className="mt-1 min-h-10 w-full rounded-xl border border-line px-3.5 text-[14px] font-normal" />
                   </label>
                   {tender.bids.length > 0 ? (
                     <p className="rounded-lg border border-danger/30 bg-danger-soft px-3 py-2 text-[12px] text-ink/80">
                       {tender.bids.length} bid(s) already deposited — any change will be chained as a post-bid change and bidders must re-acknowledge.
                     </p>
                   ) : null}
-                  <input name="summary" placeholder="Change note" className="min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
-                  <button className="inline-flex min-h-10 items-center rounded-full border border-line px-4 text-[14px] font-semibold">Save</button>
+                  <input name="summary" placeholder="Change note" className="min-h-11 w-full rounded-xl border border-line px-4 text-[16px]" />
+                  <button className="inline-flex min-h-10 items-center rounded-xl border border-line px-4 text-[14px] font-semibold">Save</button>
                 </form>
               </details>
             ) : null}
@@ -356,11 +356,11 @@ export default async function TenderDetail({
                 </div>
                 <label className="text-[14px] font-medium text-ink">
                   Price excl. VAT (€)
-                  <input name="price" required className="mt-1 min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
+                  <input name="price" required className="mt-1 min-h-11 w-full rounded-xl border border-line px-4 text-[16px]" />
                 </label>
                 <label className="text-[14px] font-medium text-ink">
                   Lead time (days)
-                  <input name="leadTimeDays" required type="number" className="mt-1 min-h-11 w-full rounded-full border border-line px-4 text-[16px]" />
+                  <input name="leadTimeDays" required type="number" className="mt-1 min-h-11 w-full rounded-xl border border-line px-4 text-[16px]" />
                 </label>
                 <textarea name="comments" rows={2} placeholder="Comments" className="col-span-full min-h-10 rounded-2xl border border-line px-4 py-2 text-[14px]" />
                 <button className={btnPrimary("col-span-full min-h-11")}>{myBid ? "Replace bid" : "Submit bid"}</button>
@@ -419,19 +419,19 @@ export default async function TenderDetail({
             {uninvited.length > 0 && current.role === "BUYER" && tender.status !== "awarded" ? (
               <form action={inviteVendor} className="mt-2 flex flex-col gap-2 sm:flex-row">
                 <input type="hidden" name="tenderId" value={tender.id} />
-                <select name="vendorId" className="min-h-11 flex-1 rounded-full border border-line px-4 text-[16px]">
+                <select name="vendorId" className="min-h-11 flex-1 rounded-xl border border-line px-4 text-[16px]">
                   {uninvited.map((v) => (
                     <option key={v.id} value={v.id}>{v.name}</option>
                   ))}
                 </select>
-                <button className="inline-flex min-h-11 items-center justify-center rounded-full border border-line px-5 text-[14px] font-semibold">Invite</button>
+                <button className="inline-flex min-h-11 items-center justify-center rounded-xl border border-line px-5 text-[14px] font-semibold">Invite</button>
               </form>
             ) : null}
           </div>
         ) : null}
 
         {active === "cles" ? (
-          <div className="max-w-4xl space-y-4">
+          <div className="mx-auto max-w-3xl py-2 md:py-4">
             {revealed ? (
               <OpeningHero
                 locale={locale}
@@ -451,16 +451,15 @@ export default async function TenderDetail({
               />
             ) : (
               <>
-                <div className="rounded-xl border border-line p-4">
-                  <h2 className="text-[15px] font-semibold text-ink">{t(locale, "shell.openingTitle")}</h2>
-                  <p className="mt-1 text-[13px] text-ink/65">
-                    Two distinct officers must place their key after the deadline. Buyer: no access to amounts before opening.
-                  </p>
-                  <p className="num mt-3 break-all rounded-lg bg-paper-2 px-3 py-2 text-[11px] text-ink/70">
-                    {t(locale, "shell.sealFp")} : {sealFp}
-                  </p>
-                </div>
-                {showOpening && pastDeadline ? (
+                <div className="rounded-2xl border border-line bg-paper px-6 py-8 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_12px_32px_rgba(28,25,23,0.06)] md:px-10 md:py-10">
+                  <div className="mx-auto mb-2 max-w-md text-center">
+                    <h2 className="text-[22px] font-semibold tracking-tight text-ink">{t(locale, "shell.openingTitle")}</h2>
+                    <p className="mt-2 text-[14px] leading-6 text-ink/65">
+                      Two distinct officers must place their key after the deadline. Buyer: no access to amounts before opening.
+                    </p>
+                  </div>
+                  {showOpening && pastDeadline ? (
+                  <div className="mt-6">
                   <OpeningCeremony
                     tenderId={tender.id}
                     itemKey={`ao:${tender.id}`}
@@ -475,13 +474,18 @@ export default async function TenderDetail({
                     demo={isDemo()}
                     compact={false}
                   />
+                  </div>
                 ) : (
-                  <p className="text-[13px] text-ink/65">
+                  <p className="mt-6 text-center text-[13px] text-ink/65">
                     {pastDeadline
                       ? `Waiting for ${firstName(tender.keyAUnlocked ? tender.keyBUser.name : tender.keyAUser.name)}.`
                       : "Opening will be available after the deadline."}
                   </p>
                 )}
+                  <p className="num mt-8 break-all text-center text-[11px] text-ink/50">
+                    {t(locale, "shell.sealFp")} : {sealFp}
+                  </p>
+                </div>
               </>
             )}
           </div>

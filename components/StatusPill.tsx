@@ -4,10 +4,10 @@ import { t, type Locale } from "@/lib/i18n";
 const TONE: Record<string, string> = {
   draft: "bg-paper-2 text-ink-soft",
   pending_validation: "bg-slate-soft text-slate",
-  published: "bg-cobalt text-paper",
+  published: "bg-cobalt-soft text-cobalt",
   closed: "bg-paper-2 text-ink-soft",
-  opened: "bg-cobalt text-paper",
-  awarded: "bg-cobalt-soft text-cobalt ring-1 ring-inset ring-cobalt/25",
+  opened: "bg-cobalt-soft text-cobalt",
+  awarded: "bg-paper-2 text-ink ring-1 ring-inset ring-line",
   pending: "bg-cobalt text-paper",
   waiting: "bg-paper-2 text-ink-soft",
   approved: "bg-cobalt-soft text-cobalt ring-1 ring-inset ring-cobalt/25",
@@ -38,7 +38,7 @@ export function StatusPill({ status, locale = "en" }: { status: string; locale?:
   const label = translated === key ? status : translated;
   const className = TONE[status] ?? "bg-paper-2 text-ink";
   return (
-    <span className={cn("inline-flex max-w-full items-center rounded-full px-2 py-0.5 text-[12px] font-medium leading-4 whitespace-normal text-left", className)}>
+    <span className={cn("inline-flex max-w-full items-center rounded-lg px-2 py-0.5 text-[11px] font-medium leading-4 whitespace-normal text-left", className)}>
       {label}
     </span>
   );

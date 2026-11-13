@@ -47,19 +47,19 @@ export function TopBar({
   }, []);
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b border-line bg-paper px-3 text-ink md:gap-3 md:px-5">
+    <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line/80 bg-paper px-3 text-ink md:gap-3 md:px-6">
       {onMenu ? (
         <button
           type="button"
           onClick={onMenu}
-          className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-lg border border-line text-[14px] font-semibold text-ink md:hidden"
+          className="inline-flex min-h-10 min-w-10 items-center justify-center rounded-xl border border-line text-[14px] font-semibold text-ink md:hidden"
           aria-label={t(locale, "shell.menu")}
         >
           ☰
         </button>
       ) : null}
       <form action="/" method="get" className="min-w-0 flex-1 md:max-w-md">
-        <label className="flex h-9 items-center gap-2 rounded-full border border-line bg-paper-2 px-3.5 text-[13px] text-ink/70">
+        <label className="flex h-10 items-center gap-2 rounded-xl border border-line bg-paper-2 px-3.5 text-[13px] text-ink/70">
           <span aria-hidden>⌕</span>
           <input
             id="shell-search"

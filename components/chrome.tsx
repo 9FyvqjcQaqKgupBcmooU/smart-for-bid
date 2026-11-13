@@ -355,19 +355,19 @@ export function UpNext({
 
 export function btnPrimary(extra = "") {
   return cn(
-    "inline-flex min-h-11 items-center justify-center rounded-full bg-cobalt px-6 text-[16px] font-medium text-paper shadow-[0_1px_2px_rgba(29,78,216,0.28)] hover:opacity-90 disabled:opacity-40",
+    "inline-flex min-h-10 items-center justify-center rounded-xl bg-cobalt px-4 text-[14px] font-medium text-paper shadow-[0_1px_2px_rgba(29,78,216,0.18)] hover:bg-cobalt/90 disabled:opacity-40",
     extra
   );
 }
 export function btnGhost(extra = "") {
   return cn(
-    "inline-flex min-h-11 items-center justify-center rounded-full border border-line bg-paper px-5 text-[16px] font-medium text-ink hover:bg-paper-2 disabled:opacity-40",
+    "inline-flex min-h-10 items-center justify-center rounded-xl border border-line bg-paper px-4 text-[14px] font-medium text-ink hover:bg-paper-2 disabled:opacity-40",
     extra
   );
 }
 export function btnDanger(extra = "") {
   return cn(
-    "inline-flex min-h-11 items-center justify-center rounded-full border border-line bg-paper px-5 text-[16px] font-medium text-ink-soft hover:bg-paper-2 disabled:opacity-40",
+    "inline-flex min-h-10 items-center justify-center rounded-xl border border-line bg-paper px-4 text-[14px] font-medium text-ink-soft hover:bg-paper-2 disabled:opacity-40",
     extra
   );
 }

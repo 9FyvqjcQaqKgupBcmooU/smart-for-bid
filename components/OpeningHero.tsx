@@ -40,26 +40,26 @@ export function OpeningHero({
   return (
     <div className="space-y-4">
       <div className="text-center">
-        <div className="mx-auto mb-2 grid h-14 w-14 place-items-center rounded-2xl bg-cobalt text-[22px] text-paper">⬡</div>
-        <h2 className="text-[15px] font-semibold text-ink">{t(locale, "shell.openingDone")}</h2>
-        <p className="mt-1 text-[12px] font-medium text-ink/65">
+        <div className="mx-auto mb-3 grid h-14 w-14 place-items-center rounded-full bg-cobalt-soft text-[22px] font-medium text-cobalt">✓</div>
+        <h2 className="text-[22px] font-semibold tracking-tight text-ink">{t(locale, "shell.openingDone")}</h2>
+        <p className="mt-1 text-[13px] font-medium text-ink/65">
           Two authenticated officers · server timestamp · envelope fingerprint confirmed
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2">
         {[
           { lock: "Key A", o: officerA, at: unlockAAt, ok: "Key A accepted" },
           { lock: "Key B", o: officerB, at: unlockBAt, ok: "Key B accepted → opened" },
         ].map((k) => (
-          <div key={k.lock} className="rounded-xl border border-line bg-cobalt-soft/60 p-4">
+          <div key={k.lock} className="rounded-2xl border border-line bg-paper p-5 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_8px_20px_rgba(28,25,23,0.05)]">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink/60">{k.lock}</div>
                 <div className="text-[14px] font-semibold text-ink">{k.o.name}</div>
                 <div className="text-[12px] font-medium text-ink/65">{k.o.title ?? "Opening officer"}</div>
               </div>
-              <span className="inline-flex h-5 items-center rounded-full bg-[#ECFDF5] px-2 text-[10px] font-semibold text-[#0F766E]">
+              <span className="inline-flex h-5 items-center rounded-full bg-[#ECFDF5] px-2 text-[10px] font-semibold text-cobalt">
                 ● Authenticated
               </span>
             </div>
@@ -70,14 +70,14 @@ export function OpeningHero({
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-ink/65">Status</span>
-                <span className="font-semibold text-[#0F766E]">{k.ok}</span>
+                <span className="font-semibold text-cobalt">{k.ok}</span>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="rounded-xl border border-dashed border-cobalt/40 bg-cobalt-soft p-4">
+      <div className="rounded-2xl border border-line bg-cobalt-soft/50 p-5">
         <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink/60">{t(locale, "shell.sealFp")}</div>
         <p className="num mt-1 break-all text-[12px] font-medium text-ink">sha256: {sealAfter}</p>
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[12px] font-medium text-ink/80">
@@ -88,7 +88,7 @@ export function OpeningHero({
       </div>
 
       <div className="grid gap-3 lg:grid-cols-2">
-        <div className="rounded-xl border border-line bg-paper p-4">
+        <div className="rounded-2xl border border-line bg-paper p-5 shadow-[0_1px_2px_rgba(28,25,23,0.04)]">
           <h3 className="text-[13px] font-semibold text-ink">Revealed bids</h3>
           <ul className="mt-2">
             {offers.map((o) => (
@@ -99,7 +99,7 @@ export function OpeningHero({
             ))}
           </ul>
         </div>
-        <div className="rounded-xl border border-line bg-paper p-4">
+        <div className="rounded-2xl border border-line bg-paper p-5 shadow-[0_1px_2px_rgba(28,25,23,0.04)]">
           <h3 className="text-[13px] font-semibold text-ink">{t(locale, "shell.proofReceipt")}</h3>
           <dl className="mt-2 space-y-1.5 text-[13px]">
             <div className="flex justify-between gap-2 border-b border-line/60 py-1.5">
@@ -116,14 +116,14 @@ export function OpeningHero({
             </div>
             <div className="flex justify-between gap-2 py-1.5">
               <dt className="text-ink/65">Result</dt>
-              <dd className="font-semibold text-[#0F766E]">Seal intact · bids opened</dd>
+              <dd className="font-semibold text-cobalt">Seal intact · bids opened</dd>
             </div>
           </dl>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Link href={`/appels-offres/${tenderId}/preuve.pdf`} className="inline-flex min-h-9 items-center rounded-full bg-cobalt px-3.5 text-[13px] font-semibold text-paper">
+            <Link href={`/appels-offres/${tenderId}/preuve.pdf`} className="inline-flex min-h-10 items-center rounded-xl bg-cobalt px-4 text-[13px] font-semibold text-paper">
               {t(locale, "shell.exportProof")}
             </Link>
-            <Link href={`/appels-offres/${tenderId}?tab=historique`} className="inline-flex min-h-9 items-center rounded-full border border-line px-3.5 text-[13px] font-semibold text-ink">
+            <Link href={`/appels-offres/${tenderId}?tab=historique`} className="inline-flex min-h-10 items-center rounded-xl border border-line px-4 text-[13px] font-semibold text-ink">
               View journal
             </Link>
           </div>

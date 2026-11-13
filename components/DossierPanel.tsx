@@ -37,9 +37,9 @@ export function DossierPanel({
   const isVendor = role === "VENDOR";
   return (
     <section className="space-y-3" data-testid="dossier-panel">
-      <div className="rounded-xl border border-line bg-paper-2/60 px-3.5 py-3">
+      <div className="rounded-2xl border border-line bg-paper-2/60 px-3.5 py-3">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="num inline-flex items-center rounded-full bg-cobalt px-2.5 py-0.5 text-[12px] font-semibold text-paper" data-testid="dossier-version">
+          <span className="num inline-flex items-center rounded-lg bg-cobalt-soft px-2.5 py-0.5 text-[12px] font-semibold text-cobalt" data-testid="dossier-version">
             Dossier v{version}
           </span>
           <span className="text-[12px] font-medium text-ink/70">Identical for every invited supplier</span>
@@ -57,7 +57,7 @@ export function DossierPanel({
       </div>
 
       {isVendor && needsReack ? (
-        <form action={acknowledgeDossier} className="rounded-xl border border-danger/30 bg-danger-soft px-3.5 py-3" data-testid="reack-banner">
+        <form action={acknowledgeDossier} className="rounded-2xl border border-danger/30 bg-danger-soft px-3.5 py-3" data-testid="reack-banner">
           <input type="hidden" name="tenderId" value={tenderId} />
           <p className="text-[13px] font-semibold text-danger">Conditions changed after your bid</p>
           <p className="mt-0.5 text-[12px] text-ink/80">
@@ -67,7 +67,7 @@ export function DossierPanel({
         </form>
       ) : null}
 
-      <div className="rounded-xl border border-line px-3.5 py-3" data-testid="qa">
+      <div className="rounded-2xl border border-line px-3.5 py-3" data-testid="qa">
         <h2 className="text-[13px] font-semibold text-ink">Questions &amp; answers <span className="font-medium text-ink/60">· broadcast to all suppliers</span></h2>
         {answered.length === 0 ? <p className="mt-1 text-[12px] text-ink/65">No published answers yet.</p> : null}
         <ol className="mt-2 space-y-2.5">
@@ -88,7 +88,7 @@ export function DossierPanel({
                 <input type="hidden" name="questionId" value={q.id} />
                 <p className="text-[13px] text-ink">{q.question} <span className="num text-[11px] text-ink/60">· A supplier · {formatParisStamp(q.askedAt, locale)}</span></p>
                 <div className="flex flex-col gap-2 sm:flex-row">
-                  <input name="answer" required placeholder="Answer for all suppliers" className="min-h-10 flex-1 rounded-full border border-line px-3.5 text-[14px]" />
+                  <input name="answer" required placeholder="Answer for all suppliers" className="min-h-10 flex-1 rounded-xl border border-line px-3.5 text-[14px]" />
                   <button className={btnPrimary("min-h-10")}>Broadcast answer</button>
                 </div>
               </form>
@@ -98,8 +98,8 @@ export function DossierPanel({
         {isVendor && canAsk ? (
           <form action={askQuestion} className="mt-3 flex flex-col gap-2 border-t border-line pt-3 sm:flex-row">
             <input type="hidden" name="tenderId" value={tenderId} />
-            <input name="question" required minLength={5} placeholder="Ask a question (your name is never shown)" className="min-h-10 flex-1 rounded-full border border-line px-3.5 text-[14px]" />
-            <button className="inline-flex min-h-10 items-center justify-center rounded-full border border-line px-4 text-[13px] font-semibold">Send question</button>
+            <input name="question" required minLength={5} placeholder="Ask a question (your name is never shown)" className="min-h-10 flex-1 rounded-xl border border-line px-3.5 text-[14px]" />
+            <button className="inline-flex min-h-10 items-center justify-center rounded-xl border border-line px-4 text-[13px] font-semibold">Send question</button>
           </form>
         ) : null}
       </div>

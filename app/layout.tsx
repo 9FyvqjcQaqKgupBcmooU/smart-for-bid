@@ -1,14 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Sans } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
 import { AppShell } from "@/components/AppShell";
 import { getLocale } from "@/lib/i18n/server";
 import { getTheme, THEME_BOOT_SCRIPT } from "@/lib/theme";
 
-const plexSans = IBM_Plex_Sans({
+const geist = Geist({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-plex-sans",
+  variable: "--font-geist",
   display: "swap",
 });
 
@@ -30,7 +29,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html
       lang={locale === "fr" ? "fr" : "en-GB"}
-      className={`${plexSans.variable} ${plexSans.className} min-h-full overflow-x-hidden md:h-full md:overflow-hidden${theme === "dark" ? " dark" : ""}`}
+      className={`${geist.variable} ${geist.className} min-h-full overflow-x-hidden md:h-full md:overflow-hidden${theme === "dark" ? " dark" : ""}`}
       style={{ colorScheme: theme }}
       suppressHydrationWarning
     >

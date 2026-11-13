@@ -40,13 +40,13 @@ function NavContents({
   const onSettings = path.startsWith("/parametres");
   const onNew = path.startsWith("/appels-offres/nouveau");
   const linkBase =
-    "group relative flex min-h-11 items-center gap-3 rounded-lg px-3 text-[14px] font-medium transition-colors";
+    "group relative flex min-h-10 items-center gap-3 rounded-xl px-3 text-[14px] font-medium transition-colors";
 
   return (
     <>
-      <div className="border-b border-line px-4 pb-4 pt-5">
+      <div className="border-b border-line/80 px-4 pb-5 pt-5">
         <Link href="/" onClick={onClose} className="flex items-center gap-2.5">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-cobalt text-[12px] font-semibold text-paper">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-cobalt text-[12px] font-semibold text-paper">
             SF
           </span>
           <span className="min-w-0 flex-1">
@@ -76,8 +76,8 @@ function NavContents({
           className={cn(
             linkBase,
             onHome && !onNew
-              ? "bg-cobalt-soft font-semibold text-ink shadow-[inset_3px_0_0_0_var(--cobalt)]"
-              : "text-ink hover:bg-paper-2"
+              ? "bg-cobalt-soft font-semibold text-ink"
+              : "text-ink/80 hover:bg-paper-2 hover:text-ink"
           )}
         >
           <span
@@ -99,7 +99,7 @@ function NavContents({
             className={cn(
               linkBase,
               onNew
-                ? "bg-cobalt-soft font-semibold text-ink shadow-[inset_3px_0_0_0_var(--cobalt)]"
+                ? "bg-cobalt-soft font-semibold text-ink"
                 : "text-ink hover:bg-paper-2"
             )}
           >
@@ -126,8 +126,8 @@ function NavContents({
           className={cn(
             linkBase,
             onSettings
-              ? "bg-cobalt-soft font-semibold text-ink shadow-[inset_3px_0_0_0_var(--cobalt)]"
-              : "text-ink hover:bg-paper-2"
+              ? "bg-cobalt-soft font-semibold text-ink"
+              : "text-ink/80 hover:bg-paper-2 hover:text-ink"
           )}
         >
           <span
@@ -177,12 +177,12 @@ export function NavSidebar({
 
   return (
     <>
-      <aside className="hidden w-[232px] shrink-0 flex-col border-r border-line bg-paper md:flex">{contents}</aside>
+      <aside className="hidden w-[240px] shrink-0 flex-col border-r border-line/80 bg-paper md:flex">{contents}</aside>
 
       {mobileOpen ? (
         <div className="fixed inset-0 z-50 md:hidden">
           <button type="button" className="absolute inset-0 bg-ink/40" aria-label={t(locale, "shell.closeMenu")} onClick={onClose} />
-          <aside className="absolute inset-y-0 left-0 flex w-[min(288px,88vw)] flex-col bg-paper shadow-xl">
+          <aside className="absolute inset-y-0 left-0 flex w-[min(288px,88vw)] flex-col bg-paper shadow-xl md:rounded-none">
             <div className="flex items-center justify-between border-b border-line px-3 py-2">
               <span className="text-[14px] font-semibold text-ink">{t(locale, "shell.menu")}</span>
               <button type="button" onClick={onClose} className="rounded-lg px-3 py-2 text-[14px] font-medium text-ink">

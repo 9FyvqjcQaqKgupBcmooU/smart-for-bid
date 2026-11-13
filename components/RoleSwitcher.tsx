@@ -81,7 +81,7 @@ export function RoleSwitcher({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex min-h-10 max-w-[min(100%,11.5rem)] items-center gap-1.5 truncate rounded-full bg-paper-2 px-2.5 text-[13px] font-medium text-ink hover:bg-paper-2 sm:max-w-[14rem] sm:gap-2 sm:px-3 sm:text-[14px] md:min-h-11 md:max-w-none"
+        className="inline-flex min-h-10 max-w-[min(100%,11.5rem)] items-center gap-1.5 truncate rounded-xl bg-paper-2 px-2.5 text-[13px] font-medium text-ink hover:bg-paper-2 sm:max-w-[14rem] sm:gap-2 sm:px-3 sm:text-[14px] md:min-h-10 md:max-w-none"
         aria-label={t(locale, "chrome.identity")}
         aria-expanded={open}
         aria-haspopup="true"
