@@ -18,14 +18,14 @@ export function ThemeToggle({
   locale: Locale;
 }) {
   return (
-    <form action={setTheme} className="inline-flex flex-wrap rounded-full bg-paper-2 p-1 text-[16px]">
+    <form action={setTheme} className="inline-flex flex-wrap rounded-xl bg-paper-2 p-1 text-[13px]">
       {OPTIONS.map((opt) => (
         <button
           key={opt.value}
           name="theme"
           value={opt.value}
           className={cn(
-            "inline-flex min-h-11 items-center rounded-full px-3.5",
+            "inline-flex min-h-9 items-center rounded-lg px-3",
             theme === opt.value ? "bg-paper font-medium text-ink shadow-[0_1px_2px_rgba(15,23,42,0.08)]" : "text-ink-soft hover:text-ink"
           )}
           aria-pressed={theme === opt.value}

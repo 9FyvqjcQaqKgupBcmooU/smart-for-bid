@@ -323,7 +323,7 @@ export function AOTable({
 
       <form action="/" method="get" className="border-b border-line px-3 py-2 md:hidden">
         {v !== "all" ? <input type="hidden" name="view" value={v} /> : null}
-        <input name="q" type="search" defaultValue={q} placeholder={t(locale, "shell.searchPlaceholder")} className="min-h-10 w-full rounded-full border border-line bg-paper-2 px-3.5 text-[14px] text-ink" />
+        <input name="q" type="search" defaultValue={q} placeholder={t(locale, "shell.searchPlaceholder")} className="min-h-10 w-full rounded-xl border border-line bg-paper-2 px-3.5 text-[14px] text-ink" />
       </form>
 
       <div className="min-h-0 flex-1 overflow-auto overflow-x-hidden">

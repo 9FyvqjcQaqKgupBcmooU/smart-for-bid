@@ -18,7 +18,7 @@ export function PageHeader({
       {action && (
         <Link
           href={action.href}
-          className="inline-flex min-h-11 items-center rounded-full bg-cobalt px-6 text-[16px] font-medium text-paper shadow-[0_1px_2px_rgba(29,78,216,0.28)] hover:opacity-90"
+          className="inline-flex min-h-10 items-center rounded-xl bg-cobalt px-4 text-[14px] font-medium text-paper shadow-[0_1px_2px_rgba(29,78,216,0.18)] hover:bg-cobalt/90"
         >
           {action.label}
         </Link>

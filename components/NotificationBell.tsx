@@ -24,7 +24,7 @@ export function NotificationBell({ items, locale = "en" }: { items: N[]; locale?
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="relative flex h-9 w-9 items-center justify-center rounded-md text-[15px] text-ink-soft hover:bg-paper-2 hover:text-ink"
+        className="relative flex h-10 w-10 items-center justify-center rounded-xl text-[15px] text-ink-soft hover:bg-paper-2 hover:text-ink"
         aria-label={t(locale, "chrome.notifications")}
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
@@ -36,7 +36,7 @@ export function NotificationBell({ items, locale = "en" }: { items: N[]; locale?
         )}
       </button>
       {open && (
-        <div className="absolute right-0 z-50 mt-2 w-[min(100vw-1.5rem,22rem)] overflow-hidden rounded-lg border border-line bg-paper shadow-lg">
+        <div className="absolute right-0 z-50 mt-2 w-[min(100vw-1.5rem,22rem)] overflow-hidden rounded-2xl border border-line bg-paper shadow-[0_8px_28px_rgba(28,25,23,0.10)]">
           <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
             <span className="text-[15px] font-medium">{t(locale, "chrome.notifications")}</span>
             <form action={markAllRead}>

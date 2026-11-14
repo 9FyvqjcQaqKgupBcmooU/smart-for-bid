@@ -11,13 +11,13 @@
   --line: #E6E4E1;
   --cobalt: #1D4ED8;
   --cobalt-soft: #EEF3FF;
-  --moss: #0F766E;
+  --moss: #1D4ED8;
   --slate: #57534E;
   --slate-soft: #E7E5E4;
   --clay: #BE123C;
   --sky: #1D4ED8;
-  --success: #0F766E;
-  --success-soft: #ECFDF5;
+  --success: #1D4ED8;
+  --success-soft: #EEF3FF;
   color-scheme: light;
 }
 
@@ -29,13 +29,13 @@ html.dark {
   --line: #44403C;
   --cobalt: #60A5FA;
   --cobalt-soft: #1E3A5F;
-  --moss: #2DD4BF;
+  --moss: #60A5FA;
   --slate: #A8A29E;
   --slate-soft: #292524;
   --clay: #FB7185;
   --sky: #60A5FA;
-  --success: #2DD4BF;
-  --success-soft: #134E4A;
+  --success: #60A5FA;
+  --success-soft: #1E3A5F;
   color-scheme: dark;
 }
 
@@ -60,7 +60,7 @@ html.dark {
   --color-danger-soft: color-mix(in srgb, var(--clay) 18%, var(--paper));
   --color-info: var(--sky);
   --font-sans: var(--font-geist), "Geist", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-sans);
+  --font-mono: var(--font-geist-mono), "Geist Mono", ui-monospace, monospace;
 }
 
 html, body {
@@ -91,7 +91,7 @@ html, body {
 
 .tabular,
 .num {
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
 }

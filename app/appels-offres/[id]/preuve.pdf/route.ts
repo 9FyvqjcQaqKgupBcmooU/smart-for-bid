@@ -14,6 +14,7 @@ export const runtime = "nodejs";
 
 function safeText(s: string) {
   // Helvetica (WinAnsi) cannot encode all Unicode; ASCII-fold for the PDF.
+  // Geist is not embedded: its ligatures (fi, tt) break copy/paste and pdftotext on the proof.
   return Array.from(s.normalize("NFKD"))
     .map((ch) => {
       const code = ch.codePointAt(0) ?? 0;
@@ -48,7 +49,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
       openings: { include: { officer: true }, orderBy: { createdAt: "asc" } },
     },
   });
-  if (!tender) return new NextResponse("Introuvable", { status: 404 });
+  if (!tender) return new NextResponse("Not found", { status: 404 });
   if (current.role === "VENDOR") {
     await logSealedDenied(id, current.id, "GET /appels-offres/[id]/preuve.pdf", "supplier_role");
     return new NextResponse("Forbidden", { status: 403 });
@@ -81,9 +82,10 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
   let page = pdf.addPage([595, 842]);
   let y = 800;
-  const ink = rgb(0.06, 0.09, 0.16);
-  const soft = rgb(0.4, 0.45, 0.52);
-  const cobalt = rgb(0.11, 0.3, 0.85);
+  const ink = rgb(28 / 255, 25 / 255, 23 / 255);
+  const soft = rgb(115 / 255, 112 / 255, 107 / 255);
+  const cobalt = rgb(29 / 255, 78 / 255, 216 / 255);
+  const clay = rgb(190 / 255, 18 / 255, 60 / 255);
 
   function ensure() {
     if (y < 60) {
@@ -108,9 +110,9 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   y -= 6;
   line("AO " + tender.number + " - " + tender.title, { bold: true, size: 12 });
   line("Status: " + tender.status);
-  line("Echeance : " + formatParisStamp(tender.deadline, "en"));
+  line("Deadline: " + formatParisStamp(tender.deadline, "en"));
   const budget = extractBudget(tender.briefing);
-  if (budget != null) line("Budget : " + budget.toLocaleString("en-GB") + " EUR");
+  if (budget != null) line("Budget: " + budget.toLocaleString("en-GB") + " EUR");
   line("Buyer: " + tender.createdBy.name + " / " + tender.createdBy.company.name);
   line("Key holders: " + tender.keyAUser.name + " (key A) / " + tender.keyBUser.name + " (key B)");
   if (tender.openedAt) line("Opened: " + formatParisStamp(tender.openedAt, "en"));
@@ -122,7 +124,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   y -= 6;
   line("Integrity: " + (verify.ok ? "Chain intact" : "Chain broken"), {
     bold: true,
-    color: verify.ok ? rgb(0.06, 0.46, 0.43) : rgb(0.72, 0.11, 0.11),
+    color: verify.ok ? cobalt : clay,
   });
   line("Tip hash: " + verify.tipHash, { size: 8 });
   y -= 8;
@@ -153,7 +155,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
   y -= 6;
 
   const postBid = chain.filter((ev) => ev.action === "post_bid_change");
-  line("Post-bid changes: " + postBid.length, { bold: true, size: 11, color: postBid.length ? rgb(0.62, 0.25, 0.12) : ink });
+  line("Post-bid changes: " + postBid.length, { bold: true, size: 11, color: postBid.length ? clay : ink });
   for (const ev of postBid) {
     const d = parseDetails(ev.details);
     line("POST-BID CHANGE - " + (d.field ?? "") + " - " + formatParisStamp(ev.createdAt, "en") + " - " + ev.actorName + " - dossier v" + (d.version ?? "?"), { bold: true, size: 9 });

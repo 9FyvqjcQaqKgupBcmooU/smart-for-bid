@@ -59,7 +59,7 @@ export function OpeningHero({
                 <div className="text-[14px] font-semibold text-ink">{k.o.name}</div>
                 <div className="text-[12px] font-medium text-ink/65">{k.o.title ?? "Opening officer"}</div>
               </div>
-              <span className="inline-flex h-5 items-center rounded-full bg-[#ECFDF5] px-2 text-[10px] font-semibold text-cobalt">
+              <span className="inline-flex h-5 items-center rounded-lg bg-cobalt-soft px-2 text-[10px] font-semibold text-cobalt">
                 ● Authenticated
               </span>
             </div>

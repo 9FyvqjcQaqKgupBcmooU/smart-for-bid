@@ -41,7 +41,7 @@ export function ConditionsAccept({ items }: Props) {
   return (
     <div
       ref={rootRef}
-      className="rounded-md border border-cobalt/35 bg-cobalt-soft/35 px-2.5 py-2"
+      className="rounded-2xl border border-cobalt/30 bg-cobalt-soft/50 px-3.5 py-3"
       data-testid="non-negotiables-accept"
     >
       <h3 className="text-[13px] font-semibold leading-5 text-ink">Non-negotiable conditions</h3>

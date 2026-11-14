@@ -20,15 +20,15 @@ export default async function NewTender() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex min-h-11 shrink-0 items-center border-b border-line px-4 py-2">
-        <p className="text-[16px] font-semibold text-ink">{t(locale, "shell.newRfq")}</p>
+      <div className="flex shrink-0 items-center border-b border-line px-5 py-5 md:px-7">
+        <p className="text-[22px] font-semibold tracking-tight text-ink">{t(locale, "shell.newRfq")}</p>
       </div>
       <form action={createTender} className="flex min-h-0 flex-1 flex-col">
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
-          <div className="mx-auto grid max-w-2xl grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5 md:px-7">
+          <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
             <label className="col-span-full text-[14px]">
               {t(locale, "ao.title")}
-              <input name="title" required className="mt-0.5 min-h-10 w-full rounded-md border border-line bg-paper px-3 py-2 text-[14px]" />
+              <input name="title" required className="mt-1 min-h-10 w-full rounded-xl border border-line bg-paper px-3.5 py-2 text-[14px]" />
             </label>
             <DeadlineField name="deadline" defaultValue={local} locale={locale} label={t(locale, "ao.deadlineLabel")} />
             <fieldset className="text-[14px]">
@@ -53,7 +53,7 @@ export default async function NewTender() {
             </div>
           </div>
         </div>
-        <div className="flex shrink-0 justify-end border-t border-line px-4 py-2">
+        <div className="flex shrink-0 justify-end border-t border-line px-5 py-4 md:px-7">
           <button className={btnPrimary() + " min-h-10"}>{t(locale, "actions.saveDraft")}</button>
         </div>
       </form>

@@ -37,7 +37,7 @@ export function AuditJournal({
         </div>
         {showProof ? <Link
           href={`/appels-offres/${tenderId}/preuve.pdf`}
-          className="ml-auto inline-flex min-h-9 items-center rounded-full bg-cobalt px-3.5 text-[13px] font-semibold text-paper hover:opacity-90"
+          className="ml-auto inline-flex min-h-10 items-center rounded-xl bg-cobalt px-4 text-[13px] font-semibold text-paper hover:bg-cobalt/90"
         >
           {t(locale, "shell.exportProof")}
         </Link> : null}
@@ -66,7 +66,7 @@ export function AuditJournal({
               const vhash = d.hash ?? d.dossierHash;
               return (
             <li key={ev.id} data-action={ev.action} className={`grid grid-cols-[14px_1fr] gap-3 border-b border-line/70 py-3 last:border-0 ${isPost ? "-mx-2 rounded-lg border-danger/30 bg-danger-soft/60 px-2" : ""}`}>
-              <span className={`mt-1.5 h-2.5 w-2.5 rounded-full ${intact || ev.id !== brokenAt ? "bg-cobalt" : "bg-[#B91C1C]"}`} />
+              <span className={`mt-1.5 h-2.5 w-2.5 rounded-full ${intact || ev.id !== brokenAt ? "bg-cobalt" : "bg-clay"}`} />
               <div>
                 <p className={`text-[13px] font-semibold ${isPost || isDenied ? "text-danger" : "text-ink"}`}>
                   {actionTitle}
@@ -85,7 +85,7 @@ export function AuditJournal({
                 <p className="mt-0.5 text-[12px] font-medium text-ink/70">
                   {formatParisStamp(ev.createdAt, locale)} · {ev.actorName} · {ev.orgName}
                 </p>
-                <p className="num mt-2 break-all rounded-md bg-paper-2 px-2 py-1.5 text-[10px] font-medium text-ink/70">
+                <p className="num mt-2 break-all rounded-xl bg-paper-2 px-2 py-1.5 text-[10px] font-medium text-ink/70">
                   prev: {shortHash(ev.prevHash)} → hash: {ev.hash}
                 </p>
               </div>
@@ -94,7 +94,7 @@ export function AuditJournal({
           })}
           {display.length === 0 ? <p className="text-[13px] text-ink/65">No events.</p> : null}
         </ol>
-        <aside className="rounded-xl border border-line bg-paper p-4">
+        <aside className="rounded-2xl border border-line bg-paper p-5 shadow-[0_1px_2px_rgba(28,25,23,0.04),0_8px_20px_rgba(28,25,23,0.04)]">
           <h3 className="text-[13px] font-semibold text-ink">{t(locale, "shell.integrity")}</h3>
           <dl className="mt-3 space-y-2 text-[13px]">
             <div className="flex justify-between gap-3 border-b border-line/70 py-1.5">
@@ -107,7 +107,7 @@ export function AuditJournal({
             </div>
             <div className="flex justify-between gap-3 border-b border-line/70 py-1.5">
               <dt className="font-medium text-ink/65">Verification</dt>
-              <dd className={`font-semibold ${intact ? "text-[#0F766E]" : "text-[#B91C1C]"}`}>
+              <dd className={`font-semibold ${intact ? "text-cobalt" : "text-clay"}`}>
                 {intact ? t(locale, "shell.chainIntact") : t(locale, "shell.chainBroken")}
               </dd>
             </div>

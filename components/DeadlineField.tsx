@@ -37,7 +37,7 @@ export function DeadlineField({
           required
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="min-h-10 w-full rounded-md border border-line bg-paper px-3 py-2 text-[14px] num"
+          className="min-h-10 w-full rounded-xl border border-line bg-paper px-3 py-2 text-[14px] num"
         />
         <input
           type="time"
@@ -45,7 +45,7 @@ export function DeadlineField({
           required
           value={time}
           onChange={(e) => setTime(e.target.value)}
-          className="min-h-10 w-full rounded-md border border-line bg-paper px-3 py-2 text-[14px] num"
+          className="min-h-10 w-full rounded-xl border border-line bg-paper px-3 py-2 text-[14px] num"
         />
       </div>
       <input type="hidden" name={name} value={combined} />

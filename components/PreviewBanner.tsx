@@ -3,7 +3,7 @@ export function PreviewBanner() {
   if (process.env.VERCEL !== "1") return null;
   return (
     <div
-      className="border-b border-line bg-cobalt-soft px-3 py-2 text-[12px] leading-4 text-ink md:px-5"
+      className="border-b border-line/80 bg-cobalt-soft px-3 py-2.5 text-[12px] leading-4 text-ink md:px-6"
       data-testid="preview-isolated-db"
     >
       Preview environment — each server instance has its own demo database. The two-key

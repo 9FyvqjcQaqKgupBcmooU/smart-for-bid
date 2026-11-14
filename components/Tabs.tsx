@@ -21,7 +21,7 @@ export function Tabs({
     <div className="min-w-0">
       {useScroll ? (
         <div
-          className="flex w-full gap-1 overflow-x-auto rounded-full bg-paper-2 p-1 ring-1 ring-line/60 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex w-full gap-1 overflow-x-auto rounded-xl bg-paper-2 p-1 ring-1 ring-line/60 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           role="tablist"
         >
           {labels.map((l, idx) => (
@@ -32,7 +32,7 @@ export function Tabs({
               aria-selected={idx === i}
               onClick={() => setI(idx)}
               className={cn(
-                "relative z-10 shrink-0 whitespace-nowrap rounded-full px-3.5 py-2.5 text-[13px] md:min-h-9 md:py-2 md:text-[14px]",
+                "relative z-10 shrink-0 whitespace-nowrap rounded-xl px-3.5 py-2.5 text-[13px] md:min-h-9 md:py-2 md:text-[14px]",
                 idx === i ? "bg-paper font-semibold text-cobalt shadow-[0_1px_2px_rgba(15,23,42,0.08)]" : "font-medium text-ink-soft hover:text-ink"
               )}
             >
@@ -42,13 +42,13 @@ export function Tabs({
         </div>
       ) : (
         <div
-          className="relative grid w-full max-w-sm rounded-full bg-paper-2 p-1 ring-1 ring-line/60"
+          className="relative grid w-full max-w-sm rounded-xl bg-paper-2 p-1 ring-1 ring-line/60"
           style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))` }}
           role="tablist"
         >
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-y-1 left-1 rounded-full bg-paper shadow-[0_1px_2px_rgba(15,23,42,0.08)] transition-transform duration-200 ease-out"
+            className="pointer-events-none absolute inset-y-1 left-1 rounded-xl bg-paper shadow-[0_1px_2px_rgba(15,23,42,0.08)] transition-transform duration-200 ease-out"
             style={{
               width: `calc((100% - 0.5rem) / ${n})`,
               transform: `translateX(${i * 100}%)`,

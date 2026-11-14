@@ -60,7 +60,7 @@ export function PrefsMenu({
             <Link
               href="/parametres"
               onClick={() => setOpen(false)}
-              className="inline-flex min-h-11 min-w-11 items-center rounded-full px-3 text-[14px] text-ink-soft hover:bg-paper-2 hover:text-ink"
+              className="inline-flex min-h-10 min-w-10 items-center rounded-xl px-3 text-[14px] text-ink-soft hover:bg-paper-2 hover:text-ink"
             >
               {t(locale, "chrome.settings")}
             </Link>

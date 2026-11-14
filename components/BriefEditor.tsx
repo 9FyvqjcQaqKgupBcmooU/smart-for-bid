@@ -18,7 +18,7 @@ function wrapSelection(
 ) {
   const start = ta.selectionStart;
   const end = ta.selectionEnd;
-  const selected = ta.value.slice(start, end) || "texte";
+  const selected = ta.value.slice(start, end) || "text";
   const next = ta.value.slice(0, start) + before + selected + after + ta.value.slice(end);
   setValue(next);
   requestAnimationFrame(() => {
@@ -36,7 +36,7 @@ export function BriefEditor({ name = "briefing", defaultValue = "", rows = 10, r
   const fileRef = useRef<HTMLInputElement>(null);
 
   const btn =
-    "rounded-md border border-line bg-paper px-2 py-1 text-[13px] font-medium text-ink hover:bg-paper-2 min-h-10";
+    "rounded-xl border border-line bg-paper px-2.5 py-1 text-[13px] font-medium text-ink hover:bg-paper-2 min-h-10";
 
   async function onImport(file: File) {
     setBusy(true);
@@ -122,7 +122,7 @@ export function BriefEditor({ name = "briefing", defaultValue = "", rows = 10, r
         rows={rows}
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-full rounded-md border border-line bg-paper px-3 py-2 font-mono text-[14px] leading-5"
+        className="w-full rounded-xl border border-line bg-paper px-3.5 py-3 font-mono text-[14px] leading-6"
       />
       <p className="text-[12px] text-ink-soft">Markdown — headings, bold, lists, links, simple tables.</p>
     </div>

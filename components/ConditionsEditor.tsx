@@ -32,7 +32,7 @@ export function ConditionsEditor({ name = "nonNegotiables", defaultItems = [] }:
   return (
     <div className="text-[13px]" data-testid="conditions-editor">
       <input type="hidden" name={name} value={payload} />
-      <ul className="divide-y divide-line/70 rounded-md border border-line bg-paper">
+      <ul className="divide-y divide-line/70 rounded-xl border border-line bg-paper">
         {items.map((row, i) => (
           <li key={`${i}-${row.text.slice(0, 24)}`}>
             <label className="flex min-h-10 cursor-pointer items-start gap-2 px-2.5 py-1.5 md:min-h-[30px] md:py-1">
@@ -98,11 +98,11 @@ export function ConditionsEditor({ name = "nonNegotiables", defaultItems = [] }:
               }
             }}
             placeholder="New condition"
-            className="min-h-8 flex-1 rounded border border-line bg-paper px-2 text-[13px] leading-5"
+            className="min-h-8 flex-1 rounded-xl border border-line bg-paper px-2.5 text-[13px] leading-5"
           />
           <button
             type="button"
-            className="min-h-8 shrink-0 rounded border border-line px-2 text-[12px] font-medium"
+            className="min-h-8 shrink-0 rounded-xl border border-line px-2.5 text-[12px] font-medium"
             onClick={commitDraft}
           >
             Add

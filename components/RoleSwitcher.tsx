@@ -68,7 +68,7 @@ export function RoleSwitcher({
               <span className="block truncate text-[12px] text-ink-soft">{u.vendor.name}</span>
             ) : null}
           </span>
-          <span className="inline-flex shrink-0 items-center rounded-full bg-paper px-2 py-0.5 text-[12px] font-medium text-ink-soft">
+          <span className="inline-flex shrink-0 items-center rounded-lg bg-paper px-2 py-0.5 text-[12px] font-medium text-ink-soft">
             {roleLabel(locale, u.role)}
           </span>
         </button>
@@ -89,7 +89,7 @@ export function RoleSwitcher({
         {current ? (
           <>
             <span className="min-w-0 truncate">{firstName(current.name)}</span>
-            <span className="inline-flex shrink-0 items-center rounded-full bg-paper px-1.5 py-0.5 text-[11px] font-medium text-ink-soft sm:px-2 sm:text-[12px]">
+            <span className="inline-flex shrink-0 items-center rounded-lg bg-paper px-1.5 py-0.5 text-[11px] font-medium text-ink-soft sm:px-2 sm:text-[12px]">
               {roleShort(locale, current.role)}
             </span>
           </>

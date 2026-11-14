@@ -25,7 +25,7 @@ export function formatSpan(ms: number, locale: Locale, withMinutes = true) {
   return bits.join(" ");
 }
 
-/** Live countdown to an RFQ deadline, in IBM Plex Mono. */
+/** Live countdown to an RFQ deadline, in Geist Mono. */
 export function Countdown({
   deadline,
   locale,
